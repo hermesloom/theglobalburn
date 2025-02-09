@@ -28,8 +28,8 @@ export default function Home() {
       ) : (
         <ActionButton
           action={{
-            key: "join-bl",
-            label: "Join The Borderland 2025",
+            key: "join",
+            label: "Join now!",
             onClick: async () => {
               await apiPost(`/burn/${DEFAULT_PROJECT_SLUG}/join`);
               await reloadProfile();
