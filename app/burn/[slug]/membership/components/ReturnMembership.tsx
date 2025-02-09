@@ -19,15 +19,16 @@ export default function ReturnMembership() {
   if (
     +new Date() > +new Date(project?.burn_config.last_possible_transfer_at!)
   ) {
-    return (<>
-    
-    <Heading className="mt-12">Return your membership</Heading>
-    <p>The transfer window is now closed and you can no longer return your membership.</p>
-    
-    </>)
+    return (
+      <>
+        <Heading className="mt-12">Return your membership</Heading>
+        <p>
+          The transfer window is now closed and you can no longer return your
+          membership.
+        </p>
+      </>
+    );
   }
-
- 
 
   return (
     <>
@@ -40,8 +41,7 @@ export default function ReturnMembership() {
               project?.burn_config.last_possible_transfer_at!
             ).toLocaleString()}
           </b>
-          . Once you have clicked on "Return", the amount you
-          paid (
+          . Once you have clicked on "Return", the amount you paid (
           {formatMoney(
             project!.membership!.price,
             project!.membership!.price_currency
@@ -52,46 +52,48 @@ export default function ReturnMembership() {
           within 10 days.
         </p>
         <p>
-          The membership reluinquished will be released to the public in the open sale. Any Plus-1 memberships will remain in force.
+          The membership relinquished will be released to the public in the open
+          sale. Any +1 memberships will remain in force.
         </p>
-       
+
         <Input
-                  label="Type in exactly: I WANT TO RETURN"
-                  value={confirmReturn}
-                  onChange={(e) => setConfirmReturn(e.target.value)}
-                />
+          label="Type in exactly: I WANT TO RETURN"
+          value={confirmReturn}
+          onChange={(e) => setConfirmReturn(e.target.value)}
+        />
         <ActionButton
           color="primary"
-          isDisabled={confirmReturn!="I WANT TO RETURN"}
+          isDisabled={confirmReturn != "I WANT TO RETURN"}
           action={{
             key: "return-membership",
             label: "Return membership",
             onClick: {
-                        prompt: () =>
-                          prompt("You are about to return your membership. This can not be undone! Are you absolutely sure?", [
-                            {
-                              key: "confirmReturn",
-                              label: "Type in exactly again: I WANT TO RETURN",
-                              validate: (finalConfirm) => finalConfirm=="I WANT TO RETURN",
-                            }
-                          ]),
-                        handler: async (_, promptData) => {
-                          await apiPost(`/burn/${project?.slug}/return-membership`, {
-                            confirmReturn,
-                          });
-                          await reloadProfile();
-                          toast.success("Membership successfully returned!");
-                          return true;
-                        },
-                      },
-             /*a
-              */
-            }
-          }
+              prompt: () =>
+                prompt(
+                  "You are about to return your membership. This can not be undone! Are you absolutely sure?",
+                  [
+                    {
+                      key: "confirmReturn",
+                      label: "Type in exactly again: I WANT TO RETURN",
+                      validate: (finalConfirm) =>
+                        finalConfirm == "I WANT TO RETURN",
+                    },
+                  ]
+                ),
+              handler: async (_, promptData) => {
+                await apiPost(`/burn/${project?.slug}/return-membership`, {
+                  confirmReturn,
+                });
+                await reloadProfile();
+                toast.success("Membership successfully returned!");
+                return true;
+              },
+            },
+            /*a
+             */
+          }}
         />
-
       </div>
     </>
-    
   );
 }
