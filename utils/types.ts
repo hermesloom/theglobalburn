@@ -30,6 +30,7 @@ export type BurnConfig = {
   open_sale_general_starting_at: string;
   open_sale_reservation_duration: number;
   transfer_reservation_duration: number;
+  plus_one_reservation_duration: number;
   last_possible_transfer_at: string;
   max_memberships: number;
   membership_price_currency: string;
