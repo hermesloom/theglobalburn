@@ -23,7 +23,7 @@ export default function TransferMembership() {
      return (<>
         
         <Heading className="mt-12">Transfer your membership</Heading>
-        <p>The transfer window is now closed and you can no longer transfer your membership.</p>
+        <p>The transfer window is not open and you can not transfer your membership.</p>
         
         </>)
   }

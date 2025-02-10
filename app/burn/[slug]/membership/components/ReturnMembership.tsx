@@ -22,7 +22,7 @@ export default function ReturnMembership() {
     return (<>
     
     <Heading className="mt-12">Return your membership</Heading>
-    <p>The transfer window is now closed and you can no longer return your membership.</p>
+    <p>The transfer window is not open and you can not return your membership.</p>
     
     </>)
   }

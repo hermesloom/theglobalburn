@@ -113,3 +113,8 @@ export async function getUserIdByEmail(
     .single();
   return data?.id;
 }
+
+export async function getProjectQuestions(supabase: SupabaseClient) {
+  const { data } = await supabase.from("questions").select("*");
+  return data;
+}
