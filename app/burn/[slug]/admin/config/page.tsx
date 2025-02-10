@@ -39,6 +39,9 @@ export default function ConfigPage() {
     useState(
       (project!.burn_config.transfer_reservation_duration ?? 0).toString()
     );
+  const [plusOneReservationDuration, setPlusOneReservationDuration] = useState(
+    (project!.burn_config.plus_one_reservation_duration ?? 0).toString()
+  );
   const [lastPossibleTransferAt, setLastPossibleTransferAt] = useState(
     project!.burn_config.last_possible_transfer_at ?? ""
   );
@@ -84,6 +87,7 @@ export default function ConfigPage() {
     isISODate(openSaleGeneralStartingAt) &&
     isNumber(openSaleReservationDuration) &&
     isNumber(transferReservationDuration) &&
+    isNumber(plusOneReservationDuration) &&
     isNumber(maxMemberships) &&
     /^[A-Z]{3}$/.test(membershipPriceCurrency) &&
     ["tiered-3"].includes(membershipPricingType) &&
@@ -110,6 +114,7 @@ export default function ConfigPage() {
       ).toISOString(),
       open_sale_reservation_duration: parseInt(openSaleReservationDuration),
       transfer_reservation_duration: parseInt(transferReservationDuration),
+      plus_one_reservation_duration: parseInt(plusOneReservationDuration),
       last_possible_transfer_at: new Date(lastPossibleTransferAt).toISOString(),
       max_memberships: parseInt(maxMemberships),
       membership_price_currency: membershipPriceCurrency,
@@ -159,6 +164,11 @@ export default function ConfigPage() {
           label="transfer_reservation_duration"
           value={transferReservationDuration}
           onValueChange={setTransferReservationDuration}
+        />
+        <Input
+          label="plus_one_reservation_duration"
+          value={plusOneReservationDuration}
+          onValueChange={setPlusOneReservationDuration}
         />
         <Input
           label="last_possible_transfer_at"

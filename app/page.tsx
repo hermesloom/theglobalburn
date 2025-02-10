@@ -7,6 +7,8 @@ import ActionButton from "@/app/_components/ActionButton";
 import { apiPost } from "@/app/_components/api";
 import { useSession } from "@/app/_components/SessionContext";
 
+const DEFAULT_PROJECT_SLUG = "demo-burn";
+
 export default function Home() {
   const { profile, reloadProfile } = useSession();
   const router = useRouter();
@@ -14,20 +16,22 @@ export default function Home() {
   return (
     <div className="h-screen flex flex-col items-center justify-center">
       <div className="text-8xl mb-4">❤️‍🔥</div>
-      {profile?.projects.find((p) => p.slug === "the-borderland-2025") ? (
+      {profile?.projects.find((p) => p.slug === DEFAULT_PROJECT_SLUG) ? (
         <Button
           color="primary"
-          onPress={() => router.push("/burn/the-borderland-2025/membership")}
+          onPress={() =>
+            router.push(`/burn/${DEFAULT_PROJECT_SLUG}/membership`)
+          }
         >
           Go to my membership
         </Button>
       ) : (
         <ActionButton
           action={{
-            key: "join-bl",
-            label: "Join The Borderland 2025",
+            key: "join",
+            label: "Join now!",
             onClick: async () => {
-              await apiPost("/burn/the-borderland-2025/join");
+              await apiPost(`/burn/${DEFAULT_PROJECT_SLUG}/join`);
               await reloadProfile();
             },
           }}

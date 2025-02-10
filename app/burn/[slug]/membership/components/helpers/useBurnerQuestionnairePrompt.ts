@@ -15,11 +15,11 @@ export const useBurnerQuestionnairePrompt = () => {
   useEffect(() => {
     const fetchQuestions = async () => {
       const questions = await apiGet(`/burn/${project?.slug}/questions`);
-      const mappedQuestions = questions.data.map((q) => ({
+      const mappedQuestions = questions.data.map((q: any) => ({
         key: q.question_id,
         label: q.question_text,
       }));
-      console.log(mappedQuestions)
+      console.log(mappedQuestions);
       setListOfQuestions(mappedQuestions);
     };
 

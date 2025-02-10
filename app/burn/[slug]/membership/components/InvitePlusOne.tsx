@@ -32,7 +32,10 @@ export default function InvitePlusOne() {
               project.burn_config.open_sale_lottery_entrants_only_starting_at
             ).toLocaleString()}
           </b>
-          . The recipient must be registered on this platform.
+          . The recipient must be registered on this platform. Once you have
+          invited a +1, they will have{" "}
+          {project.burn_config.plus_one_reservation_duration / (60 * 60)} hours
+          to purchase a membership.
         </p>
         <Input
           label="Email address of the intended recipient"

@@ -16,16 +16,19 @@ export default function TransferMembership() {
   const [email, setEmail] = useState("");
   const [confirmTransfer, setTransfer] = useState("");
   const prompt = usePrompt();
-  
+
   if (
     +new Date() > +new Date(project?.burn_config.last_possible_transfer_at!)
   ) {
-     return (<>
-        
+    return (
+      <>
         <Heading className="mt-12">Transfer your membership</Heading>
+
         <p>The transfer window is not open and you can not transfer your membership.</p>
         
         </>)
+
+       
   }
 
   return (
@@ -70,37 +73,43 @@ export default function TransferMembership() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-         <Input
+        <Input
           label="Type in exactly: I WANT TO TRANSFER"
           value={confirmTransfer}
           onChange={(e) => setTransfer(e.target.value)}
         />
-        
+
         <ActionButton
           color="primary"
-          isDisabled={!isEmail(email) && confirmTransfer!="I WANT TO TRANSFER"}
+          isDisabled={
+            !isEmail(email) || confirmTransfer !== "I WANT TO TRANSFER"
+          }
           action={{
             key: "transfer-membership",
             label: "Transfer",
             onClick: {
               prompt: () =>
-                prompt("You are about to return your membership. This can not be undone! Are you absolutely sure?", [
-                  {
-                    key: "confirmReturn",
-                    label: "Type in one more time: I WANT TO TRANSFER",
-                    validate: (finalConfirm) => finalConfirm=="I WANT TO TRANSFER",
-                  }
-                ]),
+                prompt(
+                  "You are about to return your membership. This can not be undone! Are you absolutely sure?",
+                  [
+                    {
+                      key: "confirmReturn",
+                      label: "Type in one more time: I WANT TO TRANSFER",
+                      validate: (finalConfirm) =>
+                        finalConfirm == "I WANT TO TRANSFER",
+                    },
+                  ]
+                ),
               handler: async (_, promptData) => {
                 await apiPost(`/burn/${project?.slug}/transfer-membership`, {
-                  email, confirmTransfer,
+                  email,
+                  confirmTransfer,
                 });
                 await reloadProfile();
                 toast.success("Membership successfully transfered!");
                 return true;
               },
             },
-           
           }}
         />
       </div>
