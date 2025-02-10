@@ -100,3 +100,11 @@ export type Profile = {
   is_admin: boolean;
   projects: Project[];
 };
+export type Question= {
+ 
+    
+    id: string;
+    project_id: string;
+    question_id: string;
+    question_text: string | null;
+}

@@ -19,15 +19,14 @@ export default function ReturnMembership() {
   if (
     +new Date() > +new Date(project?.burn_config.last_possible_transfer_at!)
   ) {
-    return (
-      <>
-        <Heading className="mt-12">Return your membership</Heading>
-        <p>
-          The transfer window is now closed and you can no longer return your
-          membership.
-        </p>
-      </>
-    );
+
+    return (<>
+    
+    <Heading className="mt-12">Return your membership</Heading>
+    <p>The transfer window is not open and you can not return your membership.</p>
+    
+    </>)
+
   }
 
   return (
