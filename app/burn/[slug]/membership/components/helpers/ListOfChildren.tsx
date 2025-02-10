@@ -22,11 +22,11 @@ export default function ListOfChildren({ data }: { data: Child[] }) {
   const childColumns= [
    
     {
-      key: "firstName",
+      key: "first_name",
       label: "First name",
     },
     {
-      key: "lastName",
+      key: "last_name",
       label: "Last name",
     },
     {
@@ -58,12 +58,12 @@ export default function ListOfChildren({ data }: { data: Child[] }) {
                                   prompt: () =>
                                     prompt("Enter the details of the child", [
                                       {
-                                        key: "firstName",
+                                        key: "first_name",
                                         label: "First name",
                                         
                                       },
                                       {
-                                        key: "lastName",
+                                        key: "last_name",
                                         label: "Last name",
                                         
                                       },
@@ -75,14 +75,14 @@ export default function ListOfChildren({ data }: { data: Child[] }) {
                                     ]),
                                   handler: async (_, promptData) => {
                                     console.log(promptData);
-                                    if (promptData && 'firstName' in promptData && 'lastName' in promptData && 'dob' in promptData) {
+                                    if (promptData && 'first_name' in promptData && 'last_name' in promptData && 'dob' in promptData) {
                                       console.log("ready to set promtData as Child");
                                       promptData["key"]= uuidv4();
                                       setChildren([...children, promptData]);
                                       await apiPatch(`/burn/${project.slug}/manage-children`, {
                                         key:promptData.key,
-                                        first_name:promptData.firstName,
-                                        last_name: promptData.lastName,
+                                        first_name:promptData.first_name,
+                                        last_name: promptData.last_name,
                                         dob: promptData.dob
                                        });
                                       
