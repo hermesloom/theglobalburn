@@ -3,55 +3,53 @@ import { Table, Input, TableColumn, TableHeader, TableBody, TableCell, TableRow 
 import Heading from '@/app/_components/Heading';
 import { usePrompt } from '@/app/_components/PromptContext';
 import ActionButton from '@/app/_components/ActionButton';
-
+import BasicTable from '@/app/_components/BasicTable';
+import {v4 as uuidv4} from 'uuid';
+import { apiPatch, apiPost } from '@/app/_components/api';
+import { useProject } from '@/app/_components/SessionContext';
+import { last } from 'lodash';
 export interface Child {
+  key:  string | (readonly string[] & string) | undefined;
   firstName: string | (readonly string[] & string) | undefined;
   lastName: string | (readonly string[] & string) | undefined;
   dob: string | (readonly string[] & string) | undefined;
+  
 }
 
 export default function ListOfChildren({ data }: { data: Child[] }) {
   const [children, setChildren] = useState(data);
-
+ const { project, reloadProfile } = useProject();
+  const childColumns= [
+   
+    {
+      key: "firstName",
+      label: "First name",
+    },
+    {
+      key: "lastName",
+      label: "Last name",
+    },
+    {
+      key: "dob",
+      label: "Date of birth",
+    },
+  ];
   interface ListOfChildrenProps {
     data: Child[];
   }
 
-  const handleInputChange = (index: number, field: keyof Child, value: string) => {
-    const newChildren = [...children];
-    newChildren[index][field] = value;
-    setChildren(newChildren);
-  };
+ 
   const prompt = usePrompt();
+  
+  console.log(children);
   return (
-    <><Heading className="mt-12">Children</Heading><Table>
-      <TableHeader>
-        <TableColumn>First name</TableColumn>
-        <TableColumn>Last name</TableColumn>
-        <TableColumn>Date of birth</TableColumn>
-      </TableHeader>
-      <TableBody>
-        {children.map((child: { firstName: string | (readonly string[] & string) | undefined; lastName: string | (readonly string[] & string) | undefined; dob: string | (readonly string[] & string) | undefined; }, index: React.Key | null | undefined) => (
-          <TableRow key={index}>
-            <TableCell>
-              <Input
-                value={child.firstName}
-                onChange={(e) => handleInputChange(index as number, 'firstName', e.target.value)} />
-            </TableCell>
-            <TableCell>
-              <Input
-                value={child.lastName}
-                onChange={(e) => handleInputChange(index as number, 'lastName', e.target.value)} />
-            </TableCell>
-            <TableCell>
-              <Input
-                value={child.dob}
-                onChange={(e) => handleInputChange(index as number, 'dob', e.target.value)} />
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <> <BasicTable
+              data={children}
+              columns={childColumns}
+              rowsPerPage={10}
+              ariaLabel={`Children`}
+              
+            />
       <ActionButton
                     action={{
                       key: "addChild",
@@ -78,7 +76,16 @@ export default function ListOfChildren({ data }: { data: Child[] }) {
                                   handler: async (_, promptData) => {
                                     console.log(promptData);
                                     if (promptData && 'firstName' in promptData && 'lastName' in promptData && 'dob' in promptData) {
-                                      setChildren([...children, promptData as Child]);
+                                      console.log("ready to set promtData as Child");
+                                      promptData["key"]= uuidv4();
+                                      setChildren([...children, promptData]);
+                                      await apiPatch(`/burn/${project.slug}/manage-children`, {
+                                        key:promptData.key,
+                                        first_name:promptData.firstName,
+                                        last_name: promptData.lastName,
+                                        dob: promptData.dob
+                                       });
+                                      
                                     }
                                     return true;
                                   },
