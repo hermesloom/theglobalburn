@@ -43,7 +43,9 @@ export default function ListOfChildren({ data }: { data: Child[] }) {
   
   console.log(children);
   return (
-    <> <BasicTable
+    <> 
+    <Heading className="mt-12">Accompanying children</Heading>
+    <BasicTable
               data={children}
               columns={childColumns}
               rowsPerPage={10}
