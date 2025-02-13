@@ -10,7 +10,7 @@ export async function getProfile(
     supabase
       .from("profiles")
       .select(
-        "*, role_assignments(roles(name, project_id)), burn_lottery_tickets(*), burn_membership_purchase_rights(*), burn_memberships(*)"
+        "*, role_assignments(roles(name, project_id)), burn_lottery_tickets(*), burn_membership_purchase_rights(*), burn_memberships(*), burn_membership_details_change_requests(*)"
       )
       .eq("id", userId)
       .single()
@@ -52,6 +52,12 @@ export async function getProfile(
     project.membership = bm;
   }
   delete profile.burn_memberships;
+
+  for (const bmdcr of profile.burn_membership_details_change_requests) {
+    const project: Project = projects.find((p: any) => p.id === bmdcr.project_id);
+    project.membership_details_change_request = bmdcr;
+  }
+  delete profile.burn_membership_details_change_requests;
 
   return { ...profile, projects };
 }
