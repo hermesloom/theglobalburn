@@ -43,19 +43,30 @@ export default function TransferMembership() {
               project?.burn_config.last_possible_transfer_at!,
             ).toLocaleString()}
           </b>
-          . The recipient must be registered on this platform. Once you have
-          entered their email address and clicked on "Transfer", the amount you
-          paid (
-          {formatMoney(
-            project!.membership!.price,
-            project!.membership!.price_currency,
-          )}
-          ) will be automatically refunded onto the credit card you used to
-          purchase your membership; you therefore don't need to exchange any
-          money with the recipient. Please notify the membership team through
-          the email address mentioned below in case you don't receive the refund
-          within 10 days.
+          . This is how it works:
         </p>
+        <ol className="list-decimal ml-8">
+          <li>The recipient must be registered on this platform.</li>
+          <li>
+            Enter the email address with which the recipient is registered here,
+            type in the confirmation messages and click on 'Transfer'.
+          </li>
+          <li>
+            The amount you paid (
+            {formatMoney(
+              project!.membership!.price,
+              project!.membership!.price_currency,
+            )}
+            ) will be automatically refunded onto the credit card you used to
+            purchase your membership; you therefore don't need to exchange any
+            money with the recipient. Please notify the membership team through
+            the email address mentioned below in case you don't receive the
+            refund within 10 days.
+          </li>
+          <li>
+            The recipient needs to buy the membership by themselves again.
+          </li>
+        </ol>
         <p>
           The recipient must purchase the membership within{" "}
           {project?.burn_config.transfer_reservation_duration! / (60 * 60 * 24)}{" "}
