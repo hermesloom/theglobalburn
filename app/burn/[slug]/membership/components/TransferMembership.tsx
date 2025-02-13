@@ -92,7 +92,7 @@ export default function TransferMembership() {
             onClick: {
               prompt: () =>
                 prompt(
-                  "You are about to return your membership. This can not be undone! Are you absolutely sure?",
+                  `You are about to transfer your membership to ${email}. This cannot be undone! Are you absolutely sure?`,
                   [
                     {
                       key: "confirmReturn",
