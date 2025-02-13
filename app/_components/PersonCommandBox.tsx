@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
-import { Command } from 'cmdk';
-import { Input, Card, CardBody, Spinner, Button } from '@nextui-org/react';
-import { useProject } from './SessionContext';
-import { apiPost } from './api';
-import { usePrompt } from './PromptContext';
+import { Command } from "cmdk";
+import { Input, Card, CardBody, Spinner, Button } from "@nextui-org/react";
+import { useProject } from "./SessionContext";
+import { apiPost } from "./api";
+import { usePrompt } from "./PromptContext";
 
 export default function PersonCommandBox() {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const { project, reloadProfile } = useProject();
   const prompt = usePrompt();
-  
+
   useEffect(() => {
     if (query.length === 0) {
       setResults([]);
@@ -24,14 +24,14 @@ export default function PersonCommandBox() {
       setLoading(true);
       try {
         const response = await apiPost(
-                        `/burn/${project?.slug}/admin/member-search`,
-                        {q:query}
-                      );
-        
+          `/burn/${project?.slug}/admin/member-search`,
+          { q: query },
+        );
+
         const data = await response.data;
         setResults(data);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
@@ -47,7 +47,7 @@ export default function PersonCommandBox() {
     if (!isOpen) setIsOpen(true);
   };
 
-  const handleSelect = async (membership) => {
+  const handleSelect = async (membership: any) => {
     await prompt(
       <div className="flex flex-col gap-2">
         <span>Metadata for {membership?.email}</span>
@@ -56,7 +56,7 @@ export default function PersonCommandBox() {
         </pre>
       </div>,
       undefined,
-      "Close"
+      "Close",
     );
   };
 
@@ -68,7 +68,11 @@ export default function PersonCommandBox() {
           placeholder="Type to search for a person..."
           value={query}
           onChange={handleInputChange}
-          startContent={<Button isIconOnly variant="light">🔍</Button>}
+          startContent={
+            <Button isIconOnly variant="light">
+              🔍
+            </Button>
+          }
         />
       </div>
 
@@ -85,8 +89,8 @@ export default function PersonCommandBox() {
               {!loading && results.length > 0 && (
                 <Command.List>
                   {results.map((person, index) => (
-                    <Command.Item 
-                      key={index} 
+                    <Command.Item
+                      key={index}
                       className="cursor-pointer p-2 hover:bg-gray-100 rounded"
                       onSelect={() => handleSelect(person)}
                     >
@@ -97,7 +101,9 @@ export default function PersonCommandBox() {
               )}
 
               {!loading && query.length > 0 && results.length === 0 && (
-                <div className="text-center text-gray-500">No results found</div>
+                <div className="text-center text-gray-500">
+                  No results found
+                </div>
               )}
             </Command>
           </CardBody>
