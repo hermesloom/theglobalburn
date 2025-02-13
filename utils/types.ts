@@ -26,6 +26,8 @@ export type BurnMembershipAddon = {
 export type BurnConfig = {
   id: string;
   current_stage: BurnStage;
+  lottery_opens_at: string;
+  lottery_closes_at: string;
   open_sale_lottery_entrants_only_starting_at: string;
   open_sale_general_starting_at: string;
   open_sale_reservation_duration: number;
@@ -100,11 +102,9 @@ export type Profile = {
   is_admin: boolean;
   projects: Project[];
 };
-export type Question= {
- 
-    
-    id: string;
-    project_id: string;
-    question_id: string;
-    question_text: string | null;
-}
+export type Question = {
+  id: string;
+  project_id: string;
+  question_id: string;
+  question_text: string | null;
+};

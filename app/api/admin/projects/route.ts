@@ -18,24 +18,30 @@ export const POST = requestWithAuthAdmin<
   const { name, type, slug } = body;
 
   const project = await query(() =>
-    supabase.from("projects").insert({ name, type, slug }).select().single()
+    supabase.from("projects").insert({ name, type, slug }).select().single(),
   );
 
   await query(() =>
     supabase.from("burn_config").insert({
       project_id: project.id,
       current_stage: BurnStage.LotteryOpen,
+      lottery_opens_at: new Date(
+        new Date().getTime() + 1000 * 60 * 60 * 12,
+      ).toISOString(),
+      lottery_closes_at: new Date(
+        new Date().getTime() + 1000 * 60 * 60 * 18,
+      ).toISOString(),
       open_sale_lottery_entrants_only_starting_at: new Date(
-        new Date().getTime() + 1000 * 60 * 60 * 24
+        new Date().getTime() + 1000 * 60 * 60 * 24,
       ).toISOString(),
       open_sale_general_starting_at: new Date(
-        new Date().getTime() + 1000 * 60 * 60 * 24 * 2
+        new Date().getTime() + 1000 * 60 * 60 * 24 * 2,
       ).toISOString(),
       open_sale_reservation_duration: 60 * 30, // 30 minutes
       transfer_reservation_duration: 60 * 60 * 24 * 7, // 7 days
       plus_one_reservation_duration: 60 * 60 * 72, // 72 hours
       last_possible_transfer_at: new Date(
-        new Date().getTime() + 1000 * 60 * 60 * 24 * 7
+        new Date().getTime() + 1000 * 60 * 60 * 24 * 7,
       ).toISOString(),
       max_memberships: 4603,
       membership_price_currency: "SEK",
@@ -53,7 +59,7 @@ export const POST = requestWithAuthAdmin<
           price: 600,
         },
       ],
-    })
+    }),
   );
 
   const initialRoles = [
@@ -72,14 +78,14 @@ export const POST = requestWithAuthAdmin<
           name: role,
         })
         .select()
-        .single()
+        .single(),
     );
 
     await query(() =>
       supabase.from("role_assignments").insert({
         user_id: profile.id,
         role_id: newRole.id,
-      })
+      }),
     );
   }
 }, CreateProjectRequestSchema);

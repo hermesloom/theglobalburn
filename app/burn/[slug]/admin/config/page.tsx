@@ -20,69 +20,77 @@ export default function ConfigPage() {
   const { project, updateBurnConfig } = useProject();
   const [isLoading, setIsLoading] = useState(false);
   const [currentStage, setCurrentStage] = useState(
-    project!.burn_config.current_stage
+    project!.burn_config.current_stage,
+  );
+  const [lotteryOpensAt, setLotteryOpensAt] = useState(
+    project!.burn_config.lottery_opens_at ?? "",
+  );
+  const [lotteryClosesAt, setLotteryClosesAt] = useState(
+    project!.burn_config.lottery_closes_at ?? "",
   );
   const [
     openSaleLotteryEntrantsOnlyStartingAt,
     setOpenSaleLotteryEntrantsOnlyStartingAt,
   ] = useState(
-    project!.burn_config.open_sale_lottery_entrants_only_starting_at ?? ""
+    project!.burn_config.open_sale_lottery_entrants_only_starting_at ?? "",
   );
   const [openSaleGeneralStartingAt, setOpenSaleGeneralStartingAt] = useState(
-    project!.burn_config.open_sale_general_starting_at ?? ""
+    project!.burn_config.open_sale_general_starting_at ?? "",
   );
   const [openSaleReservationDuration, setOpenSaleReservationDuration] =
     useState(
-      (project!.burn_config.open_sale_reservation_duration ?? 0).toString()
+      (project!.burn_config.open_sale_reservation_duration ?? 0).toString(),
     );
   const [transferReservationDuration, setTransferReservationDuration] =
     useState(
-      (project!.burn_config.transfer_reservation_duration ?? 0).toString()
+      (project!.burn_config.transfer_reservation_duration ?? 0).toString(),
     );
   const [plusOneReservationDuration, setPlusOneReservationDuration] = useState(
-    (project!.burn_config.plus_one_reservation_duration ?? 0).toString()
+    (project!.burn_config.plus_one_reservation_duration ?? 0).toString(),
   );
   const [lastPossibleTransferAt, setLastPossibleTransferAt] = useState(
-    project!.burn_config.last_possible_transfer_at ?? ""
+    project!.burn_config.last_possible_transfer_at ?? "",
   );
   const [maxMemberships, setMaxMemberships] = useState(
-    (project!.burn_config.max_memberships ?? 0).toString()
+    (project!.burn_config.max_memberships ?? 0).toString(),
   );
   const [membershipPriceCurrency, setMembershipPriceCurrency] = useState(
-    project!.burn_config.membership_price_currency ?? ""
+    project!.burn_config.membership_price_currency ?? "",
   );
   const [membershipPricingType, setMembershipPricingType] = useState(
-    project!.burn_config.membership_pricing_type
+    project!.burn_config.membership_pricing_type,
   );
   const [membershipPriceTier1, setMembershipPriceTier1] = useState(
-    (project!.burn_config.membership_price_tier_1 ?? 0).toString()
+    (project!.burn_config.membership_price_tier_1 ?? 0).toString(),
   );
   const [membershipPriceTier2, setMembershipPriceTier2] = useState(
-    (project!.burn_config.membership_price_tier_2 ?? 0).toString()
+    (project!.burn_config.membership_price_tier_2 ?? 0).toString(),
   );
   const [membershipPriceTier3, setMembershipPriceTier3] = useState(
-    (project!.burn_config.membership_price_tier_3 ?? 0).toString()
+    (project!.burn_config.membership_price_tier_3 ?? 0).toString(),
   );
   const [shareMembershipsLottery, setShareMembershipsLottery] = useState(
-    (project!.burn_config.share_memberships_lottery ?? 0).toString()
+    (project!.burn_config.share_memberships_lottery ?? 0).toString(),
   );
   const [shareMembershipsLowIncome, setShareMembershipsLowIncome] = useState(
-    (project!.burn_config.share_memberships_low_income ?? 0).toString()
+    (project!.burn_config.share_memberships_low_income ?? 0).toString(),
   );
   const [membershipAddons, setMembershipAddons] = useState(
-    JSON.stringify(project!.burn_config.membership_addons ?? [])
+    JSON.stringify(project!.burn_config.membership_addons ?? []),
   );
   const [stripeSecretApiKey, setStripeSecretApiKey] = useState(
-    project!.burn_config.stripe_secret_api_key ?? ""
+    project!.burn_config.stripe_secret_api_key ?? "",
   );
   const [stripeWebhookSecret, setStripeWebhookSecret] = useState(
-    project!.burn_config.stripe_webhook_secret ?? ""
+    project!.burn_config.stripe_webhook_secret ?? "",
   );
 
   const isISODate = (date: string | null) => date && !isNaN(Date.parse(date));
   const isNumber = (value: string) => !isNaN(parseInt(value));
   const isAllValid =
     Object.values(BurnStage).includes(currentStage) &&
+    isISODate(lotteryOpensAt) &&
+    isISODate(lotteryClosesAt) &&
     isISODate(openSaleLotteryEntrantsOnlyStartingAt) &&
     isISODate(openSaleGeneralStartingAt) &&
     isNumber(openSaleReservationDuration) &&
@@ -106,11 +114,13 @@ export default function ConfigPage() {
     setIsLoading(true);
     const newConfig = {
       current_stage: currentStage,
+      lottery_opens_at: new Date(lotteryOpensAt).toISOString(),
+      lottery_closes_at: new Date(lotteryClosesAt).toISOString(),
       open_sale_lottery_entrants_only_starting_at: new Date(
-        openSaleLotteryEntrantsOnlyStartingAt
+        openSaleLotteryEntrantsOnlyStartingAt,
       ).toISOString(),
       open_sale_general_starting_at: new Date(
-        openSaleGeneralStartingAt
+        openSaleGeneralStartingAt,
       ).toISOString(),
       open_sale_reservation_duration: parseInt(openSaleReservationDuration),
       transfer_reservation_duration: parseInt(transferReservationDuration),
@@ -144,6 +154,16 @@ export default function ConfigPage() {
           label="current_stage"
           value={currentStage}
           onValueChange={(x) => setCurrentStage(x as BurnStage)}
+        />
+        <Input
+          label="lottery_opens_at"
+          value={lotteryOpensAt}
+          onValueChange={setLotteryOpensAt}
+        />
+        <Input
+          label="lottery_closes_at"
+          value={lotteryClosesAt}
+          onValueChange={setLotteryClosesAt}
         />
         <Input
           label="open_sale_lottery_entrants_only_starting_at"

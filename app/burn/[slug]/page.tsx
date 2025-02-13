@@ -10,28 +10,28 @@ export default function ProjectPage() {
 
   const timelineEvents = [
     {
-      date: "TBD",
+      date: new Date(project?.burn_config.lottery_opens_at!).toLocaleString(),
       title: "Membership lottery signup opens",
     },
     {
-      date: "TBD",
+      date: new Date(project?.burn_config.lottery_closes_at!).toLocaleString(),
       title: "Lottery is drawn and winners can buy their membership",
     },
     {
       date: new Date(
-        project?.burn_config.open_sale_lottery_entrants_only_starting_at!
+        project?.burn_config.open_sale_lottery_entrants_only_starting_at!,
       ).toLocaleString(),
       title: "Open sale opens for those who entered the lottery but didn't win",
     },
     {
       date: new Date(
-        project?.burn_config.open_sale_general_starting_at!
+        project?.burn_config.open_sale_general_starting_at!,
       ).toLocaleString(),
       title: "Open sale and transfers open for everyone",
     },
     {
       date: new Date(
-        project?.burn_config.last_possible_transfer_at!
+        project?.burn_config.last_possible_transfer_at!,
       ).toLocaleString(),
       title: "Open sale and transfers close",
     },
