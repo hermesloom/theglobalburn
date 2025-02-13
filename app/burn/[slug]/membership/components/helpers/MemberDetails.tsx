@@ -4,7 +4,6 @@ import React from "react";
 import { Input } from "@nextui-org/react";
 import { LockOutlined } from "@ant-design/icons";
 import { LowIncomeQuestionnaireResult } from "./useLowIncomeQuestionnaire";
-import ListOfChildren from "./ListOfChildren";
 import { Child } from "./ListOfChildren";
 
 export type MemberDetailsData = {
@@ -14,7 +13,7 @@ export type MemberDetailsData = {
   is_low_income?: boolean;
   metadata?: {
     low_income_questionnaire_result?: LowIncomeQuestionnaireResult;
-    children: Child[];
+    children?: Child[];
   };
 };
 
