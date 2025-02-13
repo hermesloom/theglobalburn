@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button } from "@nextui-org/react";
+import { Alert, Button } from "@nextui-org/react";
 import { apiDelete } from "@/app/_components/api";
 import { useProject } from "@/app/_components/SessionContext";
 import toast from "react-hot-toast";
@@ -13,6 +13,17 @@ export default function LotteryOpenEntered() {
 
   return (
     <div className="flex flex-col gap-4">
+      <Alert color="warning" title="Important!">
+        <span>
+          You will not receive any emails about the lottery on whether you won
+          or not. Instead, on{" "}
+          <b>
+            {new Date(project?.burn_config.lottery_closes_at!).toLocaleString()}
+          </b>
+          , please check this page again to see whether you won. Mark it in your
+          calendar to not miss it!
+        </span>
+      </Alert>
       <MemberDetails data={project?.lottery_ticket!} />
       <div className="flex flex-col gap-2">
         <Button color="success" isDisabled>
