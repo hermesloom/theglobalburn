@@ -3,10 +3,14 @@ import { s } from "ajv-ts";
 import { BurnRole } from "@/utils/types";
 
 const UpdateChildRequestSchema = s.object({
-  key: s.string(),
-  first_name: s.string(),
-  last_name: s.string(),
-  dob: s.string(),
+  children: s.array(
+    s.object({
+      key: s.string(),
+      first_name: s.string(),
+      last_name: s.string(),
+      dob: s.string(),
+    }),
+  ),
 });
 
 export const PATCH = requestWithProject<
@@ -18,7 +22,7 @@ export const PATCH = requestWithProject<
     if (newMetaData["children"] === undefined) {
       newMetaData["children"] = [];
     }
-    newMetaData["children"].push(body);
+    newMetaData["children"] = body.children;
 
     await query(() =>
       supabase

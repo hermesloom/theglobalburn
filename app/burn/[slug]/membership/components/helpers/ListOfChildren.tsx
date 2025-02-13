@@ -4,14 +4,15 @@ import { usePrompt } from "@/app/_components/PromptContext";
 import ActionButton from "@/app/_components/ActionButton";
 import BasicTable from "@/app/_components/BasicTable";
 import { v4 as uuidv4 } from "uuid";
-import { apiPatch } from "@/app/_components/api";
+import { apiPatch, apiDelete } from "@/app/_components/api";
 import { useProject } from "@/app/_components/SessionContext";
+import { DeleteOutlined } from "@ant-design/icons";
 
 export interface Child {
-  key: string | (readonly string[] & string) | undefined;
-  firstName: string | (readonly string[] & string) | undefined;
-  lastName: string | (readonly string[] & string) | undefined;
-  dob: string | (readonly string[] & string) | undefined;
+  key: string;
+  firstName: string;
+  lastName: string;
+  dob: string;
 }
 
 export default function ListOfChildren({ data }: { data: Child[] }) {
@@ -29,21 +30,44 @@ export default function ListOfChildren({ data }: { data: Child[] }) {
     {
       key: "dob",
       label: "Date of birth",
+      render: (value: string) => new Date(value).toISOString().slice(0, 10),
     },
   ];
 
   const prompt = usePrompt();
 
+  const updateChildren = async (newChildren: Child[]) => {
+    await apiPatch(`/burn/${project!.slug}/children`, {
+      children: newChildren,
+    });
+    setChildren(newChildren);
+  };
+
   return (
     <>
       <Heading className="mt-12">Accompanying children</Heading>
-      <BasicTable
-        data={children}
-        columns={childColumns}
-        rowsPerPage={10}
-        ariaLabel={`Children`}
-      />
+      {children?.length > 0 ? (
+        <BasicTable
+          data={children}
+          columns={childColumns}
+          rowsPerPage={10}
+          ariaLabel={`Children`}
+          noPagination
+          rowActions={[
+            {
+              key: "delete",
+              icon: <DeleteOutlined />,
+              onClick: async (data) => {
+                await updateChildren(
+                  children.filter((child) => child.key !== (data as Child).key),
+                );
+              },
+            },
+          ]}
+        />
+      ) : null}
       <ActionButton
+        style={children?.length > 0 ? { marginTop: "0.5rem" } : {}}
         action={{
           key: "addChild",
           label: `Add child`,
@@ -60,26 +84,19 @@ export default function ListOfChildren({ data }: { data: Child[] }) {
                 },
                 {
                   key: "dob",
-                  label: "Date of birth",
+                  label: "Date of birth (YYYY-MM-DD)",
+                  validate: (value: string) =>
+                    !isNaN(new Date(value).getTime()),
                 },
               ]),
             handler: async (_, promptData) => {
-              if (
-                promptData &&
-                "first_name" in promptData &&
-                "last_name" in promptData &&
-                "dob" in promptData
-              ) {
-                promptData["key"] = uuidv4();
-                setChildren([...children, promptData as any as Child]);
-                await apiPatch(`/burn/${project!.slug}/manage-children`, {
-                  key: promptData.key,
-                  first_name: promptData.first_name,
-                  last_name: promptData.last_name,
-                  dob: promptData.dob,
-                });
-              }
-              return true;
+              await updateChildren([
+                ...children,
+                {
+                  key: uuidv4(),
+                  ...(promptData as any),
+                },
+              ]);
             },
           },
         }}

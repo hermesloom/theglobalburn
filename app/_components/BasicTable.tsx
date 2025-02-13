@@ -26,6 +26,7 @@ interface BasicTableProps<T> {
   ariaLabel?: string;
   keyField?: keyof T;
   rowActions?: ActionButtonDef<T>[];
+  noPagination?: boolean;
 }
 
 export default function BasicTable<T extends Record<string, any>>({
@@ -36,6 +37,7 @@ export default function BasicTable<T extends Record<string, any>>({
   ariaLabel = "Table with pagination",
   keyField = "id",
   rowActions,
+  noPagination = false,
 }: BasicTableProps<T>) {
   const [page, setPage] = React.useState(1);
   const pages = Math.ceil(data.length / rowsPerPage);
@@ -77,16 +79,18 @@ export default function BasicTable<T extends Record<string, any>>({
       aria-label={ariaLabel}
       removeWrapper
       bottomContent={
-        <div className="flex w-full justify-center">
-          <Pagination
-            isCompact
-            showControls
-            showShadow
-            page={page}
-            total={pages}
-            onChange={(page) => setPage(page)}
-          />
-        </div>
+        noPagination ? null : (
+          <div className="flex w-full justify-center">
+            <Pagination
+              isCompact
+              showControls
+              showShadow
+              page={page}
+              total={pages}
+              onChange={(page) => setPage(page)}
+            />
+          </div>
+        )
       }
     >
       <TableHeader>
