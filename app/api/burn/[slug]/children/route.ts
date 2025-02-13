@@ -17,7 +17,7 @@ export const PATCH = requestWithProject<
   s.infer<typeof UpdateChildRequestSchema>
 >(
   async (supabase, profile, request, body, project) => {
-    const newMetaData = project?.membership?.metadata;
+    const newMetaData = project?.membership?.metadata ?? {};
 
     if (newMetaData["children"] === undefined) {
       newMetaData["children"] = [];
