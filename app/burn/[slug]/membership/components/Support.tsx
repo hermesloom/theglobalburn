@@ -10,10 +10,7 @@ export default function InvitePlusOne() {
       <Heading className="mt-12">Support</Heading>
       <p>
         In case of any questions or issues, please contact{" "}
-        <Link href="mailto:memberships@theborderland.se">
-          memberships@theborderland.se
-        </Link>
-        .
+        <Link href="mailto:tech@theborderland.se">tech@theborderland.se</Link>.
       </p>
     </>
   );
