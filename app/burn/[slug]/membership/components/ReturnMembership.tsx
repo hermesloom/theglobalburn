@@ -19,14 +19,15 @@ export default function ReturnMembership() {
   if (
     +new Date() > +new Date(project?.burn_config.last_possible_transfer_at!)
   ) {
-
-    return (<>
-    
-    <Heading className="mt-12">Return your membership</Heading>
-    <p>The transfer window is not open and you can not return your membership.</p>
-    
-    </>)
-
+    return (
+      <>
+        <Heading className="mt-12">Return your membership</Heading>
+        <p>
+          The transfer window is not open and you can not return your
+          membership.
+        </p>
+      </>
+    );
   }
 
   return (
@@ -37,13 +38,13 @@ export default function ReturnMembership() {
           You can return your membership until{" "}
           <b>
             {new Date(
-              project?.burn_config.last_possible_transfer_at!
+              project?.burn_config.last_possible_transfer_at!,
             ).toLocaleString()}
           </b>
           . Once you have clicked on "Return", the amount you paid (
           {formatMoney(
             project!.membership!.price,
-            project!.membership!.price_currency
+            project!.membership!.price_currency,
           )}
           ) will be automatically refunded onto the credit card you used to
           purchase your membership. Please notify the membership team through
@@ -56,13 +57,13 @@ export default function ReturnMembership() {
         </p>
 
         <Input
-          label="Type in exactly: I WANT TO RETURN"
+          label="Type in exactly: I WANT TO RETURN MY MEMBERSHIP"
           value={confirmReturn}
           onChange={(e) => setConfirmReturn(e.target.value)}
         />
         <ActionButton
           color="primary"
-          isDisabled={confirmReturn != "I WANT TO RETURN"}
+          isDisabled={confirmReturn != "I WANT TO RETURN MY MEMBERSHIP"}
           action={{
             key: "return-membership",
             label: "Return membership",
@@ -73,11 +74,12 @@ export default function ReturnMembership() {
                   [
                     {
                       key: "confirmReturn",
-                      label: "Type in exactly again: I WANT TO RETURN",
+                      label:
+                        "Type in exactly again: I WANT TO RETURN MY MEMBERSHIP",
                       validate: (finalConfirm) =>
-                        finalConfirm == "I WANT TO RETURN",
+                        finalConfirm == "I WANT TO RETURN MY MEMBERSHIP",
                     },
-                  ]
+                  ],
                 ),
               handler: async (_, promptData) => {
                 await apiPost(`/burn/${project?.slug}/return-membership`, {

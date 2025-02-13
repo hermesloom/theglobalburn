@@ -9,7 +9,7 @@ import Stripe from "stripe";
 
 const TransferMembershipRequestSchema = s.object({
   email: s.string(),
-  confirmTransfer: s.string()
+  confirmTransfer: s.string(),
 });
 
 export const POST = requestWithProject<
@@ -18,7 +18,7 @@ export const POST = requestWithProject<
   async (supabase, profile, request, body, project) => {
     if (project?.burn_config.current_stage !== BurnStage.OpenSaleGeneral) {
       throw new Error(
-        `Expected burn stage to be ${BurnStage.OpenSaleGeneral}, got ${project?.burn_config.current_stage}`
+        `Expected burn stage to be ${BurnStage.OpenSaleGeneral}, got ${project?.burn_config.current_stage}`,
       );
     }
 
@@ -33,14 +33,14 @@ export const POST = requestWithProject<
     if (!project.membership) {
       throw new Error(`User has no memberships to transfer`);
     }
-    if (body.confirmTransfer !== "I WANT TO TRANSFER") {
+    if (body.confirmTransfer !== "I WANT TO TRANSFER MY MEMBERSHIP") {
       throw new Error(`Confirmation string does not match`);
     }
     // check that the recipient is registered, part of this project and has no membership and no membership purchase right yet
     const recipientProfile = await getProfileByEmail(supabase, body.email);
     const recipientProject = validateNewMembershipEligibility(
       recipientProfile,
-      project!
+      project!,
     );
 
     // refund the current membership via Stripe
@@ -56,7 +56,7 @@ export const POST = requestWithProject<
       supabase
         .from("burn_memberships")
         .delete()
-        .eq("id", project!.membership!.id)
+        .eq("id", project!.membership!.id),
     );
 
     // create a membership purchase right for the recipient
@@ -66,13 +66,13 @@ export const POST = requestWithProject<
         owner_id: recipientProfile.id,
         expires_at: new Date(
           +new Date() +
-            recipientProject.burn_config.transfer_reservation_duration * 1000
+            recipientProject.burn_config.transfer_reservation_duration * 1000,
         ).toISOString(),
         is_low_income: false,
         details_modifiable: true,
-      })
+      }),
     );
   },
   TransferMembershipRequestSchema,
-  BurnRole.Participant
+  BurnRole.Participant,
 );

@@ -24,11 +24,12 @@ export default function TransferMembership() {
       <>
         <Heading className="mt-12">Transfer your membership</Heading>
 
-        <p>The transfer window is not open and you can not transfer your membership.</p>
-        
-        </>)
-
-       
+        <p>
+          The transfer window is not open and you can not transfer your
+          membership.
+        </p>
+      </>
+    );
   }
 
   return (
@@ -39,7 +40,7 @@ export default function TransferMembership() {
           You can transfer your membership until{" "}
           <b>
             {new Date(
-              project?.burn_config.last_possible_transfer_at!
+              project?.burn_config.last_possible_transfer_at!,
             ).toLocaleString()}
           </b>
           . The recipient must be registered on this platform. Once you have
@@ -47,7 +48,7 @@ export default function TransferMembership() {
           paid (
           {formatMoney(
             project!.membership!.price,
-            project!.membership!.price_currency
+            project!.membership!.price_currency,
           )}
           ) will be automatically refunded onto the credit card you used to
           purchase your membership; you therefore don't need to exchange any
@@ -74,7 +75,7 @@ export default function TransferMembership() {
           onChange={(e) => setEmail(e.target.value)}
         />
         <Input
-          label="Type in exactly: I WANT TO TRANSFER"
+          label="Type in exactly: I WANT TO TRANSFER MY MEMBERSHIP"
           value={confirmTransfer}
           onChange={(e) => setTransfer(e.target.value)}
         />
@@ -82,7 +83,8 @@ export default function TransferMembership() {
         <ActionButton
           color="primary"
           isDisabled={
-            !isEmail(email) || confirmTransfer !== "I WANT TO TRANSFER"
+            !isEmail(email) ||
+            confirmTransfer !== "I WANT TO TRANSFER MY MEMBERSHIP"
           }
           action={{
             key: "transfer-membership",
@@ -94,11 +96,12 @@ export default function TransferMembership() {
                   [
                     {
                       key: "confirmReturn",
-                      label: "Type in one more time: I WANT TO TRANSFER",
+                      label:
+                        "Type in one more time: I WANT TO TRANSFER MY MEMBERSHIP",
                       validate: (finalConfirm) =>
-                        finalConfirm == "I WANT TO TRANSFER",
+                        finalConfirm == "I WANT TO TRANSFER MY MEMBERSHIP",
                     },
-                  ]
+                  ],
                 ),
               handler: async (_, promptData) => {
                 await apiPost(`/burn/${project?.slug}/transfer-membership`, {

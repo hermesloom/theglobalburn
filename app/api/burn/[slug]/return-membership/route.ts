@@ -1,16 +1,11 @@
 import { requestWithProject, query } from "@/app/api/_common/endpoints";
 import { s } from "ajv-ts";
 import { BurnRole, BurnStage } from "@/utils/types";
-import {
-  getProfileByEmail,
-  validateNewMembershipEligibility,
-} from "@/app/api/_common/profile";
 import Stripe from "stripe";
 
 const ReturnMembershipRequestSchema = s.object({
   email: s.string(),
-  confirmReturn: s.string()
-
+  confirmReturn: s.string(),
 });
 
 export const POST = requestWithProject<
@@ -19,7 +14,7 @@ export const POST = requestWithProject<
   async (supabase, profile, request, body, project) => {
     if (project?.burn_config.current_stage !== BurnStage.OpenSaleGeneral) {
       throw new Error(
-        `Expected burn stage to be ${BurnStage.OpenSaleGeneral}, got ${project?.burn_config.current_stage}`
+        `Expected burn stage to be ${BurnStage.OpenSaleGeneral}, got ${project?.burn_config.current_stage}`,
       );
     }
 
@@ -35,7 +30,7 @@ export const POST = requestWithProject<
       throw new Error(`User has no memberships to transfer`);
     }
 
-    if (body.confirmReturn !== "I WANT TO RETURN") {
+    if (body.confirmReturn !== "I WANT TO RETURN MY MEMBERSHIP") {
       throw new Error(`Confirmation string does not match`);
     }
 
@@ -52,12 +47,9 @@ export const POST = requestWithProject<
       supabase
         .from("burn_memberships")
         .delete()
-        .eq("id", project!.membership!.id)
+        .eq("id", project!.membership!.id),
     );
-
-    // create a membership purchase right for the recipient
-
   },
   ReturnMembershipRequestSchema,
-  BurnRole.Participant
+  BurnRole.Participant,
 );
