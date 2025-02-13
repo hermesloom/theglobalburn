@@ -21,7 +21,6 @@ export default function QuestionsPage() {
         {
           key: "question_id",
           label: "Question ID",
-          
         },
         { key: "question_text", label: "Question" },
       ]}
@@ -41,7 +40,9 @@ export default function QuestionsPage() {
                     label: p.name,
                   })),
                 },
-                { key: "questionText", label: "QuestionText",
+                {
+                  key: "questionText",
+                  label: "Question text",
                   propagateChanges: (name) => ({
                     questionId: name
                       .toLowerCase()
@@ -50,14 +51,11 @@ export default function QuestionsPage() {
                       .replace(/ +/g, "-")
                       .replace(/[^a-z0-9-]+/g, ""),
                   }),
-                 },
+                },
                 {
                   key: "questionId",
-                  label: "Question Key",
-                  
-                  
+                  label: "Question key",
                 },
-                
               ]),
             handler: async (_, promptResult) => {
               await apiPost("/admin/questions", promptResult);
