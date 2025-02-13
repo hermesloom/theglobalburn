@@ -16,21 +16,15 @@ export const POST = requestWithProject<
   s.infer<typeof TransferMembershipRequestSchema>
 >(
   async (supabase, profile, request, body, project) => {
-    if (project?.burn_config.current_stage !== BurnStage.OpenSaleGeneral) {
-      throw new Error(
-        `Expected burn stage to be ${BurnStage.OpenSaleGeneral}, got ${project?.burn_config.current_stage}`,
-      );
-    }
-
     // check if any more transfers are allowed
     if (
-      +new Date(project.burn_config.last_possible_transfer_at) < +new Date()
+      +new Date(project!.burn_config.last_possible_transfer_at) < +new Date()
     ) {
       throw new Error(`No further transfers are possible`);
     }
 
     // check if the user has a membership to transfer
-    if (!project.membership) {
+    if (!project!.membership) {
       throw new Error(`User has no memberships to transfer`);
     }
     if (body.confirmTransfer !== "I WANT TO TRANSFER MY MEMBERSHIP") {
