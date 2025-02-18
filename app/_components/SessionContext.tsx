@@ -74,6 +74,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     (async () => {
+
+      if (window.innerWidth < 1024) {
+        setIsMenuVisible(false);
+      }
       try {
         supabase!.auth.onAuthStateChange(onAuthStateChange);
 

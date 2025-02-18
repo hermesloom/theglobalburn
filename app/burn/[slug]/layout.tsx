@@ -104,7 +104,7 @@ export default function ProjectLayout({
       />
       <div
         className={`flex-1 ${isMenuVisible ? "pl-96" : ""} h-full`}
-        style={{ paddingLeft: isMenuVisible ? "24rem" : "10rem" }}
+        style={{ paddingLeft: isMenuVisible ? "24rem" : "8rem" }}
       >
         {children}
       </div>

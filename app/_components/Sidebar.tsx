@@ -23,7 +23,7 @@ export function Sidebar({ routes }: SidebarProps) {
   
   return (
     <div
-      className={`fixed h-full left-[72px] ${isMenuVisible ? "w-64" : "w-10"} border-r border-divider p-4 z-2 rounded-r-xl`}
+      className={`fixed h-full  ${isMenuVisible ? "left-[72px] w-64" : "left-[50px] w-10"} border-r border-divider p-4 z-2 rounded-r-xl`}
       style={{
       backgroundColor: "#FCFCFC",
       boxShadow: "0px 0px 20px rgba(0, 0, 0, 0.05)",
@@ -56,16 +56,17 @@ export function Sidebar({ routes }: SidebarProps) {
           isIconOnly={!isMenuVisible}
           key={route.path}
           variant="light"
+          radius="full"
           className={`justify-start ${
-          pathname === route.path ? "bg-content3 font-bold" : ""
+            pathname === route.path && isMenuVisible? " font-bold bg-content3" : ""
           }`}
           onPress={() => router.push(route.path)}
           startContent={route.icon}
         >
           {isMenuVisible && (
-          <span className="overflow-hidden text-ellipsis whitespace-nowrap">
-            {route.label}
-          </span>
+            <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+              {route.label}
+            </span>
           )}
         </Button>
         )
