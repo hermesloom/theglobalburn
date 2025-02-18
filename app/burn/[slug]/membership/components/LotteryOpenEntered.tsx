@@ -6,11 +6,13 @@ import { apiDelete } from "@/app/_components/api";
 import { useProject } from "@/app/_components/SessionContext";
 import toast from "react-hot-toast";
 import MemberDetails from "./helpers/MemberDetails";
+import ActionButton from "@/app/_components/ActionButton";
+import { usePrompt } from "@/app/_components/PromptContext";
 
 export default function LotteryOpenEntered() {
   const { project, updateProjectSimple } = useProject();
   const [isLoading, setIsLoading] = useState(false);
-
+   const prompt = usePrompt();
   return (
     <div className="flex flex-col gap-4">
       <Alert color="warning" title="Important!">
@@ -29,24 +31,55 @@ export default function LotteryOpenEntered() {
         <Button color="success" isDisabled>
           You have successfully entered the lottery!
         </Button>
-        <Button
+        
+        
+
+
+        <ActionButton
           color="danger"
-          isLoading={isLoading}
-          onPress={async () => {
-            setIsLoading(true);
+         
+          
+          action={{
+            key: "leave-lottery",
+            label: "Click here if you want to leave the lottery",
+            onClick: {
+              prompt: () =>
+                prompt(
+                  "You are about to leave the lottery Are you absolutely sure?",
+                  [
+                    {
+                      key: "confirmReturn",
+                      label: "Type in: I WANT TO LEAVE",
+                      validate: (finalConfirm) =>
+                        finalConfirm == "I WANT TO LEAVE",
+                    },
+                  ]
+                ),
+              handler: async (_, promptData) => {
+                setIsLoading(true);
+            
+
             try {
+
+
               await apiDelete(`/burn/${project?.slug}/lottery-ticket`);
               updateProjectSimple({
                 lottery_ticket: undefined,
               });
               toast.success("You have left the lottery!");
+
+              
             } finally {
               setIsLoading(false);
             }
+               
+                return true;
+              },
+            },
           }}
-        >
-          Click here if you want to leave the lottery
-        </Button>
+        />
+
+
       </div>
     </div>
   );
