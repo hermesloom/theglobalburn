@@ -14,8 +14,8 @@ export default function Home() {
   const router = useRouter();
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center">
-      <div className="text-8xl mb-4">❤️‍🔥</div>
+    <div className="h-screen flex flex-col items-center justify-center p-4 sm:p-8">
+      <div className="text-6xl sm:text-8xl mb-4">❤️‍🔥</div>
       {profile?.projects.find((p) => p.slug === DEFAULT_PROJECT_SLUG) ? (
         <Button
           color="primary"

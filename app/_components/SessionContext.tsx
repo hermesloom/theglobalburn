@@ -20,7 +20,8 @@ interface SessionContextType {
   profile: Profile | null;
   isLoading: boolean;
   reloadProfile: () => Promise<void>;
-
+  isMenuVisible: boolean;
+  toggleMenu :  () => Promise<void>;
   updateProfile: (fn: (draft: Profile) => void) => void;
 }
 
@@ -28,8 +29,10 @@ const SessionContext = createContext<SessionContextType>({
   session: null,
   profile: null,
   isLoading: true,
+  isMenuVisible: true,
   reloadProfile: () => Promise.reject(),
   updateProfile: () => {},
+  toggleMenu :  () => Promise.reject()
 });
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
@@ -37,7 +40,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMenuVisible, setIsMenuVisible] = useState(true);
   const isSignedInRef = useRef(false);
+
+  
 
   const onAuthStateChange = useCallback(
     async (_event: string, session: Session | null) => {
@@ -98,7 +104,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
     }
   };
-
+  const toggleMenu = async () => {
+    console.log("Toggling menu")
+   setIsMenuVisible(!isMenuVisible);
+  };
   const updateProfile = (fn: (draft: Profile) => void) => {
     const newProfile = produce(profile, fn);
     setProfile(newProfile);
@@ -111,8 +120,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         session,
         profile,
         isLoading,
+        isMenuVisible,
         reloadProfile,
-
+        toggleMenu,
         updateProfile,
       }}
     >

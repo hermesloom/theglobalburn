@@ -11,7 +11,7 @@ import {
   WalletOutlined,
   FileDoneOutlined,
 } from "@ant-design/icons";
-import { useProject } from "@/app/_components/SessionContext";
+import { useProject, useSession } from "@/app/_components/SessionContext";
 import { redirect } from "next/navigation";
 import { BurnRole, BurnStage } from "@/utils/types";
 
@@ -21,6 +21,7 @@ export default function ProjectLayout({
   children: React.ReactNode;
 }) {
   const { project } = useProject();
+  const { session, isMenuVisible } = useSession();
 
   if (project?.type !== "burn") {
     redirect("/");
@@ -101,7 +102,12 @@ export default function ProjectLayout({
           ,
         ]}
       />
-      <div className="flex-1 p-16 pl-96 h-full">{children}</div>
+      <div
+        className={`flex-1 ${isMenuVisible ? "pl-96" : ""} h-full`}
+        style={{ paddingLeft: isMenuVisible ? "24rem" : "10rem" }}
+      >
+        {children}
+      </div>
     </div>
   );
 }

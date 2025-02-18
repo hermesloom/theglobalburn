@@ -5,18 +5,20 @@ import {
   LogoutOutlined,
   GithubOutlined,
   SafetyCertificateOutlined,
+  MenuOutlined,
 } from "@ant-design/icons";
 import AddProjectButton from "./AddProjectButton";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { useSession } from "../SessionContext";
-
 export default function ProjectSwitcher() {
   const supabase = createClient();
   const router = useRouter();
   const { profile } = useSession();
-
+  const {isMenuVisible} = useSession();
+  
+  const { toggleMenu } = useSession();
   return (
     <div
       className="fixed w-[72px] h-full bg-content2 flex flex-col items-center py-3 gap-4 border-r border-divider"
@@ -25,6 +27,21 @@ export default function ProjectSwitcher() {
         boxShadow: "0px 0px 20px rgba(0, 0, 0, 0.1)",
       }}
     >
+       <>
+       <Tooltip content="Toggle menu" placement="right">
+      <Button
+      isIconOnly
+      radius="full"
+      variant="light"
+      className="bg-default-100 hover:bg-default-200"
+       onPress={() => toggleMenu()}
+       startContent={<MenuOutlined />}
+          >
+      
+      
+          </Button>
+      </Tooltip>
+      </>
       {profile?.is_admin ? (
         <>
           <Tooltip content="Administration" placement="right">
