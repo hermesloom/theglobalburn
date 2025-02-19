@@ -7,7 +7,7 @@ import ActionButton from "@/app/_components/ActionButton";
 import { apiPost } from "@/app/_components/api";
 import { useSession } from "@/app/_components/SessionContext";
 
-const DEFAULT_PROJECT_SLUG = "demo-burn";
+const DEFAULT_PROJECT_SLUG = "the-borderland-2025";
 
 export default function Home() {
   const { profile, reloadProfile } = useSession();
