@@ -147,7 +147,7 @@ export default function ConfigPage() {
   };
 
   return (
-    <div>
+    <>
       <Heading>Configuration</Heading>
       <div className="flex flex-col gap-4">
         <Input
@@ -263,6 +263,6 @@ export default function ConfigPage() {
             : "Please fill in all fields correctly"}
         </Button>
       </div>
-    </div>
+    </>
   );
 }

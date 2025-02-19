@@ -95,7 +95,7 @@ export default function MembershipPage() {
   };
 
   return (
-    <div>
+    <>
       <Heading>
         {membershipStatus === MembershipStatus.Member ||
         membershipStatus === MembershipStatus.MembershipAvailable ||
@@ -109,6 +109,6 @@ export default function MembershipPage() {
       </Heading>
       {renderContent()}
       <Support />
-    </div>
+    </>
   );
 }

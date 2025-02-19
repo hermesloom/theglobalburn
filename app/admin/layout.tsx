@@ -6,8 +6,9 @@ import {
   FireOutlined,
   ContactsOutlined,
   UserSwitchOutlined,
-  QuestionCircleOutlined
+  QuestionCircleOutlined,
 } from "@ant-design/icons";
+import ContentContainer from "@/app/_components/ContentContainer";
 
 export default function AdminLayout({
   children,
@@ -45,7 +46,7 @@ export default function AdminLayout({
           },
         ]}
       />
-      <div className="flex-1 p-16 pl-96">{children}</div>
+      <ContentContainer>{children}</ContentContainer>
     </div>
   );
 }

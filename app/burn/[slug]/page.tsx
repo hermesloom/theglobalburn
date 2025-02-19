@@ -42,7 +42,7 @@ export default function ProjectPage() {
   ];
 
   return (
-    <div>
+    <>
       <Heading>{project?.name} – Timeline</Heading>
 
       <div className="space-y-4 mt-6">
@@ -68,6 +68,6 @@ export default function ProjectPage() {
           </div>
         ))}
       </div>
-    </div>
+    </>
   );
 }

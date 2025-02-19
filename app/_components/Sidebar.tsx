@@ -2,6 +2,7 @@
 
 import { Button } from "@nextui-org/react";
 import { useRouter, usePathname } from "next/navigation";
+import { useSession } from "./SessionContext";
 
 interface SidebarRoute {
   label: string;
@@ -16,13 +17,18 @@ interface SidebarProps {
 export function Sidebar({ routes }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { showSidebar } = useSession();
+
+  console.log(showSidebar);
 
   return (
     <div
-      className="fixed h-full left-[72px] w-64 border-r border-divider p-4 z-2 rounded-r-xl"
+      className="fixed h-full border-r border-divider p-4 z-2 rounded-r-xl transition-all duration-300"
       style={{
+        width: "16rem",
         backgroundColor: "#FCFCFC",
-        boxShadow: "0px 0px 20px rgba(0, 0, 0, 0.05)",
+        boxShadow: showSidebar ? "0px 0px 20px rgba(0, 0, 0, 0.05)" : "none",
+        left: showSidebar ? "4rem" : "-16rem",
       }}
     >
       <div className="flex flex-col gap-2">
@@ -54,7 +60,7 @@ export function Sidebar({ routes }: SidebarProps) {
                 {route.label}
               </span>
             </Button>
-          )
+          ),
         )}
       </div>
     </div>

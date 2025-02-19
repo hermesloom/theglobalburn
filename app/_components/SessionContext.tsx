@@ -14,6 +14,7 @@ import { produce } from "immer";
 import { apiGet, apiPatch } from "./api";
 import { useParams } from "next/navigation";
 import { Profile, Project, BurnConfig } from "@/utils/types";
+import { isMobile } from "react-device-detect";
 
 interface SessionContextType {
   session: Session | null;
@@ -22,6 +23,9 @@ interface SessionContextType {
   reloadProfile: () => Promise<void>;
 
   updateProfile: (fn: (draft: Profile) => void) => void;
+
+  showSidebar: boolean;
+  toggleSidebar: () => void;
 }
 
 const SessionContext = createContext<SessionContextType>({
@@ -30,6 +34,9 @@ const SessionContext = createContext<SessionContextType>({
   isLoading: true,
   reloadProfile: () => Promise.reject(),
   updateProfile: () => {},
+
+  showSidebar: false,
+  toggleSidebar: () => {},
 });
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
@@ -38,6 +45,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const isSignedInRef = useRef(false);
+  const [showSidebar, setShowSidebar] = useState(isMobile ? false : true);
 
   const onAuthStateChange = useCallback(
     async (_event: string, session: Session | null) => {
@@ -63,7 +71,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       }
       setSession(session);
     },
-    []
+    [],
   );
 
   useEffect(() => {
@@ -114,6 +122,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         reloadProfile,
 
         updateProfile,
+
+        showSidebar,
+        toggleSidebar: () => setShowSidebar(!showSidebar),
       }}
     >
       {children}
@@ -134,7 +145,7 @@ export const useProject = () => {
     const newProject = produce(project, fn);
     updateProfile((draft) => {
       draft.projects = draft.projects.map((p) =>
-        p.slug === currentSlug ? newProject : p
+        p.slug === currentSlug ? newProject : p,
       );
     });
   };

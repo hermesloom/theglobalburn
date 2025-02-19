@@ -14,6 +14,7 @@ import {
 import { useProject } from "@/app/_components/SessionContext";
 import { redirect } from "next/navigation";
 import { BurnRole, BurnStage } from "@/utils/types";
+import ContentContainer from "@/app/_components/ContentContainer";
 
 export default function ProjectLayout({
   children,
@@ -27,7 +28,7 @@ export default function ProjectLayout({
   }
 
   return (
-    <div className="flex h-full">
+    <>
       <Sidebar
         routes={[
           {
@@ -101,7 +102,7 @@ export default function ProjectLayout({
           ,
         ]}
       />
-      <div className="flex-1 p-16 pl-96 h-full">{children}</div>
-    </div>
+      <ContentContainer>{children}</ContentContainer>
+    </>
   );
 }

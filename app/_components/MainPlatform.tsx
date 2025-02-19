@@ -28,9 +28,9 @@ export default function MainPlatform({
 
   // For all other routes, show normal layout with ProjectSwitcher
   return (
-    <div className="flex h-full">
+    <>
       <ProjectSwitcher />
-      <div className="flex-1">{children}</div>
-    </div>
+      {children}
+    </>
   );
 }
