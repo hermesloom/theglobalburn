@@ -82,6 +82,14 @@ export type BurnMembership = {
   metadata?: any;
 };
 
+export type BurnChangeMembershipDetailsRequest = {
+  id: string;
+  created_at: string;
+  first_name: string;
+  last_name: string;
+  birthdate: string;
+};
+
 export type Project = {
   id: string;
   created_at: string;
@@ -93,6 +101,7 @@ export type Project = {
   lottery_ticket?: BurnLotteryTicket;
   membership_purchase_right?: BurnMembershipPurchaseRight;
   membership?: BurnMembership;
+  membership_details_change_request?: BurnChangeMembershipDetailsRequest;
 };
 
 export type Profile = {
