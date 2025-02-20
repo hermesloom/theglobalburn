@@ -6,7 +6,7 @@ Initially for [The Borderland](https://theborderland.se), but designed to be as 
 
 ## TODO
 
-- add all questions for burner questionnaire (to be provided by Wanda)
+- add all questions for burner questionnaire, see https://docs.google.com/document/d/1MklO0sp66zDpw-AuA7-v34cny2V6Emi1HZ7tmqKHGnQ/edit
 - allow changing name and birthday (only admins can change)
   - users can *apply* for a change of name and/or birthday, auto-accept with small Levenshtein distance
 - allow search for memberships (both email and name)
@@ -24,7 +24,7 @@ Initially for [The Borderland](https://theborderland.se), but designed to be as 
   - add a single interface for rideshares
   - integrate the map and the JOMO guide, i.e. everything what the [Dust app](https://dust.events/) currently does
   - integrate everything Talk currently does
-  - add LLM-based AP writing assistance (based on the AP "How to run an AP", which will be published by Rosa soon)
+  - add LLM-based AP writing assistance (based on the AP [How do we run Advice Processes?](https://talk.theborderland.se/d/iFKC1rD2/how-do-we-run-advice-processes-))
   - add all the functionality for [BurnerBox](https://burnerbox.glide.page/dl/search)
 - technical
   - set up as a Progressive Web App (PWA) to allow seamless use on mobile
