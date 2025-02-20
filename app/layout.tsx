@@ -3,6 +3,7 @@ import React from "react";
 import { Metadata, Viewport } from "next";
 import clsx from "clsx";
 import { Toaster } from "react-hot-toast";
+import { Analytics } from "@vercel/analytics/react";
 
 import { Providers } from "./providers";
 
@@ -40,9 +41,10 @@ export default function RootLayout({
         className={clsx(
           "min-h-screen bg-background font-sans antialiased",
           fontSans.variable,
-          fontMono.variable
+          fontMono.variable,
         )}
       >
+        <Analytics />
         <Providers>
           <Toaster position="bottom-center" />
           <MainPlatform>{children}</MainPlatform>
