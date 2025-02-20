@@ -7,21 +7,13 @@ Initially for [The Borderland](https://theborderland.se), but designed to be as 
 ## TODO
 
 - add all questions for burner questionnaire (to be provided by Wanda)
-- allow adding children (just as membership metadata, i.e. not a "real" membership, children don't need QR codes)
 - allow changing name and birthday (only admins can change)
   - users can *apply* for a change of name and/or birthday, auto-accept with small Levenshtein distance
 - allow search for memberships (both email and name)
-- when transfers are closed, also say that instead of hiding the section
 - when refunding a membership, deduct Stripe fees
-- allow simply giving back membership (deadline equals transfer deadline)
-- add warning for membership transfer ("WARNING: it will be gone!")
 - email notifications (via existing Mailgun), only for successful payment (generate and send out membership QR PDF)
 - link list (both on theborderland.se and in another section besides the timeline overview)
 - membership scanner
-- make fully mobile-ready
-- load testing
-- host what was previously on borderland.pro on theborderland.se
-  - set up Cloudflare redirect from borderland.pro to theborderland.se
 
 ## Long-term goals
 
