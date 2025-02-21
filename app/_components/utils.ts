@@ -1,6 +1,5 @@
-export function calculateAge(birthday: string) {
+export function calculateAge(birthday: string, today: Date = new Date()) {
   const birthDate = new Date(birthday);
-  const today = new Date();
 
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
@@ -12,6 +11,11 @@ export function calculateAge(birthday: string) {
   }
 
   return age;
+}
+
+export function validateBurnAge(birthday: string): boolean {
+  const age = calculateAge(birthday, new Date("2025-07-21"));
+  return age >= 14;
 }
 
 export function formatMoney(amount: number, currency: string) {

@@ -10,13 +10,13 @@ import { useLowIncomeQuestionnairePrompt } from "./useLowIncomeQuestionnaire";
 export default function MemberDetailsInput({
   value,
   setValue,
-  minAge18,
+  ageValidation,
   withLowIncome,
   withLowIncomePrompt,
 }: {
   value: MemberDetailsData | null;
   setValue: (value: MemberDetailsData | null) => void;
-  minAge18?: boolean;
+  ageValidation?: (birthdate: string) => boolean;
   withLowIncome?: boolean;
   withLowIncomePrompt?: boolean;
 }) {
@@ -30,10 +30,10 @@ export default function MemberDetailsInput({
   const lowIncomeQuestionnaire = useLowIncomeQuestionnairePrompt();
 
   const isBirthdateWellFormatted = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(
-    birthdate
+    birthdate,
   );
   const isAgeValid =
-    isBirthdateWellFormatted && (!minAge18 || calculateAge(birthdate) >= 18);
+    isBirthdateWellFormatted && (!ageValidation || ageValidation(birthdate));
 
   useEffect(() => {
     if (!firstName || !lastName || !isAgeValid) {
@@ -79,7 +79,7 @@ export default function MemberDetailsInput({
         isInvalid={isBirthdateWellFormatted && !isAgeValid}
         errorMessage={
           isBirthdateWellFormatted && !isAgeValid
-            ? "You must be at least 18 years old"
+            ? "You must be at least 14 years old when the burn starts"
             : undefined
         }
       />

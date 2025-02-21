@@ -7,11 +7,12 @@ import MemberDetailsInput from "./helpers/MemberDetailsInput";
 import { MemberDetailsData } from "./helpers/MemberDetails";
 import ActionButton from "@/app/_components/ActionButton";
 import toast from "react-hot-toast";
+import { validateBurnAge } from "@/app/_components/utils";
 
 export default function LotteryOpenNotEntered() {
   const { project, updateProjectSimple } = useProject();
   const [memberDetails, setMemberDetails] = useState<MemberDetailsData | null>(
-    null
+    null,
   );
 
   return (
@@ -24,7 +25,7 @@ export default function LotteryOpenNotEntered() {
         <MemberDetailsInput
           value={memberDetails}
           setValue={setMemberDetails}
-          minAge18
+          ageValidation={validateBurnAge}
           withLowIncome
           withLowIncomePrompt
         />
@@ -37,7 +38,7 @@ export default function LotteryOpenNotEntered() {
             onClick: async () => {
               const ticket = await apiPost(
                 `/burn/${project?.slug}/lottery-ticket`,
-                memberDetails
+                memberDetails,
               );
               updateProjectSimple({
                 lottery_ticket: ticket,

@@ -6,11 +6,12 @@ import MemberDetailsInput from "./helpers/MemberDetailsInput";
 import { MemberDetailsData } from "./helpers/MemberDetails";
 import { apiPatch } from "@/app/_components/api";
 import ActionButton from "@/app/_components/ActionButton";
+import { validateBurnAge } from "@/app/_components/utils";
 
 export default function MembershipAvailableDetailsIncomplete() {
   const { project, reloadProfile } = useProject();
   const [memberDetails, setMemberDetails] = useState<MemberDetailsData | null>(
-    null
+    null,
   );
 
   return (
@@ -20,7 +21,7 @@ export default function MembershipAvailableDetailsIncomplete() {
         Your membership is reserved for you until{" "}
         <b>
           {new Date(
-            project?.membership_purchase_right?.expires_at!
+            project?.membership_purchase_right?.expires_at!,
           ).toLocaleString()}
         </b>
         . If you don't complete the purchase of your membership by then, it will
@@ -34,7 +35,7 @@ export default function MembershipAvailableDetailsIncomplete() {
       <MemberDetailsInput
         value={memberDetails}
         setValue={setMemberDetails}
-        minAge18
+        ageValidation={validateBurnAge}
       />
       <ActionButton
         color="primary"
@@ -45,7 +46,7 @@ export default function MembershipAvailableDetailsIncomplete() {
           onClick: async () => {
             await apiPatch(
               `/burn/${project?.slug}/set-membership-purchase-right-details`,
-              memberDetails
+              memberDetails,
             );
             await reloadProfile();
           },
