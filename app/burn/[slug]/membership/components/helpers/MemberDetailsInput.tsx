@@ -32,8 +32,15 @@ export default function MemberDetailsInput({
   const isBirthdateWellFormatted = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(
     birthdate,
   );
+  const isBirthdateValidDate = !isNaN(+new Date(birthdate));
+  const isBirthdateRealistic = isBirthdateValidDate
+    ? calculateAge(birthdate) < 150
+    : false; // if someone is older than 150, they need to contact support
   const isAgeValid =
-    isBirthdateWellFormatted && (!ageValidation || ageValidation(birthdate));
+    isBirthdateWellFormatted &&
+    isBirthdateValidDate &&
+    isBirthdateRealistic &&
+    (!ageValidation || ageValidation(birthdate));
 
   useEffect(() => {
     if (!firstName || !lastName || !isAgeValid) {
@@ -76,11 +83,23 @@ export default function MemberDetailsInput({
         label="Date of birth (YYYY-MM-DD)"
         value={birthdate}
         onValueChange={setBirthdate}
-        isInvalid={isBirthdateWellFormatted && !isAgeValid}
+        isInvalid={
+          birthdate.length > 0 &&
+          (!isBirthdateWellFormatted ||
+            !isBirthdateValidDate ||
+            !isBirthdateRealistic ||
+            !isAgeValid)
+        }
         errorMessage={
-          isBirthdateWellFormatted && !isAgeValid
-            ? "You must be at least 14 years old when the burn starts"
-            : undefined
+          !isBirthdateWellFormatted
+            ? "Please use the format YYYY-MM-DD (including dashes)"
+            : !isBirthdateValidDate
+              ? "This doesn't look like a valid date"
+              : !isBirthdateRealistic
+                ? "This date looks like it's too far in the past, please check"
+                : !isAgeValid
+                  ? "You must be at least 14 years old when the burn starts"
+                  : undefined
         }
       />
       {withLowIncome ? (
