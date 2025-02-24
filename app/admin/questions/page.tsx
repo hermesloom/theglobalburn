@@ -53,8 +53,29 @@ export default function QuestionsPage() {
                   }),
                 },
                 {
+                  key: "questionDescription",
+                  label: "Question description",  
+                  multiLine: true
+                },
+                {
+                  key: "questionType", 
+                  label: "Question type",
+                  options: [
+                    { id: "text", label: "Text" },
+                    { id: "textLong", label: "Long text" },
+                    { id: "radio", label: "Radio" },
+                    { id: "checkbox", label: "Checkbox" }, 
+                    { id: "dropdown", label: "Dropdown" },
+                  ],
+                },
+                {
                   key: "questionId",
-                  label: "Question key",
+                  label: "Question unique key",
+                },
+                {
+                  key: "questionOptions",
+                  label: "Options. 1 per line",
+                  multiLine: true
                 },
               ]),
             handler: async (_, promptResult) => {
