@@ -6,15 +6,17 @@ import {
   Input
 
 } from "@nextui-org/react";
+import { on } from "events";
 
 export default function ModalInput({
+  key,
   value,
   description,
   label,
   onChange,
   isDisabled,
 }: {
-
+  key: string;
   value: string;
   label: string;
   onChange: (value: string) => void;
@@ -24,15 +26,15 @@ export default function ModalInput({
   return (
     <>
       <div>{label}</div>
-      <div>
-        <p>{description}</p>
-      </div>
+      
       <Input
 
-        value={value}
-
+        key={key}
+        value={value || ""}
+        onChange={(e) => onChange(e)}
         label={label}
         description={description}
+        
 
         
       />
