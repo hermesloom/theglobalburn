@@ -15,6 +15,7 @@ export default function ModalInput({
   label,
   onChange,
   isDisabled,
+  isRequired,
 }: {
   key: string;
   value: string;
@@ -22,7 +23,9 @@ export default function ModalInput({
   onChange: (value: string) => void;
   isDisabled?: boolean;
   description: string;
+  isRequired?: boolean;
 }) {
+  const [isInvalid, setIsInvalid] = React.useState(true);
   return (
     <>
       <div>{label}</div>
@@ -34,7 +37,10 @@ export default function ModalInput({
         onChange={(e) => onChange(e)}
         label={label}
         description={description}
-        
+        isInvalid={isInvalid}
+        onValueChange={(value) => {
+          setIsInvalid(value.length < 1);
+        }}
 
         
       />

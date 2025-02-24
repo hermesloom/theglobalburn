@@ -24,6 +24,7 @@ export type PromptField = {
   readOnly?: boolean;
   canBeEmpty?: boolean;
   description?: string;
+  isRequired?: boolean;
   checkboxoptions?: {
     id: string;
     label: string;
@@ -109,6 +110,7 @@ export default function Prompt({ config }: { config: PromptConfig }) {
                 label={field.label}
                 description={field.description}
                 isReadOnly={field.readOnly}
+                isRequired={field.isRequired}
               />
             ) : field.checkboxes ? (
               <Checkboxes
@@ -119,6 +121,7 @@ export default function Prompt({ config }: { config: PromptConfig }) {
                 description={field.description}
                 onChange={(value) => setInput(field.key, value)}
                 isDisabled={field.readOnly}
+                isRequired={field.isRequired}
 
               />
             ): field.radiobuttons ? (
@@ -130,6 +133,7 @@ export default function Prompt({ config }: { config: PromptConfig }) {
                 description={field.description}
                 onChange={(value) => setInput(field.key, value)}
                 isDisabled={field.readOnly}
+                isRequired={field.isRequired}
 
               />
             )  
@@ -142,6 +146,7 @@ export default function Prompt({ config }: { config: PromptConfig }) {
                 label={field.label}
                 description={field.description}
                 isReadOnly={field.readOnly}
+                isRequired={field.isRequired}
               />
             )
           )}

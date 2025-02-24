@@ -24,9 +24,12 @@ export default function Radiobuttons({
   isDisabled?: boolean;
   description: string;
 }) {
+  const [isInvalid, setIsInvalid] = React.useState(true);
   return (
 
-    <RadioGroup key={newkey} label={label} description={description} onChange={(e) => onChange(e.target.value)}>
+    <RadioGroup key={newkey} label={label} description={description} isInvalid={isInvalid} onChange={(e) => onChange(e.target.value)} onValueChange={(value) => {
+      setIsInvalid(value.length < 1);
+    }}>
       
         {options.map((option) => (
           <Radio key={option.id} value={option.id}>{option.label}</Radio>
