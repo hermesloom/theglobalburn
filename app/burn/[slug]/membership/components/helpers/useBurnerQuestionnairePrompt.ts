@@ -53,5 +53,5 @@ export const useBurnerQuestionnairePrompt = () => {
   }, [project?.slug]);
 
   return () =>
-    prompt("First, please answer the following questions.", listOfQuestions);
+    prompt("First, please answer the following burner questioneer.", listOfQuestions);
 };
