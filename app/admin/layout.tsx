@@ -6,7 +6,6 @@ import {
   FireOutlined,
   ContactsOutlined,
   UserSwitchOutlined,
-  QuestionCircleOutlined,
 } from "@ant-design/icons";
 import ContentContainer from "@/app/_components/ContentContainer";
 
@@ -38,11 +37,6 @@ export default function AdminLayout({
             label: "Role assignments",
             path: "/admin/role-assignments",
             icon: <UserSwitchOutlined />,
-          },
-          {
-            label: "Burner questions",
-            path: "/admin/questions",
-            icon: <QuestionCircleOutlined />,
           },
         ]}
       />
