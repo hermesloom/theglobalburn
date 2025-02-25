@@ -2,12 +2,17 @@
 
 import React, { createContext, useContext, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import Prompt, { PromptConfig, PromptField, PromptResult } from "./Prompt";
+import Prompt, {
+  PromptConfig,
+  PromptField,
+  PromptResult,
+  SubmitButtonTextParams,
+} from "./Prompt";
 
 type PromptContextType = (
   message?: string | React.ReactNode,
   fields?: PromptField[],
-  submitButtonText?: string
+  submitButtonText?: string | ((params: SubmitButtonTextParams) => string),
 ) => Promise<PromptResult | undefined>;
 
 const PromptContext = createContext<PromptContextType>(() => Promise.reject());
@@ -18,7 +23,7 @@ export function PromptProvider({ children }: { children: React.ReactNode }) {
   const prompt = (
     message?: string | React.ReactNode,
     fields?: PromptField[],
-    submitButtonText?: string
+    submitButtonText?: string | ((params: SubmitButtonTextParams) => string),
   ) => {
     return new Promise<PromptResult | undefined>((resolve) => {
       const id = uuidv4();

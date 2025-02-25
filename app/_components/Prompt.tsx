@@ -42,11 +42,15 @@ export type PromptResult = {
   [key: string]: string;
 };
 
+export type SubmitButtonTextParams = {
+  unfinishedFieldIndices: number[];
+};
+
 export type PromptConfig = {
   id: string;
   message?: string | React.ReactNode;
   fields?: PromptField[];
-  submitButtonText?: string;
+  submitButtonText?: string | ((params: SubmitButtonTextParams) => string);
   resolve: (value: PromptResult | undefined) => void;
 };
 
@@ -81,6 +85,18 @@ export default function Prompt({ config }: { config: PromptConfig }) {
       </div>
     );
   };
+
+  const unfinishedFieldIndices =
+    config.fields
+      ?.map((field, index) => ({ index, field }))
+      .filter(
+        ({ field }) =>
+          (!field.canBeEmpty && !inputs[field.key]) ||
+          (field.validate && !field.validate(inputs[field.key])),
+      )
+      .map((f) => f.index) ?? [];
+
+  const submitDisabled = unfinishedFieldIndices.length > 0;
 
   const renderField = (field: PromptField) => {
     switch (field.type) {
@@ -216,11 +232,7 @@ export default function Prompt({ config }: { config: PromptConfig }) {
               <Button
                 color="primary"
                 fullWidth
-                isDisabled={config.fields?.some(
-                  (field) =>
-                    (!field.canBeEmpty && !inputs[field.key]) ||
-                    (field.validate && !field.validate(inputs[field.key])),
-                )}
+                isDisabled={submitDisabled}
                 onPress={() => {
                   config.fields?.forEach((field) => {
                     if (field.transform) {
@@ -232,11 +244,13 @@ export default function Prompt({ config }: { config: PromptConfig }) {
                   setIsOpen(false);
                 }}
               >
-                {config.submitButtonText
+                {typeof config.submitButtonText === "string"
                   ? config.submitButtonText
-                  : config.fields?.every((f) => f.readOnly)
-                    ? "Close"
-                    : "Submit"}
+                  : typeof config.submitButtonText === "function"
+                    ? config.submitButtonText({ unfinishedFieldIndices })
+                    : config.fields?.every((f) => f.readOnly)
+                      ? "Close"
+                      : "Submit"}
               </Button>
             </ModalFooter>
           </>
