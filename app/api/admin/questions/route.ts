@@ -20,6 +20,6 @@ export const POST = requestWithAuthAdmin<
   const { projectId, questionText , questionId} = body;
 
   return query(() =>
-    supabase.from("questions").insert({ project_id: projectId, question_id: questionId, question_text: questionText })
+    supabase.from("questions").insert({ project_id: projectId, question_id: questionId, question_text: questionId })
   );
 }, CreateQuestionRequestSchema);
