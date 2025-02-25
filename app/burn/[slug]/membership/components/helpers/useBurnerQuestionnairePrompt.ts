@@ -24,7 +24,6 @@ export const useBurnerQuestionnairePrompt = () => {
           label: q.question_text,
           type: q.question_type,
           description: q.question_description,
-          isRequired: true
        
         };
         if (q.question_type === "dropdown") {

@@ -22,12 +22,9 @@ export default function Checkboxes({
   isDisabled?: boolean;
   description: string;
 }) {
-  const [isInvalid, setIsInvalid] = React.useState(true);
   return (
 
-    <CheckboxGroup label={label} description={description} onChange={onChange}  isInvalid={isInvalid} onValueChange={(value) => {
-      setIsInvalid(value.length < 1);
-    }}>
+    <CheckboxGroup label={label} description={description} onChange={onChange}>
       
         {options.map((option) => (
           <Checkbox key={option.id} value={option.id}>{option.label}</Checkbox>
