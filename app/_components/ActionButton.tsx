@@ -6,7 +6,7 @@ import { PromptResult } from "@/app/_components/Prompt";
 
 export type ActionButtonOnClickHandler<T> = (
   data?: T,
-  promptResult?: PromptResult
+  promptResult?: PromptResult,
 ) => Promise<boolean | void>;
 
 export type ActionButtonDef<T = undefined> = {
@@ -14,6 +14,7 @@ export type ActionButtonDef<T = undefined> = {
   label?: string;
   icon?: React.ReactNode;
   tooltip?: string;
+  allowLineBreaks?: boolean;
   condition?: (data?: T) => boolean;
   onClick:
     | ActionButtonOnClickHandler<T>
@@ -45,6 +46,9 @@ export default function ActionButton<T>({
       {...props}
       isIconOnly={!action.label && !!action.icon}
       isLoading={loading}
+      className={
+        action.allowLineBreaks ? "whitespace-normal min-h-10 h-auto" : undefined
+      }
       onPress={async () => {
         try {
           const handler =

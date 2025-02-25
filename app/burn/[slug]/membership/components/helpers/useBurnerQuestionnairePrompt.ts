@@ -197,7 +197,7 @@ export const useBurnerQuestionnairePrompt = () => {
       {
         key: "dream_status",
         label: "12. Do you have a dream for this year's Borderland?",
-        type: "checkboxGroup",
+        type: "radio",
         options: [
           {
             id: "ready",

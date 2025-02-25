@@ -23,7 +23,7 @@ export default function MembershipAvailable() {
   const router = useRouter();
   const burnerQuestionnaire = useBurnerQuestionnairePrompt();
   const [enabledAddons, setEnabledAddons] = useState<string[]>(
-    project?.membership_purchase_right?.metadata?.enabled_addons ?? []
+    project?.membership_purchase_right?.metadata?.enabled_addons ?? [],
   );
 
   useEffect(() => {
@@ -32,7 +32,7 @@ export default function MembershipAvailable() {
       const checkMembership = async () => {
         try {
           const response = await apiGet(
-            `/burn/${project?.slug}/has-membership`
+            `/burn/${project?.slug}/has-membership`,
           );
           if (response.hasMembership) {
             await reloadProfile();
@@ -66,7 +66,7 @@ export default function MembershipAvailable() {
 
   const purchaseMembership = async (
     tier: number,
-    burnerQuestionnaireResult?: BurnerQuestionnaireResult
+    burnerQuestionnaireResult?: BurnerQuestionnaireResult,
   ) => {
     const { url } = await apiPost(
       `/burn/${project?.slug}/purchase-membership`,
@@ -77,7 +77,7 @@ export default function MembershipAvailable() {
           enabled_addons: enabledAddons,
           burner_questionnaire_result: burnerQuestionnaireResult,
         },
-      }
+      },
     );
     window.location.href = url;
   };
@@ -85,7 +85,7 @@ export default function MembershipAvailable() {
   const enabledAddonsSuffix = enabledAddons
     .map((addon) => {
       const addonDef = project?.burn_config.membership_addons.find(
-        (a) => a.id === addon
+        (a) => a.id === addon,
       )!;
       return ` + ${addonDef.name} (${formatMoney(addonDef.price, project?.burn_config.membership_price_currency!)})`;
     })
@@ -106,7 +106,7 @@ export default function MembershipAvailable() {
               Your membership is reserved for you until{" "}
               <b>
                 {new Date(
-                  project?.membership_purchase_right?.expires_at!
+                  project?.membership_purchase_right?.expires_at!,
                 ).toLocaleString()}
               </b>
               . If you don't complete the purchase of your membership by then,
@@ -130,7 +130,7 @@ export default function MembershipAvailable() {
                       setEnabledAddons(
                         value
                           ? [...enabledAddons, addon.id]
-                          : enabledAddons.filter((id) => id !== addon.id)
+                          : enabledAddons.filter((id) => id !== addon.id),
                       );
                     }}
                   />
@@ -139,7 +139,7 @@ export default function MembershipAvailable() {
                   {addon.name} (+{" "}
                   {formatMoney(
                     addon.price,
-                    project?.burn_config.membership_price_currency
+                    project?.burn_config.membership_price_currency,
                   )}
                   )
                   <br />
@@ -169,16 +169,17 @@ export default function MembershipAvailable() {
               <ActionButton
                 action={{
                   key: "purchase-membership-tier-1",
-                  label: `Purchase low-income membership (${formatMoney(
+                  label: `Purchase low-income membership\n(${formatMoney(
                     project?.burn_config.membership_price_tier_1,
-                    project?.burn_config.membership_price_currency
+                    project?.burn_config.membership_price_currency,
                   )})${enabledAddonsSuffix}`,
+                  allowLineBreaks: true,
                   onClick: {
                     prompt: burnerQuestionnaire,
                     handler: (_, promptData) =>
                       purchaseMembership(
                         1,
-                        promptData as BurnerQuestionnaireResult
+                        promptData as BurnerQuestionnaireResult,
                       ),
                   },
                 }}
@@ -188,16 +189,17 @@ export default function MembershipAvailable() {
             <ActionButton
               action={{
                 key: "purchase-membership-tier-2",
-                label: `Purchase regular-income membership (${formatMoney(
+                label: `Purchase regular-income membership\n(${formatMoney(
                   project?.burn_config.membership_price_tier_2,
-                  project?.burn_config.membership_price_currency
+                  project?.burn_config.membership_price_currency,
                 )})${enabledAddonsSuffix}`,
+                allowLineBreaks: true,
                 onClick: {
                   prompt: burnerQuestionnaire,
                   handler: (_, promptData) =>
                     purchaseMembership(
                       2,
-                      promptData as BurnerQuestionnaireResult
+                      promptData as BurnerQuestionnaireResult,
                     ),
                 },
               }}
@@ -205,16 +207,17 @@ export default function MembershipAvailable() {
             <ActionButton
               action={{
                 key: "purchase-membership-tier-3",
-                label: `Purchase high-income membership (${formatMoney(
+                label: `Purchase high-income membership\n(${formatMoney(
                   project?.burn_config.membership_price_tier_3,
-                  project?.burn_config.membership_price_currency
+                  project?.burn_config.membership_price_currency,
                 )})${enabledAddonsSuffix}`,
+                allowLineBreaks: true,
                 onClick: {
                   prompt: burnerQuestionnaire,
                   handler: (_, promptData) =>
                     purchaseMembership(
                       3,
-                      promptData as BurnerQuestionnaireResult
+                      promptData as BurnerQuestionnaireResult,
                     ),
                 },
               }}
