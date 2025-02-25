@@ -13,7 +13,6 @@ import {
 import Dropdown from "./Dropdown";
 import Checkboxes from "./Checkboxes";
 import Radiobuttons from "./Radiobuttons";
-import ModalInput from "./Modalinput";
 
 export type PromptField = {
   key: string;
@@ -80,7 +79,7 @@ export default function Prompt({ config }: { config: PromptConfig }) {
         config.resolve(undefined);
         setIsOpen(false);
       }}
-      scrollBehavior="outside"
+      scrollBehavior="inside"
     >
       <ModalContent className="p-4">
         {config.message ? <ModalHeader>{config.message}</ModalHeader> : null}
@@ -135,7 +134,7 @@ export default function Prompt({ config }: { config: PromptConfig }) {
             )  
             : (
 
-              <ModalInput
+              <Input
                 key={field.key}
                 value={inputs[field.key] || ""}
                 onChange={(e) => setInput(field.key, e.target.value)}
