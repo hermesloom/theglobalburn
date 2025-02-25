@@ -112,6 +112,16 @@ export default function MembershipAvailable() {
               . If you don't complete the purchase of your membership by then,
               it will be released to the public in the open sale.
             </p>
+            {project?.lottery_ticket?.is_low_income &&
+            !project?.membership_purchase_right?.is_low_income ? (
+              <p>
+                Even though you signed up to the lottery as low-income,
+                unfortunately the low-income option is only available for direct
+                lottery winners. If you got a membership through +1 or the open
+                sale, you can only purchase a regular- or high-income
+                membership.
+              </p>
+            ) : null}
           </>
         )}
 
