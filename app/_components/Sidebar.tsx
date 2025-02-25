@@ -19,8 +19,6 @@ export function Sidebar({ routes }: SidebarProps) {
   const pathname = usePathname();
   const { showSidebar } = useSession();
 
-  console.log(showSidebar);
-
   return (
     <div
       className="fixed h-full border-r border-divider p-4 z-2 rounded-r-xl transition-all duration-300"
