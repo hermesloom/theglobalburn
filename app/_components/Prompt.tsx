@@ -199,15 +199,19 @@ export default function Prompt({ config }: { config: PromptConfig }) {
       }}
       scrollBehavior="inside"
       size="2xl"
+      classNames={{
+        wrapper: "items-start",
+        base: "mt-4",
+      }}
     >
-      <ModalContent className="max-h-[80vh]">
+      <ModalContent className="max-h-[80vh] sm:mt-0">
         {(onClose) => (
           <>
             {config.message ? (
               <ModalHeader>{config.message}</ModalHeader>
             ) : null}
             <ModalBody className="overflow-y-auto">
-              <div className="space-y-8">
+              <div className="space-y-8 pb-4">
                 {config.fields?.map((field) => renderField(field))}
               </div>
             </ModalBody>
