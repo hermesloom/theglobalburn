@@ -6,6 +6,7 @@ import { Button, Input } from "@nextui-org/react";
 import { useProject } from "@/app/_components/SessionContext";
 import { BurnStage, BurnMembershipPricing } from "@/utils/types";
 import toast from "react-hot-toast";
+import { useBurnerQuestionnairePrompt } from "@/app/burn/[slug]/membership/components/helpers/useBurnerQuestionnairePrompt";
 
 function isJson(value: string) {
   try {
@@ -146,6 +147,15 @@ export default function ConfigPage() {
     }
   };
 
+  const burnerQuestionnaire = useBurnerQuestionnairePrompt();
+
+  const handleTestQuestionnaire = async () => {
+    const result = await burnerQuestionnaire();
+    if (result) {
+      alert(JSON.stringify(result, null, 2));
+    }
+  };
+
   return (
     <>
       <Heading>Configuration</Heading>
@@ -261,6 +271,12 @@ export default function ConfigPage() {
           {isAllValid
             ? "Save configuration"
             : "Please fill in all fields correctly"}
+        </Button>
+
+        <hr className="my-4 border-t border-gray-300" />
+
+        <Button color="secondary" onPress={handleTestQuestionnaire}>
+          Test Burner Questionnaire
         </Button>
       </div>
     </>
