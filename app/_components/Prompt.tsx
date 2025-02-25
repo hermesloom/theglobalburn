@@ -198,14 +198,17 @@ export default function Prompt({ config }: { config: PromptConfig }) {
         setIsOpen(false);
       }}
       scrollBehavior="inside"
+      size="full"
     >
       <ModalContent>
         {(onClose) => (
           <>
             {config.message ? (
-              <ModalHeader>{config.message}</ModalHeader>
+              <ModalHeader className="px-10 pt-10">
+                {config.message}
+              </ModalHeader>
             ) : null}
-            <ModalBody className="overflow-y-auto">
+            <ModalBody className="overflow-y-auto px-10 pb-10">
               <div className="space-y-8">
                 {config.fields?.map((field) => renderField(field))}
               </div>
