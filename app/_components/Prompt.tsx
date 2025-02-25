@@ -200,7 +200,7 @@ export default function Prompt({ config }: { config: PromptConfig }) {
       scrollBehavior="inside"
       size="2xl"
     >
-      <ModalContent className="max-h-[90vh]">
+      <ModalContent className="max-h-[80vh]">
         {(onClose) => (
           <>
             {config.message ? (
