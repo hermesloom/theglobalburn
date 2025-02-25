@@ -35,7 +35,10 @@ export default function InvitePlusOne() {
           . The recipient must be registered on this platform. Once you have
           invited a +1, they will have{" "}
           {project.burn_config.plus_one_reservation_duration / (60 * 60)} hours
-          to purchase a membership.
+          to purchase a membership. Note that they will NOT receive any email
+          after the transfer. Instead, they need to simply reload their
+          membership page in their browser and will then get the opportunity to
+          purchase.
         </p>
         <Input
           label="Email address of the intended recipient"
