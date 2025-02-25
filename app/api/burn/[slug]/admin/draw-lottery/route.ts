@@ -14,6 +14,14 @@ function shuffleArray<T>(array: T[]): T[] {
   return array;
 }
 
+function chunkArray<T>(array: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+}
+
 // draw lottery winners
 export const POST = requestWithProject(
   async (supabase, profile, request, body, project) => {
@@ -22,7 +30,7 @@ export const POST = requestWithProject(
         .from("burn_config")
         .select("*")
         .eq("project_id", project!.id)
-        .single()
+        .single(),
     );
 
     const allLotteryTicketsShuffled: BurnLotteryTicket[] = shuffleArray(
@@ -30,8 +38,11 @@ export const POST = requestWithProject(
         supabase
           .from("burn_lottery_tickets")
           .select("*")
-          .eq("project_id", project!.id)
-      )
+          .eq("project_id", project!.id),
+      ),
+    );
+    console.log(
+      `[LOTTERY] All ${allLotteryTicketsShuffled.length} lottery tickets shuffled`,
     );
 
     if (allLotteryTicketsShuffled.some((lt) => lt.is_winner)) {
@@ -40,13 +51,17 @@ export const POST = requestWithProject(
 
     // determine how many lottery winners there are in total
     const numLotteryWinners = Math.floor(
-      (burnConfig.max_memberships * burnConfig.share_memberships_lottery) / 100
+      (burnConfig.max_memberships * burnConfig.share_memberships_lottery) / 100,
     );
+    console.log(`[LOTTERY] Number of lottery winners: ${numLotteryWinners}`);
 
     // determine how many low income winners there are
     const numReservedForLowIncome = Math.floor(
       (burnConfig.max_memberships * burnConfig.share_memberships_low_income) /
-        100
+        100,
+    );
+    console.log(
+      `[LOTTERY] Number of low income winners: ${numReservedForLowIncome}`,
     );
 
     // draw the low income winners
@@ -54,6 +69,9 @@ export const POST = requestWithProject(
       .filter((ticket) => ticket.is_low_income)
       .slice(0, numReservedForLowIncome)
       .map((ticket) => ticket.id);
+    console.log(
+      `[LOTTERY] Drawn ${lowIncomeWinnerIds.length} low income winners`,
+    );
 
     // from everyone who is not a low income winner, draw the rest of the lottery winners
     const otherWinnerIds =
@@ -63,19 +81,32 @@ export const POST = requestWithProject(
             .slice(0, numLotteryWinners - lowIncomeWinnerIds.length)
             .map((ticket) => ticket.id)
         : [];
-
-    // update the database with the winners
-    const winnerIds = [...lowIncomeWinnerIds, ...otherWinnerIds];
-    await query(() =>
-      supabase
-        .from("burn_lottery_tickets")
-        .update({ is_winner: true, can_invite_plus_one: true })
-        .in("id", winnerIds)
+    console.log(
+      `[LOTTERY] Drawn ${otherWinnerIds.length} regular-/high-income winners`,
     );
 
-    // fetch winning lottery tickets
-    const winningLotteryTickets: BurnLotteryTicket[] = await query(() =>
-      supabase.from("burn_lottery_tickets").select("*").in("id", winnerIds)
+    // update the database with the winners in chunks of 200
+    const winnerIds = [...lowIncomeWinnerIds, ...otherWinnerIds];
+    console.log(`[LOTTERY] Updating database with ${winnerIds.length} winners`);
+    for (const chunk of chunkArray(winnerIds, 200)) {
+      await query(() =>
+        supabase
+          .from("burn_lottery_tickets")
+          .update({ is_winner: true, can_invite_plus_one: true })
+          .in("id", chunk),
+      );
+    }
+
+    // fetch winning lottery tickets in chunks of 200
+    const winningLotteryTickets: BurnLotteryTicket[] = [];
+    for (const chunk of chunkArray(winnerIds, 200)) {
+      const tickets = await query(() =>
+        supabase.from("burn_lottery_tickets").select("*").in("id", chunk),
+      );
+      winningLotteryTickets.push(...tickets);
+    }
+    console.log(
+      `[LOTTERY] Fetched ${winningLotteryTickets.length} winning lottery tickets`,
     );
 
     const membershipPurchaseRights: Partial<BurnMembershipPurchaseRight>[] =
@@ -92,10 +123,15 @@ export const POST = requestWithProject(
         details_modifiable: false,
       }));
 
-    await query(() =>
-      supabase
-        .from("burn_membership_purchase_rights")
-        .insert(membershipPurchaseRights)
+    // insert the membership purchase rights in chunks of 200
+    for (const chunk of chunkArray(membershipPurchaseRights, 200)) {
+      await query(() =>
+        supabase.from("burn_membership_purchase_rights").insert(chunk),
+      );
+    }
+
+    console.log(
+      `[LOTTERY] Inserted ${membershipPurchaseRights.length} membership purchase rights`,
     );
 
     return {
@@ -103,5 +139,5 @@ export const POST = requestWithProject(
     };
   },
   undefined,
-  BurnRole.MembershipManager
+  BurnRole.MembershipManager,
 );
