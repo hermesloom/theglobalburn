@@ -145,7 +145,7 @@ export default function Prompt({ config }: { config: PromptConfig }) {
                 onChange={(e) => setInput(field.key, e.target.value)}
                 label={field.label}
                 description={field.description}
-                
+                isReadOnly={field.readOnly}
                 isRequired={field.isRequired}
               />
             )

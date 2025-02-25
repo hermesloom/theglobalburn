@@ -25,7 +25,7 @@ export default function Dropdown({
 }) {
   return (
    <>
-   <div className="relative text-medium text-foreground-500">{label}</div>
+   <div class="relative text-medium text-foreground-500">{label}</div>
    
    <NextUIDropdown>
       
