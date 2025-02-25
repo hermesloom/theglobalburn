@@ -6,7 +6,12 @@ import {
   ModalContent,
   ModalHeader,
   ModalBody,
+  ModalFooter,
   Textarea,
+  Checkbox,
+  RadioGroup,
+  Radio,
+  CheckboxGroup,
 } from "@nextui-org/react";
 import Dropdown from "./Dropdown";
 
@@ -17,6 +22,13 @@ export type PromptField = {
   defaultValue?: string;
   readOnly?: boolean;
   canBeEmpty?: boolean;
+  type?:
+    | "text"
+    | "textWithTopLabel"
+    | "checkbox"
+    | "checkboxGroup"
+    | "radio"
+    | "dropdown";
   options?: {
     id: string;
     label: string;
@@ -61,6 +73,123 @@ export default function Prompt({ config }: { config: PromptConfig }) {
     setInputs(newInputs);
   };
 
+  const renderLabel = (label?: string) => {
+    if (!label) return null;
+    return (
+      <div className="block text-small font-medium text-foreground pb-1.5">
+        {label}
+      </div>
+    );
+  };
+
+  const renderField = (field: PromptField) => {
+    switch (field.type) {
+      case "textWithTopLabel":
+        return (
+          <div key={field.key}>
+            {renderLabel(field.label)}
+            {field.multiLine ? (
+              <Textarea
+                value={inputs[field.key] || ""}
+                onChange={(e) => setInput(field.key, e.target.value)}
+                isReadOnly={field.readOnly}
+              />
+            ) : (
+              <Input
+                value={inputs[field.key] || ""}
+                onChange={(e) => setInput(field.key, e.target.value)}
+                isReadOnly={field.readOnly}
+              />
+            )}
+          </div>
+        );
+
+      case "checkbox":
+        return (
+          <div key={field.key}>
+            {renderLabel(field.label)}
+            <Checkbox
+              isSelected={inputs[field.key] === "true"}
+              onValueChange={(checked) =>
+                setInput(field.key, checked.toString())
+              }
+              isDisabled={field.readOnly}
+            >
+              {field.label}
+            </Checkbox>
+          </div>
+        );
+
+      case "radio":
+        return field.options ? (
+          <div key={field.key}>
+            {renderLabel(field.label)}
+            <RadioGroup
+              value={inputs[field.key]}
+              onValueChange={(value) => setInput(field.key, value)}
+              isDisabled={field.readOnly}
+            >
+              {field.options.map((option) => (
+                <Radio key={option.id} value={option.id}>
+                  {option.label}
+                </Radio>
+              ))}
+            </RadioGroup>
+          </div>
+        ) : null;
+
+      case "dropdown":
+        return (
+          <div key={field.key}>
+            {renderLabel(field.label)}
+            <Dropdown
+              options={field.options || []}
+              value={inputs[field.key]}
+              onChange={(value) => setInput(field.key, value)}
+              isDisabled={field.readOnly}
+            />
+          </div>
+        );
+
+      case "checkboxGroup":
+        return field.options ? (
+          <div key={field.key}>
+            {renderLabel(field.label)}
+            <CheckboxGroup
+              value={inputs[field.key]?.split(",").filter(Boolean)}
+              onValueChange={(values) => setInput(field.key, values.join(","))}
+              isDisabled={field.readOnly}
+            >
+              {field.options.map((option) => (
+                <Checkbox key={option.id} value={option.id}>
+                  {option.label}
+                </Checkbox>
+              ))}
+            </CheckboxGroup>
+          </div>
+        ) : null;
+
+      default:
+        return field.multiLine ? (
+          <Textarea
+            key={field.key}
+            value={inputs[field.key] || ""}
+            onChange={(e) => setInput(field.key, e.target.value)}
+            label={field.label}
+            isReadOnly={field.readOnly}
+          />
+        ) : (
+          <Input
+            key={field.key}
+            value={inputs[field.key] || ""}
+            onChange={(e) => setInput(field.key, e.target.value)}
+            label={field.label}
+            isReadOnly={field.readOnly}
+          />
+        );
+    }
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -68,62 +197,49 @@ export default function Prompt({ config }: { config: PromptConfig }) {
         config.resolve(undefined);
         setIsOpen(false);
       }}
+      scrollBehavior="inside"
+      size="2xl"
     >
-      <ModalContent className="p-4">
-        {config.message ? <ModalHeader>{config.message}</ModalHeader> : null}
-        <ModalBody>
-          {config.fields?.map((field) =>
-            field.options ? (
-              <Dropdown
-                key={field.key}
-                options={field.options}
-                value={inputs[field.key]}
-                onChange={(value) => setInput(field.key, value)}
-                isDisabled={field.readOnly}
-              />
-            ) : field.multiLine ? (
-              <Textarea
-                key={field.key}
-                value={inputs[field.key] || ""}
-                onChange={(e) => setInput(field.key, e.target.value)}
-                label={field.label}
-                isReadOnly={field.readOnly}
-              />
-            ) : (
-              <Input
-                key={field.key}
-                value={inputs[field.key] || ""}
-                onChange={(e) => setInput(field.key, e.target.value)}
-                label={field.label}
-                isReadOnly={field.readOnly}
-              />
-            )
-          )}
-          <Button
-            color="primary"
-            isDisabled={config.fields?.some(
-              (field) =>
-                (!field.canBeEmpty && !inputs[field.key]) ||
-                (field.validate && !field.validate(inputs[field.key]))
-            )}
-            onPress={() => {
-              config.fields?.forEach((field) => {
-                if (field.transform) {
-                  inputs[field.key] = field.transform(inputs[field.key]);
-                }
-              });
+      <ModalContent className="max-h-[90vh]">
+        {(onClose) => (
+          <>
+            {config.message ? (
+              <ModalHeader>{config.message}</ModalHeader>
+            ) : null}
+            <ModalBody className="overflow-y-auto">
+              <div className="space-y-8">
+                {config.fields?.map((field) => renderField(field))}
+              </div>
+            </ModalBody>
+            <ModalFooter>
+              <Button
+                color="primary"
+                fullWidth
+                isDisabled={config.fields?.some(
+                  (field) =>
+                    (!field.canBeEmpty && !inputs[field.key]) ||
+                    (field.validate && !field.validate(inputs[field.key])),
+                )}
+                onPress={() => {
+                  config.fields?.forEach((field) => {
+                    if (field.transform) {
+                      inputs[field.key] = field.transform(inputs[field.key]);
+                    }
+                  });
 
-              config.resolve(inputs);
-              setIsOpen(false);
-            }}
-          >
-            {config.submitButtonText
-              ? config.submitButtonText
-              : config.fields?.every((f) => f.readOnly)
-                ? "Close"
-                : "Submit"}
-          </Button>
-        </ModalBody>
+                  config.resolve(inputs);
+                  setIsOpen(false);
+                }}
+              >
+                {config.submitButtonText
+                  ? config.submitButtonText
+                  : config.fields?.every((f) => f.readOnly)
+                    ? "Close"
+                    : "Submit"}
+              </Button>
+            </ModalFooter>
+          </>
+        )}
       </ModalContent>
     </Modal>
   );
