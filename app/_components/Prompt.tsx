@@ -74,12 +74,10 @@ export default function Prompt({ config }: { config: PromptConfig }) {
   return (
     <Modal
       isOpen={isOpen}
-      size="3xl"
       onClose={() => {
         config.resolve(undefined);
         setIsOpen(false);
       }}
-      scrollBehavior="inside"
     >
       <ModalContent className="p-4">
         {config.message ? <ModalHeader>{config.message}</ModalHeader> : null}
