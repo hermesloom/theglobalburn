@@ -198,9 +198,8 @@ export default function Prompt({ config }: { config: PromptConfig }) {
         setIsOpen(false);
       }}
       scrollBehavior="inside"
-      size="2xl"
     >
-      <ModalContent className="max-h-[80dvh]">
+      <ModalContent>
         {(onClose) => (
           <>
             {config.message ? (
