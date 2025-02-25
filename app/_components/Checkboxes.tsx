@@ -17,7 +17,7 @@ export default function Checkboxes({
   options: { id: string; label: string }[];
   value: string;
   label: string;
-  newkey: string;
+  key: string;
   onChange: (value: string[]) => void;
   isDisabled?: boolean;
   description: string;
@@ -27,7 +27,7 @@ export default function Checkboxes({
     <CheckboxGroup label={label} description={description} onChange={onChange}>
       
         {options.map((option) => (
-          <Checkbox key={option.id} value={option.id}>{option.label}</Checkbox>
+          <Checkbox value={option.id}>{option.label}</Checkbox>
         ))}
      
     </CheckboxGroup>

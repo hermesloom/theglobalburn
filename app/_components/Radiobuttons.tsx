@@ -8,7 +8,7 @@ import {
 
 export default function Radiobuttons({
   options,
-  newkey,
+  key,
   value,
   description,
   label,
@@ -16,7 +16,7 @@ export default function Radiobuttons({
   isDisabled,
 }: {
   options: { id: string; label: string }[];
-  newkey: string;
+  key: string;
   value: string;
   label: string;
   onChange: (value: string) => void;
@@ -26,10 +26,10 @@ export default function Radiobuttons({
 }) {
   return (
 
-    <RadioGroup key={newkey} label={label} description={description} onChange={(e) => onChange(e.target.value)}>
+    <RadioGroup key={key} label={label} description={description} onChange={(e) => onChange(e.target.value)}>
       
         {options.map((option) => (
-          <Radio key={option.id} value={option.id}>{option.label}</Radio>
+          <Radio value={option.id}>{option.label}</Radio>
         ))}
      
     </RadioGroup>
