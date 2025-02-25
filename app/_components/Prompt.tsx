@@ -197,7 +197,7 @@ export default function Prompt({ config }: { config: PromptConfig }) {
         config.resolve(undefined);
         setIsOpen(false);
       }}
-      scrollBehavior="inside"
+      scrollBehavior="outside"
       size="2xl"
     >
       <ModalContent className="max-h-[80vh]">
