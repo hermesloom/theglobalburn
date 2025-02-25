@@ -29,7 +29,7 @@ export default function InvitePlusOne() {
           You can invite a +1 until the open sale starts at{" "}
           <b>
             {new Date(
-              project.burn_config.open_sale_lottery_entrants_only_starting_at
+              project.burn_config.open_sale_lottery_entrants_only_starting_at,
             ).toLocaleString()}
           </b>
           . The recipient must be registered on this platform. Once you have

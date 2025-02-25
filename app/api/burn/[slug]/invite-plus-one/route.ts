@@ -16,14 +16,17 @@ export const POST = requestWithProject<
   async (supabase, profile, request, body, project) => {
     if (project?.burn_config.current_stage !== BurnStage.LotteryClosed) {
       throw new Error(
-        `Expected burn stage to be lottery-closed, got ${project?.burn_config.current_stage}`
+        `Expected burn stage to be lottery-closed, got ${project?.burn_config.current_stage}`,
       );
     }
 
-    const recipientProfile = await getProfileByEmail(supabase, body.email);
+    const recipientProfile = await getProfileByEmail(
+      supabase,
+      body.email.toLowerCase(),
+    );
     const recipientProject = validateNewMembershipEligibility(
       recipientProfile,
-      project!
+      project!,
     );
 
     // create a membership purchase right for the recipient
@@ -33,11 +36,11 @@ export const POST = requestWithProject<
         owner_id: recipientProfile.id,
         expires_at: new Date(
           +new Date() +
-            project?.burn_config.plus_one_reservation_duration! * 1000
+            project?.burn_config.plus_one_reservation_duration! * 1000,
         ).toISOString(),
         is_low_income: false,
         details_modifiable: true,
-      })
+      }),
     );
 
     // set "can_invite_plus_one" to false for the lottery ticket,
@@ -46,9 +49,9 @@ export const POST = requestWithProject<
       supabase
         .from("burn_lottery_tickets")
         .update({ can_invite_plus_one: false })
-        .eq("id", project!.lottery_ticket!.id)
+        .eq("id", project!.lottery_ticket!.id),
     );
   },
   InvitePlusOneRequestSchema,
-  BurnRole.Participant
+  BurnRole.Participant,
 );
