@@ -7,26 +7,16 @@ import {
   ModalHeader,
   ModalBody,
   Textarea,
-  CheckboxGroup,
-  Checkbox
 } from "@nextui-org/react";
 import Dropdown from "./Dropdown";
-import Checkboxes from "./Checkboxes";
-import Radiobuttons from "./Radiobuttons";
 
 export type PromptField = {
   key: string;
   label?: string;
   multiLine?: boolean;
-  checkboxes?: boolean;
   defaultValue?: string;
   readOnly?: boolean;
   canBeEmpty?: boolean;
-  description?: string;
-  checkboxoptions?: {
-    id: string;
-    label: string;
-  }[];
   options?: {
     id: string;
     label: string;
@@ -82,17 +72,10 @@ export default function Prompt({ config }: { config: PromptConfig }) {
       <ModalContent className="p-4">
         {config.message ? <ModalHeader>{config.message}</ModalHeader> : null}
         <ModalBody>
-
-
           {config.fields?.map((field) =>
-          
-          
-          field.options ? (
-
+            field.options ? (
               <Dropdown
                 key={field.key}
-                label={field.label}
-                description={field.description}
                 options={field.options}
                 value={inputs[field.key]}
                 onChange={(value) => setInput(field.key, value)}
@@ -104,45 +87,18 @@ export default function Prompt({ config }: { config: PromptConfig }) {
                 value={inputs[field.key] || ""}
                 onChange={(e) => setInput(field.key, e.target.value)}
                 label={field.label}
-                description={field.description}
                 isReadOnly={field.readOnly}
               />
-            ) : field.checkboxes ? (
-              <Checkboxes
-                key={field.key}
-                options={field.checkboxoptions}
-                label={field.label}
-                value={inputs[field.key]}
-                description={field.description}
-                onChange={(value) => setInput(field.key, value)}
-                isDisabled={field.readOnly}
-
-              />
-            ): field.radiobuttons ? (
-              <Radiobuttons
-                key={field.key}
-                options={field.radiooptions}
-                label={field.label}
-                value={inputs[field.key]}
-                description={field.description}
-                onChange={(value) => setInput(field.key, value)}
-                isDisabled={field.readOnly}
-
-              />
-            )  
-            : (
-
+            ) : (
               <Input
                 key={field.key}
                 value={inputs[field.key] || ""}
                 onChange={(e) => setInput(field.key, e.target.value)}
                 label={field.label}
-                description={field.description}
                 isReadOnly={field.readOnly}
               />
             )
           )}
-
           <Button
             color="primary"
             isDisabled={config.fields?.some(
