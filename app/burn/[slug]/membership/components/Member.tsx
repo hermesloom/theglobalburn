@@ -40,7 +40,7 @@ export default function Member() {
       <ListOfChildren data={project?.membership!.metadata?.children || []} />
 
       <TransferMembership />
-      <ReturnMembership />
+      {/* <ReturnMembership /> <-- DO NOT REACTIVATE, RISK OF DANGEROUS BUDGET LOSS!!! */}
     </>
   );
 }
