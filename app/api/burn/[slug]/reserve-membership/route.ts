@@ -6,7 +6,7 @@ export const POST = requestWithProject(
   async (supabase, profile, request, body, project) => {
     const availableMemberships = await getAvailableMemberships(
       supabase,
-      project!
+      project!,
     );
 
     if (availableMemberships === 0) {
@@ -19,7 +19,7 @@ export const POST = requestWithProject(
       !project?.lottery_ticket
     ) {
       throw new Error(
-        `As you don't have a lottery ticket, you must wait until the burn stage is ${BurnStage.OpenSaleGeneral}`
+        `As you don't have a lottery ticket, you must wait until the burn stage is ${BurnStage.OpenSaleGeneral}`,
       );
     }
 
@@ -28,12 +28,16 @@ export const POST = requestWithProject(
       owner_id: profile!.id,
       expires_at: new Date(
         new Date().getTime() +
-          project?.burn_config.open_sale_reservation_duration! * 1000
+          project?.burn_config.open_sale_reservation_duration! * 1000,
       ).toISOString(),
-      is_low_income: false,
+      is_low_income:
+        (project?.burn_config.current_stage ===
+          BurnStage.OpenSaleLotteryEntrantsOnly &&
+          project?.lottery_ticket?.is_low_income) ??
+        false,
       details_modifiable: true,
     });
   },
   undefined,
-  BurnRole.Participant
+  BurnRole.Participant,
 );

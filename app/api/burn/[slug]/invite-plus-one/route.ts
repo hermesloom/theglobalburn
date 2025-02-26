@@ -38,7 +38,7 @@ export const POST = requestWithProject<
           +new Date() +
             project?.burn_config.plus_one_reservation_duration! * 1000,
         ).toISOString(),
-        is_low_income: false,
+        is_low_income: recipientProject.lottery_ticket?.is_low_income ?? false,
         details_modifiable: true,
       }),
     );
