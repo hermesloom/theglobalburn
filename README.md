@@ -6,12 +6,11 @@ Initially for [The Borderland](https://theborderland.se), but designed to be as 
 
 ## TODO
 
-- add all questions for burner questionnaire, see https://docs.google.com/document/d/1MklO0sp66zDpw-AuA7-v34cny2V6Emi1HZ7tmqKHGnQ/edit
 - allow changing name and birthday (only admins can change)
   - users can *apply* for a change of name and/or birthday, auto-accept with small Levenshtein distance
 - allow search for memberships (both email and name)
 - when refunding a membership, deduct Stripe fees
-- email notifications (via existing Mailgun), only for successful payment (generate and send out membership QR PDF)
+- generate and send out membership QR PDF via email
 - link list (both on theborderland.se and in another section besides the timeline overview)
 - membership scanner
 
