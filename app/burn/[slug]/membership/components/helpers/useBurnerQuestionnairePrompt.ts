@@ -476,11 +476,14 @@ export const useBurnerQuestionnairePrompt = () => {
           ],
         },
       ],
-      ({ unfinishedFieldIndices }) =>
-        unfinishedFieldIndices.length > 5
-          ? "Please answer all the questions"
-          : unfinishedFieldIndices.length > 0
-            ? `You still need to answer questions ${unfinishedFieldIndices.map((i) => `#${i + 1}`).join(", ")}`
-            : "Submit",
+      ({ unfinishedFieldIndices }) => {
+        if (unfinishedFieldIndices.length === 0) return "Submit";
+
+        if (unfinishedFieldIndices.length <= 5) {
+          return `You still need to answer questions ${unfinishedFieldIndices.map((i) => `#${i + 1}`).join(", ")}`;
+        }
+
+        return "Please answer all the questions";
+      },
     );
 };

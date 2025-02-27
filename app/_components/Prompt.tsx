@@ -61,6 +61,8 @@ export default function Prompt({ config }: { config: PromptConfig }) {
     config.fields?.forEach((field) => {
       if (field.defaultValue !== undefined) {
         initialInputs[field.key] = field.defaultValue;
+      } else if (field.type === "checkboxGroup") {
+        initialInputs[field.key] = "";
       }
     });
     return initialInputs;
