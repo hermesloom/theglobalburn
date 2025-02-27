@@ -61,7 +61,7 @@ export default function Prompt({ config }: { config: PromptConfig }) {
     config.fields?.forEach((field) => {
       if (field.defaultValue !== undefined) {
         initialInputs[field.key] = field.defaultValue;
-      } else if (field.type === "checkboxGroup") {
+      } else {
         initialInputs[field.key] = "";
       }
     });
@@ -91,11 +91,19 @@ export default function Prompt({ config }: { config: PromptConfig }) {
   const unfinishedFieldIndices =
     config.fields
       ?.map((field, index) => ({ index, field }))
-      .filter(
-        ({ field }) =>
+      .filter(({ field }) => {
+        if (field.type === "checkboxGroup") {
+          return (
+            !field.canBeEmpty &&
+            (!inputs[field.key] || inputs[field.key] === "")
+          );
+        }
+
+        return (
           (!field.canBeEmpty && !inputs[field.key]) ||
-          (field.validate && !field.validate(inputs[field.key])),
-      )
+          (field.validate && !field.validate(inputs[field.key]))
+        );
+      })
       .map((f) => f.index) ?? [];
 
   const submitDisabled = unfinishedFieldIndices.length > 0;
@@ -174,7 +182,7 @@ export default function Prompt({ config }: { config: PromptConfig }) {
           <div key={field.key}>
             {renderLabel(field.label)}
             <CheckboxGroup
-              value={inputs[field.key]?.split(",").filter(Boolean)}
+              value={(inputs[field.key] || "").split(",").filter(Boolean)}
               onValueChange={(values) => setInput(field.key, values.join(","))}
               isDisabled={field.readOnly}
             >
