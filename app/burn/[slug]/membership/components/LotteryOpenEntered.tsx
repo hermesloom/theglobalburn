@@ -6,6 +6,7 @@ import { apiDelete } from "@/app/_components/api";
 import { useProject } from "@/app/_components/SessionContext";
 import toast from "react-hot-toast";
 import MemberDetails from "./helpers/MemberDetails";
+import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
 
 export default function LotteryOpenEntered() {
   const { project, updateProjectSimple } = useProject();
@@ -17,11 +18,9 @@ export default function LotteryOpenEntered() {
         <span>
           You will not receive any emails about the lottery on whether you won
           or not. Instead, on{" "}
-          <b>
-            {new Date(project?.burn_config.lottery_closes_at!).toLocaleString()}
-          </b>
-          , please check this page again to see whether you won. Mark it in your
-          calendar to not miss it!
+          <b>{formatDate(project?.burn_config.lottery_closes_at!)}</b>, please
+          check this page again to see whether you won. Mark it in your calendar
+          to not miss it!
         </span>
       </Alert>
       <MemberDetails data={project?.lottery_ticket!} />

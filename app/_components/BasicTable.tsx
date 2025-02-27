@@ -11,6 +11,7 @@ import {
 } from "@nextui-org/react";
 import { ActionButtonDef } from "@/app/_components/ActionButton";
 import ActionButton from "./ActionButton";
+import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
 
 interface Column {
   key: string;
@@ -59,7 +60,7 @@ export default function BasicTable<T extends Record<string, any>>({
 
     // Default date formatting if the value is a date string
     if (typeof value === "string" && value.match(/^\d{4}-\d{2}-\d{2}/)) {
-      return new Date(value).toLocaleString();
+      return formatDate(value);
     }
 
     if (typeof value === "boolean") {

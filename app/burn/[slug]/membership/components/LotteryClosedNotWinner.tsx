@@ -3,6 +3,7 @@
 import React from "react";
 import MemberDetailsWithHeading from "./helpers/MemberDetailsWithHeading";
 import { useProject } from "@/app/_components/SessionContext";
+import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
 
 export default function LotteryClosedNotWinner() {
   const { project } = useProject();
@@ -13,9 +14,9 @@ export default function LotteryClosedNotWinner() {
         Unfortunately you did not win in the lottery, but you will be able to
         purchase a membership in the open sale for lottery entrants, which will
         start on{" "}
-        {new Date(
-          project?.burn_config.open_sale_lottery_entrants_only_starting_at!
-        ).toLocaleString()}
+        {formatDate(
+          project?.burn_config.open_sale_lottery_entrants_only_starting_at!,
+        )}
         .
       </div>
       <MemberDetailsWithHeading data={project?.lottery_ticket!} />

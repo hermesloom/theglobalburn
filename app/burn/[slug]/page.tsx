@@ -4,35 +4,32 @@ import React from "react";
 import { useProject } from "@/app/_components/SessionContext";
 import Heading from "@/app/_components/Heading";
 import { Card, CardBody } from "@nextui-org/react";
+import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
 
 export default function ProjectPage() {
   const { project } = useProject();
 
   const timelineEvents = [
     {
-      date: new Date(project?.burn_config.lottery_opens_at!).toLocaleString(),
+      date: formatDate(project?.burn_config.lottery_opens_at!),
       title: "Membership lottery signup opens",
     },
     {
-      date: new Date(project?.burn_config.lottery_closes_at!).toLocaleString(),
+      date: formatDate(project?.burn_config.lottery_closes_at!),
       title: "Lottery is drawn and winners can buy their membership",
     },
     {
-      date: new Date(
+      date: formatDate(
         project?.burn_config.open_sale_lottery_entrants_only_starting_at!,
-      ).toLocaleString(),
+      ),
       title: "Open sale opens for those who entered the lottery but didn't win",
     },
     {
-      date: new Date(
-        project?.burn_config.open_sale_general_starting_at!,
-      ).toLocaleString(),
+      date: formatDate(project?.burn_config.open_sale_general_starting_at!),
       title: "Open sale and transfers open for everyone",
     },
     {
-      date: new Date(
-        project?.burn_config.last_possible_transfer_at!,
-      ).toLocaleString(),
+      date: formatDate(project?.burn_config.last_possible_transfer_at!),
       title: "Open sale and transfers close",
     },
     {

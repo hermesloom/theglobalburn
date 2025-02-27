@@ -15,6 +15,7 @@ import {
   useBurnerQuestionnairePrompt,
   BurnerQuestionnaireResult,
 } from "./helpers/useBurnerQuestionnairePrompt";
+import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
 
 export default function MembershipAvailable() {
   const { project, reloadProfile } = useProject();
@@ -105,9 +106,7 @@ export default function MembershipAvailable() {
             <p>
               Your membership is reserved for you until{" "}
               <b>
-                {new Date(
-                  project?.membership_purchase_right?.expires_at!,
-                ).toLocaleString()}
+                {formatDate(project?.membership_purchase_right?.expires_at!)}
               </b>
               . If you don't complete the purchase of your membership by then,
               it will be released to the public in the open sale.

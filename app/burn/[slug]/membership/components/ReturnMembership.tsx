@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import { isEmail } from "@/app/_components/utils";
 import { formatMoney } from "@/app/_components/utils";
 import { usePrompt } from "@/app/_components/PromptContext";
+import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
 
 export default function ReturnMembership() {
   const { project, reloadProfile } = useProject();
@@ -36,12 +37,8 @@ export default function ReturnMembership() {
       <div className="flex flex-col gap-4">
         <p>
           You can return your membership until{" "}
-          <b>
-            {new Date(
-              project?.burn_config.last_possible_transfer_at!,
-            ).toLocaleString()}
-          </b>
-          . Once you have clicked on "Return", the amount you paid (
+          <b>{formatDate(project?.burn_config.last_possible_transfer_at!)}</b>.
+          Once you have clicked on "Return", the amount you paid (
           {formatMoney(
             project!.membership!.price,
             project!.membership!.price_currency,

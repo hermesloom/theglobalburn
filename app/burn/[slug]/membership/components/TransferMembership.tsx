@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import { isEmail } from "@/app/_components/utils";
 import { formatMoney } from "@/app/_components/utils";
 import { usePrompt } from "@/app/_components/PromptContext";
+import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
 
 export default function TransferMembership() {
   const { project, reloadProfile } = useProject();
@@ -38,12 +39,8 @@ export default function TransferMembership() {
       <div className="flex flex-col gap-4">
         <p>
           You can transfer your membership until{" "}
-          <b>
-            {new Date(
-              project?.burn_config.last_possible_transfer_at!,
-            ).toLocaleString()}
-          </b>
-          . This is how it works:
+          <b>{formatDate(project?.burn_config.last_possible_transfer_at!)}</b>.
+          This is how it works:
         </p>
         <ol className="list-decimal ml-8">
           <li>The recipient must be registered on this platform.</li>

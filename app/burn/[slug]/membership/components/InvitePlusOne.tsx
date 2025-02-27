@@ -9,6 +9,7 @@ import { apiPost } from "@/app/_components/api";
 import { BurnStage } from "@/utils/types";
 import toast from "react-hot-toast";
 import { isEmail } from "@/app/_components/utils";
+import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
 
 export default function InvitePlusOne() {
   const { project, reloadProfile } = useProject();
@@ -28,9 +29,9 @@ export default function InvitePlusOne() {
         <p>
           You can invite a +1 until the open sale starts at{" "}
           <b>
-            {new Date(
+            {formatDate(
               project.burn_config.open_sale_lottery_entrants_only_starting_at,
-            ).toLocaleString()}
+            )}
           </b>
           . The recipient must be registered on this platform. Once you have
           invited a +1, they will have{" "}
