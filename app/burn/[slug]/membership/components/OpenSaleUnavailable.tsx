@@ -11,8 +11,8 @@ export default function OpenSaleUnavailable() {
     <p>
       The open sale has started, but is currently only available to those who
       previously entered the lottery. Please check back on{" "}
-      {formatDate(project?.burn_config.open_sale_general_starting_at!)}, which
-      is when the open sale opens for everyone.
+      <b>{formatDate(project?.burn_config.open_sale_general_starting_at!)}</b>,
+      which is when the open sale opens for everyone.
     </p>
   );
 }

@@ -1,26 +1,26 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { query } from "./endpoints";
-import { Profile, Project } from "@/utils/types";
+import { Profile, Project, BurnMembershipPurchaseRight } from "@/utils/types";
 
 export async function getProfile(
   supabase: SupabaseClient,
-  userId: string
+  userId: string,
 ): Promise<Profile> {
   const profile = await query(() =>
     supabase
       .from("profiles")
       .select(
-        "*, role_assignments(roles(name, project_id)), burn_lottery_tickets(*), burn_membership_purchase_rights(*), burn_memberships(*)"
+        "*, role_assignments(roles(name, project_id)), burn_lottery_tickets(*), burn_membership_purchase_rights(*), burn_memberships(*)",
       )
       .eq("id", userId)
-      .single()
+      .single(),
   );
 
   const projectIds = profile.role_assignments.map(
-    (ra: any) => ra.roles.project_id
+    (ra: any) => ra.roles.project_id,
   );
   const projects = await query(() =>
-    supabase.from("projects").select("*, burn_config(*)").in("id", projectIds)
+    supabase.from("projects").select("*, burn_config(*)").in("id", projectIds),
   );
 
   for (const p of projects) {
@@ -49,6 +49,27 @@ export async function getProfile(
 
   for (const bm of profile.burn_memberships) {
     const project: Project = projects.find((p: any) => p.id === bm.project_id);
+
+    // If membership is being transferred, check if the transfer is still valid
+    if (bm.is_being_transferred_to) {
+      // We need to check if the purchase right still exists and hasn't expired
+      const purchaseRightResult = await query(() =>
+        supabase
+          .from("burn_membership_purchase_rights")
+          .select("*")
+          .eq("id", bm.is_being_transferred_to)
+          .single(),
+      );
+
+      // If purchase right doesn't exist or has expired, clear the transfer flag
+      if (
+        !purchaseRightResult ||
+        new Date(purchaseRightResult.expires_at) < new Date()
+      ) {
+        bm.is_being_transferred_to = undefined;
+      }
+    }
+
     project.membership = bm;
   }
   delete profile.burn_memberships;
@@ -58,10 +79,10 @@ export async function getProfile(
 
 export async function getProfileByEmail(
   supabase: SupabaseClient,
-  email: string
+  email: string,
 ): Promise<Profile> {
   const profile = await query(() =>
-    supabase.from("profiles").select("*").eq("email", email)
+    supabase.from("profiles").select("*").eq("email", email),
   );
 
   if (profile.length === 0) {
@@ -76,10 +97,10 @@ export async function getProfileByEmail(
 // - does not have a membership or a membership purchase right for this project already
 export function validateNewMembershipEligibility(
   profile: Profile,
-  destProject: Project
+  destProject: Project,
 ) {
   const recipientProject = profile.projects.find(
-    (p) => p.id === destProject.id
+    (p) => p.id === destProject.id,
   );
 
   if (!recipientProject) {
@@ -88,7 +109,7 @@ export function validateNewMembershipEligibility(
 
   if (recipientProject.membership_purchase_right) {
     throw new Error(
-      "Recipient already has an available membership to purchase"
+      "Recipient already has an available membership to purchase",
     );
   }
 
@@ -104,7 +125,7 @@ export async function checkNoSuchMembershipOrPurchaseRightExists(
   projectId: string,
   firstName: string,
   lastName: string,
-  birthdate: string
+  birthdate: string,
 ) {
   const existingMembershipPurchaseRight = await query(() =>
     supabase
@@ -114,11 +135,11 @@ export async function checkNoSuchMembershipOrPurchaseRightExists(
       .eq("first_name", firstName)
       .eq("last_name", lastName)
       .eq("birthdate", birthdate)
-      .gt("expires_at", new Date().toISOString())
+      .gt("expires_at", new Date().toISOString()),
   );
   if (existingMembershipPurchaseRight.length > 0) {
     throw new Error(
-      "This individual already has an active membership purchase right"
+      "This individual already has an active membership purchase right",
     );
   }
 
@@ -129,7 +150,7 @@ export async function checkNoSuchMembershipOrPurchaseRightExists(
       .eq("project_id", projectId)
       .eq("first_name", firstName)
       .eq("last_name", lastName)
-      .eq("birthdate", birthdate)
+      .eq("birthdate", birthdate),
   );
   if (existingMembership.length > 0) {
     throw new Error("This individual already has a membership");
@@ -138,12 +159,17 @@ export async function checkNoSuchMembershipOrPurchaseRightExists(
 
 export async function getAvailableMemberships(
   supabase: SupabaseClient,
-  project: Project
+  project: Project,
 ): Promise<number> {
   const numMemberships = await supabase
     .from("burn_memberships")
-    .select("*", { count: "exact" })
+    .select("*, is_being_transferred_to(*)", { count: "exact" })
     .eq("project_id", project.id);
+
+  const numMembershipsBeingTransferred = numMemberships.data!.filter((m) => {
+    const transferDest: BurnMembershipPurchaseRight = m.is_being_transferred_to;
+    return transferDest && new Date(transferDest.expires_at) > new Date();
+  }).length;
 
   const numMembershipPurchaseRights = await supabase
     .from("burn_membership_purchase_rights")
@@ -154,6 +180,7 @@ export async function getAvailableMemberships(
   return (
     project?.burn_config.max_memberships! -
     (numMemberships.count ?? 0) -
-    (numMembershipPurchaseRights.count ?? 0)
+    (numMembershipPurchaseRights.count ?? 0) +
+    numMembershipsBeingTransferred
   );
 }

@@ -3,10 +3,7 @@ import { s } from "ajv-ts";
 import { BurnRole, BurnStage } from "@/utils/types";
 import Stripe from "stripe";
 
-const ReturnMembershipRequestSchema = s.object({
-  email: s.string(),
-  confirmReturn: s.string(),
-});
+const ReturnMembershipRequestSchema = s.object({});
 
 export const POST = requestWithProject<
   s.infer<typeof ReturnMembershipRequestSchema>
@@ -22,10 +19,6 @@ export const POST = requestWithProject<
     // check if the user has a membership to transfer
     if (!project!.membership) {
       throw new Error(`User has no memberships to transfer`);
-    }
-
-    if (body.confirmReturn !== "I WANT TO RETURN MY MEMBERSHIP") {
-      throw new Error(`Confirmation string does not match`);
     }
 
     // refund the current membership via Stripe

@@ -60,7 +60,7 @@ export default function ReturnMembership() {
         />
         <ActionButton
           color="primary"
-          isDisabled={confirmReturn != "I WANT TO RETURN MY MEMBERSHIP"}
+          isDisabled={confirmReturn !== "I WANT TO RETURN MY MEMBERSHIP"}
           action={{
             key: "return-membership",
             label: "Return membership",
@@ -79,9 +79,7 @@ export default function ReturnMembership() {
                   ],
                 ),
               handler: async (_, promptData) => {
-                await apiPost(`/burn/${project?.slug}/return-membership`, {
-                  confirmReturn,
-                });
+                await apiPost(`/burn/${project?.slug}/return-membership`, {});
                 await reloadProfile();
                 toast.success("Membership successfully returned!");
                 return true;

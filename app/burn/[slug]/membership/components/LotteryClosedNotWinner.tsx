@@ -10,15 +10,17 @@ export default function LotteryClosedNotWinner() {
 
   return (
     <>
-      <div className="flex flex-col gap-4">
+      <p>
         Unfortunately you did not win in the lottery, but you will be able to
         purchase a membership in the open sale for lottery entrants, which will
         start on{" "}
-        {formatDate(
-          project?.burn_config.open_sale_lottery_entrants_only_starting_at!,
-        )}
+        <b>
+          {formatDate(
+            project?.burn_config.open_sale_lottery_entrants_only_starting_at!,
+          )}
+        </b>
         .
-      </div>
+      </p>
       <MemberDetailsWithHeading data={project?.lottery_ticket!} />
     </>
   );

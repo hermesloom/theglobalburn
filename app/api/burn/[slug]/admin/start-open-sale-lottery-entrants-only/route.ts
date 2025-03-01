@@ -7,24 +7,13 @@ export const POST = requestWithProject(
       throw new Error(`Burn stage must be ${BurnStage.LotteryClosed}`);
     }
 
-    if (
-      +new Date() <
-      +new Date(
-        project!.burn_config.open_sale_lottery_entrants_only_starting_at
-      )
-    ) {
-      throw new Error(
-        "Cannot start open sale before 'open_sale_lottery_entrants_only_starting_at'"
-      );
-    }
-
     await query(() =>
       supabase
         .from("burn_config")
         .update({ current_stage: BurnStage.OpenSaleLotteryEntrantsOnly })
-        .eq("id", project!.burn_config.id!)
+        .eq("id", project!.burn_config.id!),
     );
   },
   undefined,
-  BurnRole.MembershipManager
+  BurnRole.MembershipManager,
 );

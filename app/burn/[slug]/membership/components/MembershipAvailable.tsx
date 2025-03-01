@@ -109,7 +109,9 @@ export default function MembershipAvailable() {
                 {formatDate(project?.membership_purchase_right?.expires_at!)}
               </b>
               . If you don't complete the purchase of your membership by then,
-              it will be released to the public in the open sale.
+              it will be released to the public in the open sale or, if you
+              obtained it through a transfer, returned to the person who
+              transferred it to you.
             </p>
             {project?.lottery_ticket?.is_low_income &&
             !project?.membership_purchase_right?.is_low_income ? (

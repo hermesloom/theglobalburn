@@ -22,7 +22,8 @@ export default function MembershipAvailableDetailsIncomplete() {
         Your membership is reserved for you until{" "}
         <b>{formatDate(project?.membership_purchase_right?.expires_at!)}</b>. If
         you don't complete the purchase of your membership by then, it will be
-        released to the public in the open sale.
+        released to the public in the open sale or, if you obtained it through a
+        transfer, returned to the person who transferred it to you.
       </p>
       <p>
         To get started, please first complete the following details,{" "}

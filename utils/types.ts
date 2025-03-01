@@ -80,6 +80,7 @@ export type BurnMembership = {
   price_currency: string;
   stripe_payment_intent_id?: string;
   checked_in_at?: string;
+  is_being_transferred_to?: string; // id of the purchase right that the membership is being transferred to
   metadata?: any;
 };
 

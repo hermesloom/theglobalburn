@@ -11,6 +11,7 @@ import MembershipAvailableDetailsIncomplete from "./components/MembershipAvailab
 import MembershipAvailable from "./components/MembershipAvailable";
 import LotteryClosedNotWinner from "./components/LotteryClosedNotWinner";
 import Member from "./components/Member";
+import MembershipBeingTransferred from "./components/MembershipBeingTransferred";
 import Support from "./components/Support";
 import OpenSale from "./components/OpenSale";
 import OpenSaleUnavailable from "./components/OpenSaleUnavailable";
@@ -23,6 +24,7 @@ enum MembershipStatus {
   MembershipAvailableDetailsIncomplete,
   MembershipAvailable,
   Member,
+  MembershipBeingTransferred,
   OpenSale,
   OpenSaleUnavailable,
   Invalid,
@@ -34,7 +36,11 @@ export default function MembershipPage() {
 
   const getMembershipStatus = (): MembershipStatus => {
     if (project?.membership) {
-      return MembershipStatus.Member;
+      if (project.membership.is_being_transferred_to) {
+        return MembershipStatus.MembershipBeingTransferred;
+      } else {
+        return MembershipStatus.Member;
+      }
     } else if (project?.membership_purchase_right) {
       if (project.membership_purchase_right.details_modifiable) {
         return MembershipStatus.MembershipAvailableDetailsIncomplete;
@@ -85,6 +91,8 @@ export default function MembershipPage() {
         return <MembershipAvailable />;
       case MembershipStatus.Member:
         return <Member />;
+      case MembershipStatus.MembershipBeingTransferred:
+        return <MembershipBeingTransferred />;
       case MembershipStatus.OpenSale:
         return <OpenSale />;
       case MembershipStatus.OpenSaleUnavailable:
@@ -100,7 +108,8 @@ export default function MembershipPage() {
         {membershipStatus === MembershipStatus.Member ||
         membershipStatus === MembershipStatus.MembershipAvailable ||
         membershipStatus ===
-          MembershipStatus.MembershipAvailableDetailsIncomplete
+          MembershipStatus.MembershipAvailableDetailsIncomplete ||
+        membershipStatus === MembershipStatus.MembershipBeingTransferred
           ? "Your membership"
           : membershipStatus === MembershipStatus.OpenSale ||
               membershipStatus === MembershipStatus.OpenSaleUnavailable

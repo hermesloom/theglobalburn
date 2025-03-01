@@ -1,0 +1,1 @@
+alter table burn_memberships add column is_being_transferred_to uuid references burn_membership_purchase_rights;

@@ -9,7 +9,6 @@ import Stripe from "stripe";
 
 const TransferMembershipRequestSchema = s.object({
   email: s.string(),
-  confirmTransfer: s.string(),
 });
 
 export const POST = requestWithProject<
@@ -27,9 +26,7 @@ export const POST = requestWithProject<
     if (!project!.membership) {
       throw new Error(`User has no memberships to transfer`);
     }
-    if (body.confirmTransfer !== "I WANT TO TRANSFER MY MEMBERSHIP") {
-      throw new Error(`Confirmation string does not match`);
-    }
+
     // check that the recipient is registered, part of this project and has no membership and no membership purchase right yet
     const recipientProfile = await getProfileByEmail(supabase, body.email);
     const recipientProject = validateNewMembershipEligibility(
@@ -37,34 +34,32 @@ export const POST = requestWithProject<
       project!,
     );
 
-    // refund the current membership via Stripe
-    if (project!.membership.stripe_payment_intent_id) {
-      const stripe = new Stripe(project!.burn_config.stripe_secret_api_key);
-      await stripe.refunds.create({
-        payment_intent: project!.membership.stripe_payment_intent_id,
-      });
-    }
+    // create a membership purchase right for the recipient
+    const purchaseRight = await query(() =>
+      supabase
+        .from("burn_membership_purchase_rights")
+        .insert({
+          project_id: project!.id,
+          owner_id: recipientProfile.id,
+          expires_at: new Date(
+            +new Date() +
+              recipientProject.burn_config.transfer_reservation_duration * 1000,
+          ).toISOString(),
+          is_low_income: recipientProject.lottery_ticket?.is_low_income,
+          details_modifiable: true,
+        })
+        .select()
+        .single(),
+    );
 
-    // delete the current membership
+    // mark the current membership as being transferred to the recipient
     await query(() =>
       supabase
         .from("burn_memberships")
-        .delete()
+        .update({
+          is_being_transferred_to: purchaseRight.id,
+        })
         .eq("id", project!.membership!.id),
-    );
-
-    // create a membership purchase right for the recipient
-    await query(() =>
-      supabase.from("burn_membership_purchase_rights").insert({
-        project_id: project!.id,
-        owner_id: recipientProfile.id,
-        expires_at: new Date(
-          +new Date() +
-            recipientProject.burn_config.transfer_reservation_duration * 1000,
-        ).toISOString(),
-        is_low_income: false,
-        details_modifiable: true,
-      }),
     );
   },
   TransferMembershipRequestSchema,
