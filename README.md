@@ -9,7 +9,6 @@ Initially for [The Borderland](https://theborderland.se), but designed to be as 
 - allow changing name and birthday (only admins can change)
   - users can *apply* for a change of name and/or birthday, auto-accept with small Levenshtein distance
 - allow search for memberships (both email and name)
-- when refunding a membership, deduct Stripe fees
 - generate and send out membership QR PDF via email
 - link list (both on theborderland.se and in another section besides the timeline overview)
 - membership scanner
