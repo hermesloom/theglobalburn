@@ -38,7 +38,7 @@ export const POST = requestWithAuthAdmin<
         new Date().getTime() + 1000 * 60 * 60 * 24 * 2,
       ).toISOString(),
       open_sale_reservation_duration: 60 * 30, // 30 minutes
-      transfer_reservation_duration: 60 * 60 * 24 * 7, // 7 days
+      transfer_reservation_duration: 60 * 60 * 24, // 24 hours
       plus_one_reservation_duration: 60 * 60 * 72, // 72 hours
       last_possible_transfer_at: new Date(
         new Date().getTime() + 1000 * 60 * 60 * 24 * 7,

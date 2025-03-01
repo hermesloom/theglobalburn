@@ -43,9 +43,9 @@ export default function TransferMembership() {
           This is how it works:
         </p>
         <ol className="list-decimal ml-8">
-          <li>The recipient must be registered on this platform.</li>
+          <li>The buyer must be registered on this platform.</li>
           <li>
-            Enter the email address with which the recipient is registered here,
+            Enter the email address with which the buyer is registered here,
             type in the confirmation messages and click on 'Transfer'.
           </li>
           <li>
