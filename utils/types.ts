@@ -34,6 +34,7 @@ export type BurnConfig = {
   transfer_reservation_duration: number;
   plus_one_reservation_duration: number;
   last_possible_transfer_at: string;
+  transfer_fee_percentage: number;
   max_memberships: number;
   membership_price_currency: string;
   membership_pricing_type: BurnMembershipPricing;

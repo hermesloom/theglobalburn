@@ -12,6 +12,7 @@ const UpdateBurnConfigRequestSchema = s.object({
   transfer_reservation_duration: s.number(),
   plus_one_reservation_duration: s.number(),
   last_possible_transfer_at: s.string(),
+  transfer_fee_percentage: s.number(),
   max_memberships: s.number(),
   membership_price_currency: s.string(),
   membership_pricing_type: s.string(),

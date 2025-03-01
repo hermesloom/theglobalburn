@@ -43,6 +43,7 @@ export const POST = requestWithAuthAdmin<
       last_possible_transfer_at: new Date(
         new Date().getTime() + 1000 * 60 * 60 * 24 * 7,
       ).toISOString(),
+      transfer_fee_percentage: 3, // 3% less refunded than what the user paid
       max_memberships: 4603,
       membership_price_currency: "SEK",
       membership_pricing_type: "tiered-3",

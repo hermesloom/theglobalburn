@@ -52,6 +52,9 @@ export default function ConfigPage() {
   const [lastPossibleTransferAt, setLastPossibleTransferAt] = useState(
     project!.burn_config.last_possible_transfer_at ?? "",
   );
+  const [transferFeePercentage, setTransferFeePercentage] = useState(
+    (project!.burn_config.transfer_fee_percentage ?? 0).toString(),
+  );
   const [maxMemberships, setMaxMemberships] = useState(
     (project!.burn_config.max_memberships ?? 0).toString(),
   );
@@ -127,6 +130,7 @@ export default function ConfigPage() {
       transfer_reservation_duration: parseInt(transferReservationDuration),
       plus_one_reservation_duration: parseInt(plusOneReservationDuration),
       last_possible_transfer_at: new Date(lastPossibleTransferAt).toISOString(),
+      transfer_fee_percentage: parseFloat(transferFeePercentage),
       max_memberships: parseInt(maxMemberships),
       membership_price_currency: membershipPriceCurrency,
       membership_pricing_type: membershipPricingType,
@@ -204,6 +208,11 @@ export default function ConfigPage() {
           label="last_possible_transfer_at"
           value={lastPossibleTransferAt}
           onValueChange={setLastPossibleTransferAt}
+        />
+        <Input
+          label="transfer_fee_percentage"
+          value={transferFeePercentage}
+          onValueChange={setTransferFeePercentage}
         />
         <Input
           label="max_memberships"
