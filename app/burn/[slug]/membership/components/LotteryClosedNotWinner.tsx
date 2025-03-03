@@ -20,7 +20,7 @@ export default function LotteryClosedNotWinner() {
           )}
         </b>
         . It will happen right here on this platform as well. Don't stop
-        spamming F5!
+        spamming F5! ❤️‍🔥
       </p>
       <MemberDetailsWithHeading data={project?.lottery_ticket!} />
     </>
