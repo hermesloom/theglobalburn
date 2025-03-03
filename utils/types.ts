@@ -44,8 +44,8 @@ export type BurnConfig = {
   share_memberships_lottery: number;
   share_memberships_low_income: number;
   membership_addons: BurnMembershipAddon[];
-  stripe_secret_api_key: string;
-  stripe_webhook_secret: string;
+  stripe_secret_api_key?: string;
+  stripe_webhook_secret?: string;
 };
 
 export type BurnLotteryTicket = {
