@@ -19,7 +19,7 @@ export default function LotteryClosedNotWinner() {
             project?.burn_config.open_sale_lottery_entrants_only_starting_at!,
           )}
         </b>
-        .
+        . It will happen right here on this platform as well.
       </p>
       <MemberDetailsWithHeading data={project?.lottery_ticket!} />
     </>

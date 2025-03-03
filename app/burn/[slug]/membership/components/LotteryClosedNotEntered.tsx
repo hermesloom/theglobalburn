@@ -13,6 +13,7 @@ export default function LotteryClosedNotEntered() {
       purchase a membership in the open sale for the general public, which will
       start on{" "}
       <b>{formatDate(project?.burn_config.open_sale_general_starting_at!)}</b>.
+      It will happen right here on this platform as well.
     </p>
   );
 }
