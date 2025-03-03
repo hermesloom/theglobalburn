@@ -111,7 +111,10 @@ export const POST = requestWithProject(
       winningLotteryTickets.map((ticket) => ({
         project_id: project!.id,
         owner_id: (ticket as any).owner_id,
-        expires_at: burnConfig.open_sale_lottery_entrants_only_starting_at,
+        expires_at: new Date(
+          +new Date() +
+            project?.burn_config.plus_one_reservation_duration! * 1000,
+        ).toISOString(),
         first_name: ticket.first_name,
         last_name: ticket.last_name,
         birthdate: ticket.birthdate,
