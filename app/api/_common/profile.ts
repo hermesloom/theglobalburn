@@ -1,6 +1,11 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { query } from "./endpoints";
-import { Profile, Project, BurnMembershipPurchaseRight } from "@/utils/types";
+import {
+  Profile,
+  Project,
+  BurnMembershipPurchaseRight,
+  BurnConfig,
+} from "@/utils/types";
 
 export async function getProfile(
   supabase: SupabaseClient,
@@ -157,30 +162,124 @@ export async function checkNoSuchMembershipOrPurchaseRightExists(
   }
 }
 
+export function getTotalLowIncomeAllowed(burnConfig: BurnConfig): number {
+  return Math.floor(
+    (burnConfig.max_memberships * burnConfig.share_memberships_low_income) /
+      100,
+  );
+}
+
 export async function getAvailableMemberships(
   supabase: SupabaseClient,
   project: Project,
-): Promise<number> {
-  const numMemberships = await supabase
+): Promise<{ availableMemberships: number; lowIncomeAvailable: boolean }> {
+  const debug = false;
+
+  const memberships = await supabase
     .from("burn_memberships")
     .select("*, is_being_transferred_to(*)", { count: "exact" })
     .eq("project_id", project.id);
+  if (debug) {
+    console.log(`[DEBUG] number of memberships: ${memberships.count}`);
+  }
 
-  const numMembershipsBeingTransferred = numMemberships.data!.filter((m) => {
+  // necessary to subtract this later, because otherwise memberships that are in
+  // the process of being transferred will be counted twice
+  const numMembershipsBeingTransferred = memberships.data!.filter((m) => {
     const transferDest: BurnMembershipPurchaseRight = m.is_being_transferred_to;
     return transferDest && new Date(transferDest.expires_at) > new Date();
   }).length;
+  if (debug) {
+    console.log(
+      `[DEBUG] number of memberships being transferred: ${numMembershipsBeingTransferred}`,
+    );
+  }
 
-  const numMembershipPurchaseRights = await supabase
+  // Count low income memberships
+  const numLowIncomeMemberships = memberships.data!.filter(
+    (m) => m.is_low_income,
+  ).length;
+  if (debug) {
+    console.log(
+      `[DEBUG] number of low income memberships: ${numLowIncomeMemberships}`,
+    );
+  }
+
+  // count the number of memberships which are currently being transferred,
+  // where both the membership and the transfer destination membership purchase
+  // right are low income
+  const numLowIncomeMembershipsBeingTransferred = memberships.data!.filter(
+    (m) => {
+      const transferDest: BurnMembershipPurchaseRight =
+        m.is_being_transferred_to;
+      return (
+        m.is_low_income &&
+        transferDest &&
+        new Date(transferDest.expires_at) > new Date() &&
+        transferDest.is_low_income
+      );
+    },
+  ).length;
+  if (debug) {
+    console.log(
+      `[DEBUG] number of low income memberships being transferred: ${numLowIncomeMembershipsBeingTransferred}`,
+    );
+  }
+
+  const membershipPurchaseRights = await supabase
     .from("burn_membership_purchase_rights")
     .select("*", { count: "exact" })
     .eq("project_id", project.id)
     .gt("expires_at", new Date().toISOString());
+  if (debug) {
+    console.log(
+      `[DEBUG] number of membership purchase rights: ${membershipPurchaseRights.count}`,
+    );
+  }
 
-  return (
-    project?.burn_config.max_memberships! -
-    (numMemberships.count ?? 0) -
-    (numMembershipPurchaseRights.count ?? 0) +
-    numMembershipsBeingTransferred
-  );
+  // Count low income purchase rights
+  const numLowIncomePurchaseRights = membershipPurchaseRights.data!.filter(
+    (pr) => pr.is_low_income,
+  ).length;
+  if (debug) {
+    console.log(
+      `[DEBUG] number of low income purchase rights: ${numLowIncomePurchaseRights}`,
+    );
+  }
+
+  // Calculate how many low income spots are still available
+  const totalLowIncomeAllowed = getTotalLowIncomeAllowed(project.burn_config);
+  if (debug) {
+    console.log(`[DEBUG] total low income allowed: ${totalLowIncomeAllowed}`);
+  }
+  const lowIncomeUsed =
+    numLowIncomeMemberships +
+    numLowIncomePurchaseRights -
+    numLowIncomeMembershipsBeingTransferred;
+  if (debug) {
+    console.log(`[DEBUG] low income used: ${lowIncomeUsed}`);
+  }
+  const lowIncomeSpotsAvailable = totalLowIncomeAllowed - lowIncomeUsed;
+  if (debug) {
+    console.log(
+      `[DEBUG] low income spots available: ${lowIncomeSpotsAvailable}`,
+    );
+  }
+
+  const ret = {
+    availableMemberships:
+      project?.burn_config.max_memberships! -
+      (memberships.count ?? 0) -
+      (membershipPurchaseRights.count ?? 0) +
+      numMembershipsBeingTransferred,
+    lowIncomeAvailable:
+      (project.lottery_ticket?.is_low_income ?? false) &&
+      lowIncomeSpotsAvailable > 0,
+  };
+
+  if (debug) {
+    console.log(`[DEBUG] ret: ${JSON.stringify(ret)}`);
+  }
+
+  return ret;
 }

@@ -47,7 +47,7 @@ export default function ActionButton<T>({
       isIconOnly={!action.label && !!action.icon}
       isLoading={loading}
       className={
-        action.allowLineBreaks ? "whitespace-normal min-h-10 h-auto" : undefined
+        action.allowLineBreaks ? "whitespace-normal py-2.5 h-auto" : undefined
       }
       onPress={async () => {
         try {

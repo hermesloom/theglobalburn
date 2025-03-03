@@ -5,6 +5,7 @@ import {
   BurnConfig,
   BurnMembershipPurchaseRight,
 } from "@/utils/types";
+import { getTotalLowIncomeAllowed } from "@/app/api/_common/profile";
 
 function shuffleArray<T>(array: T[]): T[] {
   for (let i = array.length - 1; i > 0; i--) {
@@ -56,10 +57,7 @@ export const POST = requestWithProject(
     console.log(`[LOTTERY] Number of lottery winners: ${numLotteryWinners}`);
 
     // determine how many low income winners there are
-    const numReservedForLowIncome = Math.floor(
-      (burnConfig.max_memberships * burnConfig.share_memberships_low_income) /
-        100,
-    );
+    const numReservedForLowIncome = getTotalLowIncomeAllowed(burnConfig);
     console.log(
       `[LOTTERY] Number of low income winners: ${numReservedForLowIncome}`,
     );

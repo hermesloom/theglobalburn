@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Checkbox, Spinner } from "@nextui-org/react";
+import { Checkbox, Spinner, Button } from "@nextui-org/react";
 import { useProject } from "@/app/_components/SessionContext";
 import MemberDetailsWithHeading from "./helpers/MemberDetailsWithHeading";
 import { BurnMembershipPricing } from "@/utils/types";
@@ -113,16 +113,6 @@ export default function MembershipAvailable() {
               obtained it through a transfer, returned to the person who
               transferred it to you.
             </p>
-            {project?.lottery_ticket?.is_low_income &&
-            !project?.membership_purchase_right?.is_low_income ? (
-              <p>
-                Even though you signed up to the lottery as low-income,
-                unfortunately the low-income option is only available for direct
-                lottery winners. If you got a membership through +1 or the open
-                sale, you can only purchase a regular- or high-income
-                membership.
-              </p>
-            ) : null}
           </>
         )}
 
@@ -195,6 +185,11 @@ export default function MembershipAvailable() {
                   },
                 }}
               />
+            ) : project.lottery_ticket?.is_low_income ? (
+              <Button isDisabled className="whitespace-normal py-2.5 h-auto">
+                Even though you signed up to the lottery as low-income,
+                unfortunately no more low-income memberships are available.
+              </Button>
             ) : null}
 
             <ActionButton

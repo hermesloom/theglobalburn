@@ -147,6 +147,7 @@ export async function POST(req: Request) {
             : session.amount_total! / 100,
           price_currency: session.currency!.toUpperCase(),
           metadata: membershipPurchaseRight.metadata,
+          is_low_income: membershipPurchaseRight.is_low_income,
         }),
       );
 

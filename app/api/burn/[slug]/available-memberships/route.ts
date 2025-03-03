@@ -4,13 +4,8 @@ import { getAvailableMemberships } from "@/app/api/_common/profile";
 
 export const GET = requestWithProject(
   async (supabase, profile, request, body, project) => {
-    const availableMemberships = await getAvailableMemberships(
-      supabase,
-      project!
-    );
-
-    return { availableMemberships };
+    return await getAvailableMemberships(supabase, project!);
   },
   undefined,
-  BurnRole.Participant
+  BurnRole.Participant,
 );
