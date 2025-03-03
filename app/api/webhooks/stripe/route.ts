@@ -132,6 +132,25 @@ export async function POST(req: Request) {
       }
 
       const session = event.data.object;
+      const price =
+        (stripeCurrenciesWithoutDecimals.includes(
+          session.currency!.toUpperCase(),
+        )
+          ? session.amount_total
+          : session.amount_total! / 100) ?? 0;
+
+      const priceMinusAddons =
+        price -
+        (membershipPurchaseRight.metadata?.enabled_addons?.reduce(
+          (acc: number, addon: string) =>
+            acc +
+            (burnConfig.membership_addons.find((x) => x.id === addon)?.price ??
+              0),
+          0,
+        ) ?? 0);
+      const isLowIncome =
+        priceMinusAddons === burnConfig.membership_price_tier_1;
+
       await query(() =>
         supabase.from("burn_memberships").insert({
           project_id: projectId,
@@ -140,14 +159,10 @@ export async function POST(req: Request) {
           last_name: membershipPurchaseRight.last_name,
           birthdate: membershipPurchaseRight.birthdate,
           stripe_payment_intent_id: session.payment_intent!,
-          price: stripeCurrenciesWithoutDecimals.includes(
-            session.currency!.toUpperCase(),
-          )
-            ? session.amount_total
-            : session.amount_total! / 100,
+          price,
           price_currency: session.currency!.toUpperCase(),
           metadata: membershipPurchaseRight.metadata,
-          is_low_income: membershipPurchaseRight.is_low_income,
+          is_low_income: isLowIncome,
         }),
       );
 
