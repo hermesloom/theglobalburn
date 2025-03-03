@@ -111,14 +111,15 @@ export async function POST(req: Request) {
         if (revokedMembership.stripe_payment_intent_id) {
           await stripe.refunds.create({
             payment_intent: revokedMembership.stripe_payment_intent_id,
-            amount:
+            amount: Math.round(
               revokedMembership.price *
-              (1 - (burnConfig.transfer_fee_percentage ?? 0) / 100) *
-              (stripeCurrenciesWithoutDecimals.includes(
-                revokedMembership.price_currency.toUpperCase(),
-              )
-                ? 1
-                : 100),
+                (1 - (burnConfig.transfer_fee_percentage ?? 0) / 100) *
+                (stripeCurrenciesWithoutDecimals.includes(
+                  revokedMembership.price_currency.toUpperCase(),
+                )
+                  ? 1
+                  : 100),
+            ),
           });
         }
 
