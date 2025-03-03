@@ -8,7 +8,7 @@ export const POST = requestWithProject(
       await getAvailableMemberships(supabase, project!);
 
     if (availableMemberships === 0) {
-      throw new Error("No memberships available");
+      throw new Error("No more memberships available");
     }
 
     if (
