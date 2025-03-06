@@ -29,6 +29,12 @@ Initially for [The Borderland](https://theborderland.se), but designed to be as 
   - allow "one-click deployment" onto own server, e.g. using [Fly](https://fly.io/)
   - i18n
 
+## Recap 2025 and infrastructure vision
+
+It also bothered me that Vercel and/or the Supabase Postgres database struggled even for this tiny amount of time... That's my ambitious 100% uptime brain, more as a pretty exciting infrastructural challenge :D Also Vercel and Supabase are of course still regular commercial companies, while it would be sooo great to have a 100% burner-managed stack.
+
+For next year my dream is to have something like self-hosted Vercel, but instead of one party managing a big data center, we would be massively decentralized, so that everyone can voluntarily "donate" servers, and then those servers would act like one big unified edge network (like https://vercel.com/docs/edge-network/overview) which can serve anything from any Docker container. Also a bit like https://fly.io/
+
 ## Setup instructions
 
 1. Make sure that you have recent versions of Node.js and Docker installed
