@@ -5,7 +5,22 @@ import {
   Project,
   BurnMembershipPurchaseRight,
   BurnConfig,
+  ProjectWithMemberships,
 } from "@/utils/types";
+
+export async function getProjectBySlug(
+  supabase: SupabaseClient,
+  slug: string,
+): Promise<ProjectWithMemberships> {
+  const project = await query(() =>
+    supabase
+      .from("projects")
+      .select("*, burn_memberships(*, profiles(*))")
+      .eq("slug", slug)
+      .single(),
+  );
+  return project;
+}
 
 export async function getProfile(
   supabase: SupabaseClient,

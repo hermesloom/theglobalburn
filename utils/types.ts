@@ -98,6 +98,10 @@ export type Project = {
   membership?: BurnMembership;
 };
 
+export type ProjectWithMemberships = Project & {
+  burn_memberships: (BurnMembership & { profiles: Profile })[];
+};
+
 export type Profile = {
   id: string;
   registered_at: string;

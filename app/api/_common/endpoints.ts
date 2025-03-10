@@ -2,20 +2,81 @@ import { s } from "ajv-ts";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { Profile, Project, BurnRole } from "@/utils/types";
-import { getProfile } from "./profile";
+import {
+  Profile,
+  Project,
+  ProjectWithMemberships,
+  BurnRole,
+} from "@/utils/types";
+import { getProfile, getProjectBySlug } from "./profile";
 
 export type RequestWithAuthHandler<T = any> = (
   supabase: SupabaseClient,
   profile: Profile,
   request: NextRequest,
   body: T,
-  project?: Project
+  project?: Project,
 ) => Promise<any> | Promise<NextResponse>;
+
+export type RequestWithAPIKeyHandler<T = any> = (
+  supabase: SupabaseClient,
+  request: NextRequest,
+  body: T,
+  project?: ProjectWithMemberships,
+) => Promise<any> | Promise<NextResponse>;
+
+export function requestWithAPIKey<T = any>(
+  handler: RequestWithAPIKeyHandler<T>,
+  key: string,
+  schema?: s.Object,
+) {
+  return async (req: NextRequest) => {
+    const supabase = await createClient();
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+    const [_, keyFromHeader] = authHeader.split(" ");
+    if (key !== keyFromHeader) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    try {
+      let body: T = {} as T;
+      if (schema) {
+        body = await req.json();
+        const parsed = schema.safeParse(body);
+        if (!parsed.success) {
+          return NextResponse.json(
+            { error: "Invalid request body: " + parsed.error },
+            { status: 422 },
+          );
+        }
+        body = <T>parsed.data;
+      }
+
+      const response = await handler(supabase, req, body);
+      if (response instanceof NextResponse) {
+        return response;
+      }
+      return NextResponse.json(response ?? {});
+    } catch (error: any) {
+      console.error("Error processing request:", error);
+      if (error.message) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+      }
+
+      return NextResponse.json(
+        { error: "Internal Server Error" },
+        { status: 500 },
+      );
+    }
+  };
+}
 
 export function requestWithAuth<T = any>(
   handler: RequestWithAuthHandler<T>,
-  schema?: s.Object
+  schema?: s.Object,
 ) {
   return async (req: NextRequest) => {
     const supabase = await createClient();
@@ -36,7 +97,7 @@ export function requestWithAuth<T = any>(
         if (!parsed.success) {
           return NextResponse.json(
             { error: "Invalid request body: " + parsed.error },
-            { status: 422 }
+            { status: 422 },
           );
         }
         body = <T>parsed.data;
@@ -55,7 +116,7 @@ export function requestWithAuth<T = any>(
 
       return NextResponse.json(
         { error: "Internal Server Error" },
-        { status: 500 }
+        { status: 500 },
       );
     }
   };
@@ -63,7 +124,7 @@ export function requestWithAuth<T = any>(
 
 export function requestWithAuthAdmin<T = any>(
   handler: RequestWithAuthHandler<T>,
-  schema?: s.Object
+  schema?: s.Object,
 ) {
   return requestWithAuth(async (supabase, profile, req, body) => {
     if (!profile.is_admin) {
@@ -76,7 +137,7 @@ export function requestWithAuthAdmin<T = any>(
 export function requestWithProject<T = any>(
   handler: RequestWithAuthHandler<T>,
   schema?: s.Object,
-  role?: BurnRole
+  role?: BurnRole,
 ) {
   return requestWithAuth(async (supabase, profile, req, body) => {
     const projectSlug = req.nextUrl.pathname.split("/")[3];
@@ -89,6 +150,22 @@ export function requestWithProject<T = any>(
     }
     return await handler(supabase, profile, req, body, project);
   }, schema);
+}
+
+export function requestWithAPIKeyAndProject<T = any>(
+  handler: RequestWithAPIKeyHandler<T>,
+  key: string,
+  schema?: s.Object,
+) {
+  return requestWithAPIKey(
+    async (supabase, req, body) => {
+      const projectSlug = req.nextUrl.pathname.split("/")[3];
+      const project = await getProjectBySlug(supabase, projectSlug);
+      return await handler(supabase, req, body, project);
+    },
+    key,
+    schema,
+  );
 }
 
 export async function query(fn: () => any): Promise<any> {
@@ -104,7 +181,7 @@ export async function query(fn: () => any): Promise<any> {
 
 export async function getUserIdByEmail(
   supabase: SupabaseClient,
-  email: string
+  email: string,
 ) {
   const { data } = await supabase
     .from("profiles")
