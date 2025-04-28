@@ -29,7 +29,10 @@ export const POST = requestWithProject<
     }
 
     // check that the recipient is registered, part of this project and has no membership and no membership purchase right yet
-    const recipientProfile = await getProfileByEmail(supabase, body.email);
+    const recipientProfile = await getProfileByEmail(
+      supabase,
+      body.email.toLowerCase(),
+    );
     const recipientProject = validateNewMembershipEligibility(
       recipientProfile,
       project!,
