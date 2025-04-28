@@ -10,6 +10,7 @@ import {
   TeamOutlined,
   WalletOutlined,
   FileDoneOutlined,
+  GiftOutlined,
 } from "@ant-design/icons";
 import { useProject } from "@/app/_components/SessionContext";
 import { redirect } from "next/navigation";
@@ -87,6 +88,14 @@ export default function ProjectLayout({
                 },
               ] as any)
             : []),
+
+          { separator: true },
+          { sectionTitle: "Tools" },
+          {
+            label: "Give and receive",
+            path: `/burn/${project?.slug}/give-and-receive`,
+            icon: <GiftOutlined />,
+          },
 
           ...(project.roles.includes(BurnRole.Admin)
             ? ([

@@ -96,10 +96,34 @@ export type Project = {
   lottery_ticket?: BurnLotteryTicket;
   membership_purchase_right?: BurnMembershipPurchaseRight;
   membership?: BurnMembership;
+  giveAndReceive?: GiveAndReceive;
 };
 
 export type ProjectWithMemberships = Project & {
   burn_memberships: (BurnMembership & { profiles: Profile })[];
+};
+
+export type GiveAndReceiveOffer = {
+  id: string;
+  created_at: string;
+  project_id: string;
+  user_id: string;
+  text_content: string;
+  embedding?: any;
+};
+
+export type GiveAndReceiveDesire = {
+  id: string;
+  created_at: string;
+  project_id: string;
+  user_id: string;
+  text_content: string;
+  embedding?: any;
+};
+
+export type GiveAndReceive = {
+  offers: GiveAndReceiveOffer[];
+  desires: GiveAndReceiveDesire[];
 };
 
 export type Profile = {
@@ -109,6 +133,7 @@ export type Profile = {
   is_admin: boolean;
   projects: Project[];
 };
+
 export type Question = {
   id: string;
   project_id: string;

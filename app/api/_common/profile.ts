@@ -94,7 +94,41 @@ export async function getProfile(
   }
   delete profile.burn_memberships;
 
-  return { ...profile, projects };
+  // Fetch user's offers and desires
+  const offers = await query(() =>
+    supabase.from("gar_offers").select("*").eq("user_id", userId),
+  );
+
+  const desires = await query(() =>
+    supabase.from("gar_desires").select("*").eq("user_id", userId),
+  );
+
+  // Group offers by project_id
+  for (const offer of offers || []) {
+    const project = projects.find((p: Project) => p.id === offer.project_id);
+    if (project) {
+      if (!project.giveAndReceive) {
+        project.giveAndReceive = { offers: [], desires: [] };
+      }
+      project.giveAndReceive.offers.push(offer);
+    }
+  }
+
+  // Group desires by project_id
+  for (const desire of desires || []) {
+    const project = projects.find((p: Project) => p.id === desire.project_id);
+    if (project) {
+      if (!project.giveAndReceive) {
+        project.giveAndReceive = { offers: [], desires: [] };
+      }
+      project.giveAndReceive.desires.push(desire);
+    }
+  }
+
+  return {
+    ...profile,
+    projects,
+  };
 }
 
 export async function getProfileByEmail(
