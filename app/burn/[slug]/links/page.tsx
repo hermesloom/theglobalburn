@@ -3,7 +3,7 @@
 import React from "react";
 import Heading from "@/app/_components/Heading";
 import { Button } from "@nextui-org/react";
-import { Link } from "@nextui-org/link";
+import Link from "next/link";
 
 export default function LinksPage() {
   return (
