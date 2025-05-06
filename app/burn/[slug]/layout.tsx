@@ -10,6 +10,7 @@ import {
   TeamOutlined,
   WalletOutlined,
   FileDoneOutlined,
+  LinkOutlined,
 } from "@ant-design/icons";
 import { useProject } from "@/app/_components/SessionContext";
 import { redirect } from "next/navigation";
@@ -32,10 +33,17 @@ export default function ProjectLayout({
       <Sidebar
         routes={[
           {
-            label: "Overview",
+            label: "Timeline",
             path: `/burn/${project?.slug}`,
             icon: <HomeOutlined />,
           },
+          project.membership
+            ? {
+                label: "Links",
+                path: `/burn/${project?.slug}/links`,
+                icon: <LinkOutlined />,
+              }
+            : null,
           {
             label:
               project.membership || project.membership_purchase_right
@@ -100,7 +108,7 @@ export default function ProjectLayout({
               ] as any)
             : []),
           ,
-        ]}
+        ].filter((x) => !!x)}
       />
       <ContentContainer>{children}</ContentContainer>
     </>
