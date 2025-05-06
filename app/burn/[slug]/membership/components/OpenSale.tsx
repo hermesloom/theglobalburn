@@ -17,7 +17,7 @@ export default function OpenSale() {
   const updateAvailableMemberships = async () => {
     setIsLoading(true);
     const { availableMemberships } = await apiGet(
-      `/burn/${project?.slug}/available-memberships`
+      `/burn/${project?.slug}/available-memberships`,
     );
     setAvailableMemberships(availableMemberships);
     setIsLoading(false);
@@ -37,8 +37,9 @@ export default function OpenSale() {
   return (
     <div className="flex flex-col gap-4">
       <p>
-        There are currently <b>{availableMemberships}</b> memberships available
-        for purchase.
+        There are currently{" "}
+        <b>{availableMemberships < 0 ? 0 : availableMemberships}</b> memberships
+        available for purchase.
       </p>
       <div className="flex flex-col gap-2">
         <ActionButton
