@@ -9,9 +9,13 @@ export default function LinksPage() {
   return (
     <>
       <Heading>Links</Heading>
-      <Link href="https://talk.theborderland.se/main/" target="_blank">
-        <Button>🎙️ Talk</Button>
-      </Link>
+      <Button
+        as={Link}
+        href="https://talk.theborderland.se/main/"
+        target="_blank"
+      >
+        🎙️ Talk
+      </Button>
     </>
   );
 }
