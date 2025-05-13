@@ -7,6 +7,7 @@ import { useProject } from "@/app/_components/SessionContext";
 import { BurnStage, BurnMembershipPricing } from "@/utils/types";
 import toast from "react-hot-toast";
 import { useBurnerQuestionnairePrompt } from "@/app/burn/[slug]/membership/components/helpers/useBurnerQuestionnairePrompt";
+import TestSendEmailButton from "./TestSendEmailButton";
 
 function isJson(value: string) {
   try {
@@ -287,6 +288,7 @@ export default function ConfigPage() {
         <Button color="secondary" onPress={handleTestQuestionnaire}>
           Test Burner Questionnaire
         </Button>
+        <TestSendEmailButton />
       </div>
     </>
   );
