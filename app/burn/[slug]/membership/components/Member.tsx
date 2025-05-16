@@ -9,6 +9,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import TransferMembership from "./TransferMembership";
 import ReturnMembership from "./ReturnMembership";
 import ListOfChildren from "./helpers/ListOfChildren";
+import ListOfPets from "./helpers/ListOfPets";
 
 export default function Member() {
   const { project } = useProject();
@@ -37,7 +38,9 @@ export default function Member() {
       </div>
       <InvitePlusOne />
       <MemberDetailsWithHeading data={project?.membership!} />
+
       <ListOfChildren data={project?.membership!.metadata?.children || []} />
+      <ListOfPets data={project?.membership!.metadata?.pets || []} />
 
       <TransferMembership />
       {/* <ReturnMembership /> <-- DO NOT REACTIVATE, RISK OF DANGEROUS BUDGET LOSS!!! */}
