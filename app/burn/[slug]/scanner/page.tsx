@@ -4,8 +4,11 @@ import React, { useState, useEffect } from "react";
 import Heading from "@/app/_components/Heading";
 import { Button, Card, CardBody } from "@nextui-org/react";
 import { apiGet, ApiError } from "@/app/_components/api";
+import { useSession, useProject } from "@/app/_components/SessionContext";
 
 import QrScanner from 'qr-scanner';
+
+let videoEl;
 
 let qrScanner: QrScanner,
   qrScannerEngine: any; // Using any since QrEngine type is not exported
@@ -58,37 +61,28 @@ const formatDOB = (dob: string) => {
   });
 }
 
-const fetchQRData = (setScannedMember: React.Dispatch<React.SetStateAction<ScannedMember | null>>) => {
+const fetchQRData = () => {
   console.log('00')
   return new Promise<string>((resolve, reject) => {
     console.log('01')
-    const videoEl = document.getElementById('scanner-view') as HTMLVideoElement;
-    console.log('02')
-    if (!videoEl) return;
-    console.log('03')
 
-    console.log({ WORKER_PATH: QrScanner.WORKER_PATH })
-    // if (!qrScannerEngine) {
-    //   qrScannerEngine = QrScanner.createQrEngine(QrScanner.WORKER_PATH)
-    // }
-    console.log(11);
+    qrScanner = new QrScanner(
+      videoEl,
+      ({ data }) => {
+        console.log({ data, resolve })
+        resolve(data);
+        qrScanner.stop();
+        qrScanner.destroy();
+        qrScanner = null;
 
-    if (!qrScanner) {
-      qrScanner = new QrScanner(
-        videoEl,
-        (result: string) => {
-          resolve(result);
-          qrScanner.stop();
-        },
-        {
-          returnDetailedScanResult: true,
-          preferredCamera: 'environment',
-          maxScansPerSecond: 15,
-          highlightCodeOutline: true,
-          qrEngine: qrScannerEngine
-        }
-      );
-    }
+      },
+      {
+        preferredCamera: 'environment',
+        maxScansPerSecond: 15,
+        // qrEngine: qrScannerEngine
+      }
+    );
+
     console.log(22);
 
     qrScanner.start().catch((e) => {
@@ -105,6 +99,10 @@ const deniedAudio = new Audio('/sounds/denied.mp3');
 const buzzAudio = new Audio('/sounds/buzz.mp3');
 
 export default function ScannerPage() {
+  const { profile } = useSession();
+  console.log({ profile })
+  const { project } = useProject();
+
   const [scannedMember, setScannedMember] = useState<ScannedMember | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
 
@@ -115,10 +113,8 @@ export default function ScannerPage() {
     setScanError(null);
 
     console.log('calling fetchQRData')
-    fetchQRData(setScannedMember).then(async ({ data }) => {
-      // TODO: Make project slug dynamic
-
-      apiGet(`/burn/the-borderland-2025/admin/memberships/${data}`)
+    fetchQRData().then((data) => {
+      apiGet(`/burn/${project!.slug}/admin/memberships/${data}`)
         .then((member) => {
           setScannedMember(member);
 
@@ -136,7 +132,6 @@ export default function ScannerPage() {
           deniedAudio.play();
           setScanError(error.message);
         })
-
     }).catch((error) => {
       setScanError(error);
     });
@@ -144,18 +139,22 @@ export default function ScannerPage() {
 
   useEffect(() => {
     setScannedMember(null);
-    //   startScan();
+
+    videoEl = document.getElementById('scanner-view') as HTMLVideoElement;
+
   }, []); // Empty dependency array means this runs once on mount
 
   return (
     <>
       <Heading>Membership scanner!</Heading>
 
+      <Heading>Scanner ID: {profile.metadata.scanner_id}</Heading>
+
       <div className="flex flex-col gap-4">
         <div className="relative w-full border border-black rounded-lg">
 
           <video
-            className={`w-full h-full object-cover ${scannedMember || scanError ? 'hidden' : ''}`}
+            className={`object-cover ${scannedMember || scanError ? 'hidden' : ''}`}
             id="scanner-view"
           ></video>
 
@@ -175,6 +174,21 @@ export default function ScannerPage() {
                           <div key={child.key} className="pl-4 border-l-2 border-gray-200">
                             <p><strong>Name:</strong> {child.first_name} {child.last_name}</p>
                             <p><strong>Birthdate:</strong> {formatDOB(child.dob)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {scannedMember.metadata?.pets?.length > 0 && (
+                    <div className="mt-4">
+                      <h4 className="font-semibold mb-2">Pets</h4>
+                      <div className="flex flex-col gap-2">
+                        {scannedMember.metadata.pets.map((pet) => (
+                          <div key={pet.key} className="pl-4 border-l-2 border-gray-200">
+                            <p><strong>Name:</strong> {pet.name}</p>
+                            <p><strong>Type:</strong> {pet.type}</p>
+                            <p><strong>Chip Code:</strong> <strong className="text-red-700">{pet.chip_code}</strong></p>
                           </div>
                         ))}
                       </div>

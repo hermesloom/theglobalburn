@@ -1,36 +1,46 @@
-import { requestWithAuthAdmin, requestWithProject, query } from "@/app/api/_common/endpoints";
+import { requestWithProject, query } from "@/app/api/_common/endpoints";
 import { NextResponse } from "next/server";
 import { BurnRole, BurnMembership } from "@/utils/types";
 import Stripe from "stripe";
 
 import * as uuid from "uuid";
 
-// TODO: Change this to scanner role
 // TODO: Limit to the specific burn (project_id?)
-export const GET = requestWithAuthAdmin(async (supabase, profile, request) => {
-  const id = request.nextUrl.pathname.split("/").pop();
+export const GET = requestWithProject(
+  async (supabase, profile, request, body, project) => {
+    const id = request.nextUrl.pathname.split("/").pop();
 
-  if (!uuid.validate(id)) {
-    return NextResponse.json({ error: "Invalid id (should be a UUID)" }, { status: 400 });
-  }
-
-  let [result] = await query(() => supabase.from("burn_memberships").select("*").eq("id", id));
-
-  if (!result) {
-    return NextResponse.json({ error: "No member found" }, { status: 404 });
-  }
-
-  return {
-    id: result.id,
-    first_name: result.first_name,
-    last_name: result.last_name,
-    birthdate: result.birthdate,
-    checked_in_at: result.checked_in_at,
-    metadata: {
-      children: result.metadata.children
+    if (!uuid.validate(id)) {
+      return NextResponse.json({ error: "Invalid id (should be a UUID)" }, { status: 400 });
     }
-  }
-});
+
+    let [result] = await query(() =>
+      supabase
+        .from("burn_memberships")
+        .select("*")
+        .eq("id", id)
+        .eq("project_id", project!.id)
+    );
+
+    if (!result) {
+      return NextResponse.json({ error: "No member found" }, { status: 404 });
+    }
+
+    return {
+      id: result.id,
+      first_name: result.first_name,
+      last_name: result.last_name,
+      birthdate: result.birthdate,
+      checked_in_at: result.checked_in_at,
+      metadata: {
+        children: result.metadata.children,
+        pets: result.metadata.pets,
+      }
+    }
+  },
+  undefined,
+  BurnRole.MembershipScanner
+);
 
 
 export const DELETE = requestWithProject(
