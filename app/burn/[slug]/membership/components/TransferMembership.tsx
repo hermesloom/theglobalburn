@@ -46,7 +46,7 @@ export default function TransferMembership() {
         <Input
           label="Email address of the intended recipient"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value.replace(/\s/g, ""))}
         />
         <Input
           label="Type in exactly: I WANT TO TRANSFER MY MEMBERSHIP"
