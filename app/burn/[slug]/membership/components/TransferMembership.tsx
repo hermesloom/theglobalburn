@@ -9,7 +9,6 @@ import { apiPost } from "@/app/_components/api";
 import toast from "react-hot-toast";
 import { isEmail } from "@/app/_components/utils";
 import { usePrompt } from "@/app/_components/PromptContext";
-import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
 import TransferMembershipInstructions from "./TransferMembershipInstructions";
 
 export default function TransferMembership() {
@@ -38,9 +37,8 @@ export default function TransferMembership() {
       <Heading className="mt-12">Transfer your membership</Heading>
       <div className="flex flex-col gap-4">
         <p>
-          You can transfer your membership until{" "}
-          <b>{formatDate(project?.burn_config.last_possible_transfer_at!)}</b>.
-          This is how it works:
+          If you want to transfer your membership, please do so{" "}
+          <b>before 2025-06-25 23:59 (Swedish time)</b>. This is how it works:
         </p>
         <TransferMembershipInstructions />
         <Input

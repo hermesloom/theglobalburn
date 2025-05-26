@@ -3,6 +3,7 @@
 import React from "react";
 import { useProject } from "@/app/_components/SessionContext";
 import { formatMoney } from "@/app/_components/utils";
+import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
 
 export default function TransferMembershipInstructions({
   alreadyInitiated,
@@ -14,7 +15,7 @@ export default function TransferMembershipInstructions({
   return (
     <ol className="list-decimal ml-8">
       {alreadyInitiated ? null : (
-        <li>The intended buyer must be registered on this platform.</li>
+        <li>The buyer must be registered on this platform.</li>
       )}
       {alreadyInitiated ? null : (
         <li>
@@ -24,23 +25,22 @@ export default function TransferMembershipInstructions({
       )}
       {alreadyInitiated ? (
         <li>
-          The buyer has NOT received an email, instead they simply need to
-          reload their membership page and the option to purchase the membership
-          will pop up.
+          The buyer has NOT receive an email — they just reload their membership
+          page, and the purchase option will appear.
         </li>
       ) : (
         <li>
-          The buyer will NOT receive an email, instead they simply need to
-          reload their membership page and the option to purchase the membership
-          will pop up.
+          The buyer will NOT receive an email — they just reload their
+          membership page, and the purchase option will appear.
         </li>
       )}
       <li>
-        Once the buyer has paid for the membership through the platform, your
-        membership will be invalidated and the amount you paid will be
-        automatically refunded onto the credit card you used to purchase your
-        membership, <b>minus a payment processing fee</b> (i.e. you will receive
-        back{" "}
+        Once the buyer pays, your membership will be invalidated and refunded
+        automatically to your original payment card.
+      </li>
+      <li>
+        <b>Before 2025-06-25 23:59 (Swedish time)</b>, you'll receive the full
+        amount minus fees (
         {formatMoney(
           project!.membership!.price,
           project!.membership!.price_currency,
@@ -52,23 +52,33 @@ export default function TransferMembershipInstructions({
           project!.membership!.price_currency,
         )}{" "}
         ={" "}
-        <b>
-          {formatMoney(
-            project!.membership!.price -
-              project!.membership!.price *
-                (project!.burn_config.transfer_fee_percentage / 100),
-            project!.membership!.price_currency,
-          )}
-        </b>
-        ). You therefore don't need to exchange any money with the recipient.
-        Please notify the membership team through the email address mentioned
-        below in case you don't receive the refund within 10 days.
+        {formatMoney(
+          project!.membership!.price -
+            project!.membership!.price *
+              (project!.burn_config.transfer_fee_percentage / 100),
+          project!.membership!.price_currency,
+        )}
+        ).
       </li>
       <li>
-        If the buyer does not purchase the membership within{" "}
-        {project?.burn_config.transfer_reservation_duration! / (60 * 60)} hours
-        of you initiating the transfer, you will keep your membership and it'll
-        be like nothing ever happened.
+        After <b>2025-06-25 23:59 (Swedish time)</b>, you'll only receive{" "}
+        <b>50%</b>, while the buyer still pays full price.
+      </li>
+      <li>
+        After{" "}
+        <b>
+          {formatDate(project?.burn_config.last_possible_transfer_at!)}, there
+          will be no transfers for any reason.
+        </b>
+      </li>
+      <li>
+        If the buyer doesn't complete the purchase within{" "}
+        {project?.burn_config.transfer_reservation_duration! / (60 * 60)} hours,
+        your membership remains valid as if nothing happened.
+      </li>
+      <li>
+        Please note that the transfer has to be completed before the deadline,
+        so don’t attempt to do this last minute.
       </li>
     </ol>
   );
