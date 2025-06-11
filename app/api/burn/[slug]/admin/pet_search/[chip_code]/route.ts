@@ -4,7 +4,6 @@ import { BurnRole, BurnMembership } from "@/utils/types";
 
 import * as uuid from "uuid";
 
-// TODO: Limit to the specific burn (project_id?)
 export const GET = requestWithProject(
   async (supabase, profile, request, body, project) => {
     const chipCode = request.nextUrl.pathname.split("/").pop();
@@ -16,8 +15,11 @@ export const GET = requestWithProject(
         .eq("project_id", project!.id)
     );
 
-    console.log({ beforeids: all_memberships.map(m => m.id) })
-
+    // I know this isn’t ideal, but
+    // 1.) there doesn’t seem to be a good way to filter for values inside of arrays in JSONB with the JS supabase API and
+    // 2.) this functionality will probably only be used upwards of a few times during the event
+    //
+    // If it turns out to be a problem, it might be possible to use `ILIKE` to limit the first set of results
     const ids = all_memberships.filter(m =>
       Array.isArray(m.metadata?.pets) &&
       m.metadata.pets.some(pet => pet.chip_code === chipCode)
@@ -30,8 +32,6 @@ export const GET = requestWithProject(
         .eq("project_id", project!.id)
         .in("id", ids)
     );
-
-    console.log({ foundMemberships })
 
     return (
       foundMemberships.map(membership => {
@@ -50,7 +50,7 @@ export const GET = requestWithProject(
     )
   },
   undefined,
-  BurnRole.MembershipScanner
+  BurnRole.ThresholdWatcher
 );
 
 

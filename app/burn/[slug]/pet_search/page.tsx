@@ -92,29 +92,31 @@ export default function ScannerPage() {
   };
 
   useEffect(() => {
-    setMembershipResults([]);
+    setMembershipResults(null);
 
   }, []); // Empty dependency array means this runs once on mount
 
   return (
     <>
-      <Heading>Pet search!</Heading>
+      <Heading>Pet search (by chip code)</Heading>
 
       <div className="flex flex-col gap-4">
         <div className="relative w-full">
 
-          <Input type="text" id="chip-code" name="chip_code" className="border border-black rounded-lg" />
+          <Input type="text" id="chip-code" name="chip_code" className="border border-black rounded-lg mb-4" />
 
-          {
-            (<div className="w-full h-full flex items-center justify-center">
-              <Button
-                color="primary"
-                onPress={searchForPet}
-              >
-                Search
-              </Button>
-            </div>)
-          }
+          <div className="mb-4">
+            {
+              (<div className="w-full h-full flex items-center justify-center">
+                <Button
+                  color="primary"
+                  onPress={searchForPet}
+                >
+                  Search
+                </Button>
+              </div>)
+            }
+          </div>
 
           {searchError && (
             <Card className="w-full h-full bg-orange-100">
@@ -126,9 +128,11 @@ export default function ScannerPage() {
             </Card>
           )}
 
-          {(membershipResults.map((membership) => {
+          {membershipResults && membershipResults.length === 0 && <div>No memberships with matching pet chip code found</div>}
+          {membershipResults &&
+           (membershipResults.map((membership) => {
             {
-              return < Card className={`w-full h-full ${membership.checked_in_at == null ? 'bg-green-100' : 'bg-yellow-100'}`}>
+              return < Card key="membership.id" className={`w-full h-full ${membership.checked_in_at == null ? 'bg-green-100' : 'bg-yellow-100'}`}>
                 <CardBody className="flex flex-col justify-between">
                   <div className="flex flex-col gap-2">
                     <p><strong>Name:</strong> {membership.first_name} {membership.last_name}</p>
@@ -157,7 +161,7 @@ export default function ScannerPage() {
                             <div key={pet.key} className="pl-4 border-l-2 border-gray-200">
                               <p><strong>Name:</strong> {pet.name}</p>
                               <p><strong>Type:</strong> {pet.type}</p>
-                              <p><strong>Chip Code:</strong> <strong className="text-red-700">{pet.chip_code}</strong></p>
+                              <p><strong>Chip Code:</strong> {pet.chip_code}</p>
                             </div>
                           ))}
                         </div>

@@ -6,6 +6,11 @@ import { Button, Card, CardBody } from "@nextui-org/react";
 import { apiGet, ApiError } from "@/app/_components/api";
 import { useSession, useProject } from "@/app/_components/SessionContext";
 
+import {
+  QrcodeOutlined,
+  ReloadOutlined,
+} from "@ant-design/icons";
+
 import QrScanner from 'qr-scanner';
 
 let videoEl;
@@ -53,23 +58,62 @@ const formatRelativeDateTime = (date: Date) => {
   return `${weekday} at ${timeString} (${relativeDay})`;
 }
 
-const formatDOB = (dob: string) => {
-  return new Date(dob).toLocaleDateString('en-US', {
+const calculateAge = (birthDate) => {
+  let currentDate = new Date();
+
+  let age = currentDate.getFullYear() - birthDate.getFullYear();
+
+  // Check if the birthday has occurred yet this year
+  const hasHadBirthdayThisYear =
+    currentDate.getMonth() > birthDate.getMonth() ||
+    (currentDate.getMonth() === birthDate.getMonth() &&
+      currentDate.getDate() >= birthDate.getDate());
+
+  if (!hasHadBirthdayThisYear) {
+    age--;
+  }
+
+  return age;
+}
+
+function isSameDay(date1, date2) {
+  return (
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate()
+  );
+}
+
+
+const formatDOB = (dob: string, highlightUnderage) => {
+  dob = new Date(dob);
+
+  let age = calculateAge(dob)
+
+  let description = dob.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
+
+  let colorClass = (highlightUnderage && age < 18 ? "text-red-500 font-bold" : "")
+
+  let birthdayString = (
+    isSameDay(dob, new Date()) ?
+      " 🎉 HAPPY BIRTHDAY! 🎉  - " :
+      ""
+
+  )
+
+  return <>
+    {description} - <span className="text-red-500">{birthdayString}</span> <span className={colorClass}>{age} years old</span>
+  </>
 }
 
 const fetchQRData = () => {
-  console.log('00')
   return new Promise<string>((resolve, reject) => {
-    console.log('01')
-
     qrScanner = new QrScanner(
       videoEl,
       ({ data }) => {
-        console.log({ data, resolve })
         resolve(data);
         qrScanner.stop();
         qrScanner.destroy();
@@ -83,10 +127,7 @@ const fetchQRData = () => {
       }
     );
 
-    console.log(22);
-
     qrScanner.start().catch((e) => {
-      console.log({ e })
       reject(`Could not start QR scanner. ERROR: ${e}`)
     });
   })
@@ -99,36 +140,39 @@ const deniedAudio = new Audio('/sounds/denied.mp3');
 const buzzAudio = new Audio('/sounds/buzz.mp3');
 
 export default function ScannerPage() {
-  const { profile } = useSession();
-  console.log({ profile })
+  const { profile, refreshProfile } = useSession();
   const { project } = useProject();
 
   const [scannedMember, setScannedMember] = useState<ScannedMember | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
+  const [currentlyScanning, setCurrentlyScanning] = useState<boolean>(null);
 
   const startScan = () => {
     clickAudio.play();
 
     setScannedMember(null);
     setScanError(null);
+    setCurrentlyScanning(true);
 
-    console.log('calling fetchQRData')
     fetchQRData().then((data) => {
       apiGet(`/burn/${project!.slug}/admin/memberships/${data}`)
-        .then((member) => {
-          setScannedMember(member);
+        .then((foundMember) => {
+          setScannedMember(foundMember);
+          setCurrentlyScanning(false);
 
-          if (member.checked_in_at) {
+          refreshProfile();
+
+          if (foundMember.checked_in_at) {
             // Should make a negative sound because the member has already been checked in
             deniedAudio.play();
-            member.checked_in_at = new Date(member.checked_in_at).toISOString();
+            foundMember.checked_in_at = new Date(foundMember.checked_in_at).toISOString();
           } else {
             // Should make a positive sound because the member has not yet been checked in
             dingAudio.play();
           }
         })
         .catch((error) => {
-          console.log({ message: error.message })
+          setCurrentlyScanning(false);
           deniedAudio.play();
           setScanError(error.message);
         })
@@ -137,8 +181,16 @@ export default function ScannerPage() {
     });
   };
 
+  const clearDisplay = () => {
+    setScannedMember(null);
+    setScanError(null);
+    setCurrentlyScanning(false);
+  }
+
   useEffect(() => {
     setScannedMember(null);
+    setScanError(null);
+    setCurrentlyScanning(false);
 
     videoEl = document.getElementById('scanner-view') as HTMLVideoElement;
 
@@ -146,25 +198,26 @@ export default function ScannerPage() {
 
   return (
     <>
-      <Heading>Membership scanner!</Heading>
-
-      <Heading>Scanner ID: {profile.metadata.scanner_id}</Heading>
+      <div className="mb-4 text-right w-full">
+        <p>Scanner ID: {profile.metadata.scanner_id}</p>
+        <p>Check-ins: {profile.metadata.check_in_count || 0}</p>
+      </div>
 
       <div className="flex flex-col gap-4">
-        <div className="relative w-full border border-black rounded-lg">
+        <video
+          className={`border border-black rounded-lg object-cover ${currentlyScanning ? '' : 'invisible absolute'}`}
+          id="scanner-view"
+        ></video>
 
-          <video
-            className={`object-cover ${scannedMember || scanError ? 'hidden' : ''}`}
-            id="scanner-view"
-          ></video>
+        <div className="relative w-full">
 
           {scannedMember && (
-            <Card className={`w-full h-full ${scannedMember.checked_in_at == null ? 'bg-green-100' : 'bg-yellow-100'}`}>
+            <Card className={`border border-black rounded-lg w-full h-full ${scannedMember.checked_in_at == null ? 'bg-green-100' : 'bg-yellow-100'}`}>
               <CardBody className="flex flex-col justify-between">
                 <div className="flex flex-col gap-2">
                   <p><strong>Name:</strong> {scannedMember.first_name} {scannedMember.last_name}</p>
-                  <p><strong>Birthdate:</strong> {formatDOB(scannedMember.birthdate)}</p>
-                  <p><strong>Checked in:</strong> {scannedMember.checked_in_at == null ? 'No' : formatRelativeDateTime(new Date(scannedMember.checked_in_at))}</p>
+                  <p><strong>Birthdate:</strong> {formatDOB(scannedMember.birthdate, true)}</p>
+                  <p><strong>Checked in:</strong> {scannedMember.checked_in_at == null ? 'Just now' : formatRelativeDateTime(new Date(scannedMember.checked_in_at))}</p>
 
                   {scannedMember.metadata?.children?.length > 0 && (
                     <div className="mt-4">
@@ -188,7 +241,7 @@ export default function ScannerPage() {
                           <div key={pet.key} className="pl-4 border-l-2 border-gray-200">
                             <p><strong>Name:</strong> {pet.name}</p>
                             <p><strong>Type:</strong> {pet.type}</p>
-                            <p><strong>Chip Code:</strong> <strong className="text-red-700">{pet.chip_code}</strong></p>
+                            <p><strong>Chip Code:</strong> {pet.chip_code}</p>
                           </div>
                         ))}
                       </div>
@@ -210,16 +263,28 @@ export default function ScannerPage() {
           )}
         </div>
 
-        {
-          (<div className="w-full h-full flex items-center justify-center">
-            <Button
-              color="primary"
-              onPress={startScan}
-            >
-              Scan QR
-            </Button>
-          </div>)
-        }
+        <div className="w-full h-full flex items-center justify-center">
+          <Button
+            color="primary"
+            size="lg"
+            onPress={startScan}
+          >
+            <QrcodeOutlined />
+            Scan QR Code
+          </Button>
+        </div>
+
+        {(scannedMember || scanError) &&
+        (<div className="w-full h-full flex items-center justify-center">
+          <Button
+            color="secondary"
+            size="lg"
+            onPress={clearDisplay}
+          >
+            <ReloadOutlined />
+            Clear Display
+          </Button>
+        </div>)}
       </div >
     </>
   );

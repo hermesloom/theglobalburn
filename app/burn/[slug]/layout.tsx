@@ -7,6 +7,8 @@ import {
   IdcardOutlined,
   SettingOutlined,
   QrcodeOutlined,
+  BaiduOutlined,
+  MonitorOutlined,
   TeamOutlined,
   WalletOutlined,
   FileDoneOutlined,
@@ -58,19 +60,34 @@ export default function ProjectLayout({
             icon: <IdcardOutlined />,
           },
 
-          ...(project.roles.includes(BurnRole.MembershipScanner)
+          ...(project.roles.includes(BurnRole.MembershipScanner) || project.roles.includes(BurnRole.ThresholdWatcher)
             ? ([
               { separator: true },
               { sectionTitle: "On-site" },
+            ] as any)
+            : []),
+
+          ...(project.roles.includes(BurnRole.MembershipScanner)
+            ? ([
               {
                 label: "Membership scanner",
                 path: `/burn/${project?.slug}/scanner`,
                 icon: <QrcodeOutlined />,
               },
+            ] as any)
+            : []),
+
+          ...(project.roles.includes(BurnRole.ThresholdWatcher)
+            ? ([
+              {
+                label: "Watcher Tools",
+                path: `/burn/${project?.slug}/watcher_tools`,
+                icon: <MonitorOutlined />,
+              },
               {
                 label: "Pet search",
                 path: `/burn/${project?.slug}/pet_search`,
-                icon: <QrcodeOutlined />,
+                icon: <BaiduOutlined />,
               },
             ] as any)
             : []),

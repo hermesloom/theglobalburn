@@ -5,7 +5,6 @@ import Stripe from "stripe";
 
 import * as uuid from "uuid";
 
-// TODO: Limit to the specific burn (project_id?)
 export const GET = requestWithProject(
   async (supabase, profile, request, body, project) => {
     const id = request.nextUrl.pathname.split("/").pop();
@@ -24,6 +23,22 @@ export const GET = requestWithProject(
 
     if (!result) {
       return NextResponse.json({ error: "No member found" }, { status: 404 });
+    }
+
+    if (!result.checked_in_at) {
+      const newMetaData = profile?.metadata ?? {};
+
+      if (newMetaData["check_in_count"] === undefined) {
+        newMetaData["check_in_count"] = 0;
+      }
+      newMetaData["check_in_count"] = newMetaData["check_in_count"] + 1;
+
+      await query(() =>
+        supabase
+          .from("profiles")
+          .update({ metadata: newMetaData })
+          .eq("id", profile.id)
+      );
     }
 
     return {
