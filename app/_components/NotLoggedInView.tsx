@@ -34,6 +34,7 @@ export default function Home() {
           alt="The Borderland"
           width={100}
           height={100}
+          className="rounded-2xl"
         />
         <h1
           className="text-4xl font-bold mt-4 text-white"

@@ -70,7 +70,7 @@ export default function ProjectSwitcher() {
                   src="/borderland.png"
                   alt={p.name}
                   fill
-                  className="object-contain"
+                  className="object-contain rounded-2xl"
                 />
               </div>
             </Button>
