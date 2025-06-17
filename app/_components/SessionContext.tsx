@@ -21,6 +21,7 @@ interface SessionContextType {
   profile: Profile | null;
   isLoading: boolean;
   reloadProfile: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 
   updateProfile: (fn: (draft: Profile) => void) => void;
 
@@ -33,10 +34,11 @@ const SessionContext = createContext<SessionContextType>({
   profile: null,
   isLoading: true,
   reloadProfile: () => Promise.reject(),
-  updateProfile: () => {},
+  refreshProfile: () => Promise.reject(),
+  updateProfile: () => { },
 
   showSidebar: false,
-  toggleSidebar: () => {},
+  toggleSidebar: () => { },
 });
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
@@ -100,11 +102,15 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const reloadProfile = async () => {
     setIsLoading(true);
     try {
-      const profile = await apiGet("/profile");
-      setProfile(profile);
+      await refreshProfile()
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const refreshProfile = async () => {
+    const profile = await apiGet("/profile");
+    setProfile(profile);
   };
 
   const updateProfile = (fn: (draft: Profile) => void) => {
@@ -120,6 +126,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         profile,
         isLoading,
         reloadProfile,
+        refreshProfile,
 
         updateProfile,
 
