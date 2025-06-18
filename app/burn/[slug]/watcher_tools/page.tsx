@@ -13,9 +13,10 @@ import {
 import ActionButton from "@/app/_components/ActionButton";
 import { ReloadOutlined } from "@ant-design/icons";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { apiGet, apiPost } from "@/app/_components/api";
 import { useProject } from "@/app/_components/SessionContext";
+import { BurnMembership } from "@/utils/types";
 
 interface Profile {
   id: string;
@@ -26,7 +27,7 @@ interface Profile {
 }
 
 
-const resetCheckInCounts = (projectSlug, profileIds) => {
+const resetCheckInCounts = (projectSlug: string, profileIds: string[]) => {
   // console.log({ profileIds })
   return Promise.all(
     profileIds.map((profileId) => {
@@ -36,19 +37,21 @@ const resetCheckInCounts = (projectSlug, profileIds) => {
 }
 
 export default function ScannerManagerPage() {
-  const [scannerProfiles, setScannerProfiles] = useState<Profile | null>(null);
-  const [membershipResults, setMembershipResults] = useState<membershipResults>([]);
+  const [scannerProfiles, setScannerProfiles] = useState<Profile[] | null>(null);
+  const [membershipResults, setMembershipResults] = useState<BurnMembership[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
 
-  const setOrderedScannerProfiles = (scannerProfiles) => {
+  const memberQueryRef = useRef<HTMLInputElement>(null);
+
+  const setOrderedScannerProfiles = (scannerProfiles: Profile[]) => {
     setScannerProfiles(
-      scannerProfiles.sort((a, b) =>
+      scannerProfiles.sort((a: Profile, b: Profile) =>
         a.metadata.scanner_id - b.metadata.scanner_id
       )
     )
   }
 
-  const updateProfileScanners = (projectSlug) => {
+  const updateProfileScanners = (projectSlug: string) => {
     return apiGet(`/burn/${projectSlug}/admin/profiles/scanners`).then(setOrderedScannerProfiles)
   }
 
@@ -56,7 +59,7 @@ export default function ScannerManagerPage() {
       setMembershipResults([]);
       setSearchError(null);
 
-      let inputValue = document.getElementById('member-query').value;
+      let inputValue = memberQueryRef.current?.value;
 
       apiGet(`/burn/${project!.slug}/admin/pet_search/${inputValue}`)
         .then((memberships) => {
@@ -77,7 +80,7 @@ export default function ScannerManagerPage() {
   }, []); // Empty dependency array means this runs once on mount
 
   const resetAll = async () => {
-    let ids = scannerProfiles.map((scannerProfile) => scannerProfile.id);
+    let ids = (scannerProfiles || []).map((scannerProfile) => scannerProfile.id);
 
     if (confirm("Are you sure?")) {
       await resetCheckInCounts(project!.slug, ids).then(() => {
@@ -140,7 +143,7 @@ export default function ScannerManagerPage() {
 
           Search for a member:
 
-          <Input type="text" id="member-query" name="member-query" className="border border-black rounded-lg" />
+          <Input type="text" ref={memberQueryRef} name="member-query" className="border border-black rounded-lg" />
 
           <div className="w-full h-full flex items-center justify-center">
             <Button
