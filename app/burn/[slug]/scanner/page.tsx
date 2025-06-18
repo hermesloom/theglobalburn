@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Heading from "@/app/_components/Heading";
 import { Button, Card, CardBody } from "@nextui-org/react";
 import { apiGet, ApiError } from "@/app/_components/api";
@@ -13,9 +13,7 @@ import {
 
 import QrScanner from 'qr-scanner';
 
-let videoEl;
-
-let qrScanner: QrScanner,
+let qrScanner: QrScanner | null,
   qrScannerEngine: any; // Using any since QrEngine type is not exported
 
 interface Child {
@@ -23,6 +21,13 @@ interface Child {
   key: string;
   last_name: string;
   first_name: string;
+}
+
+interface Pet {
+  key: string;
+  name: string;
+  type: string;
+  chip_code: string;
 }
 
 interface ScannedMember {
@@ -33,6 +38,7 @@ interface ScannedMember {
   checked_in_at: string | null;
   metadata: {
     children: Child[];
+    pets: Pet[];
   };
 }
 
@@ -58,7 +64,7 @@ const formatRelativeDateTime = (date: Date) => {
   return `${weekday} at ${timeString} (${relativeDay})`;
 }
 
-const calculateAge = (birthDate) => {
+const calculateAge = (birthDate: Date) => {
   let currentDate = new Date();
 
   let age = currentDate.getFullYear() - birthDate.getFullYear();
@@ -76,7 +82,7 @@ const calculateAge = (birthDate) => {
   return age;
 }
 
-function isSameDay(date1, date2) {
+function isSameDay(date1: Date, date2: Date) {
   return (
     date1.getMonth() === date2.getMonth() &&
     date1.getDate() === date2.getDate()
@@ -84,8 +90,8 @@ function isSameDay(date1, date2) {
 }
 
 
-const formatDOB = (dob: string, highlightUnderage) => {
-  dob = new Date(dob);
+const formatDOB = (dobString: string, highlightUnderage: boolean = false) => {
+  let dob = new Date(dobString);
 
   let age = calculateAge(dob)
 
@@ -109,30 +115,6 @@ const formatDOB = (dob: string, highlightUnderage) => {
   </>
 }
 
-const fetchQRData = () => {
-  return new Promise<string>((resolve, reject) => {
-    qrScanner = new QrScanner(
-      videoEl,
-      ({ data }) => {
-        resolve(data);
-        qrScanner.stop();
-        qrScanner.destroy();
-        qrScanner = null;
-
-      },
-      {
-        preferredCamera: 'environment',
-        maxScansPerSecond: 15,
-        // qrEngine: qrScannerEngine
-      }
-    );
-
-    qrScanner.start().catch((e) => {
-      reject(`Could not start QR scanner. ERROR: ${e}`)
-    });
-  })
-}
-
 const clickAudio = new Audio('/sounds/click.mp3');
 const dingAudio = new Audio('/sounds/ding.mp3');
 const deniedAudio = new Audio('/sounds/denied.mp3');
@@ -145,7 +127,35 @@ export default function ScannerPage() {
 
   const [scannedMember, setScannedMember] = useState<ScannedMember | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
-  const [currentlyScanning, setCurrentlyScanning] = useState<boolean>(null);
+  const [currentlyScanning, setCurrentlyScanning] = useState<boolean>(false);
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const fetchQRData = () => {
+    return new Promise<string>((resolve, reject) => {
+      if (videoRef.current) {
+        qrScanner = new QrScanner(
+          videoRef.current,
+          ({ data }) => {
+            resolve(data);
+            qrScanner?.stop();
+            qrScanner?.destroy();
+            qrScanner = null;
+
+          },
+          {
+            preferredCamera: 'environment',
+            maxScansPerSecond: 15,
+            // qrEngine: qrScannerEngine
+          }
+        );
+
+        qrScanner.start().catch((e) => {
+          reject(`Could not start QR scanner. ERROR: ${e}`)
+        });
+      }
+    })
+  }
 
   const startScan = () => {
     clickAudio.play();
@@ -192,21 +202,19 @@ export default function ScannerPage() {
     setScanError(null);
     setCurrentlyScanning(false);
 
-    videoEl = document.getElementById('scanner-view') as HTMLVideoElement;
-
   }, []); // Empty dependency array means this runs once on mount
 
   return (
     <>
       <div className="mb-4 text-right w-full">
-        <p>Scanner ID: {profile.metadata.scanner_id}</p>
-        <p>Check-ins: {profile.metadata.check_in_count || 0}</p>
+        <p>Scanner ID: {profile?.metadata.scanner_id}</p>
+        <p>Check-ins: {profile?.metadata.check_in_count || 0}</p>
       </div>
 
       <div className="flex flex-col gap-4">
         <video
           className={`border border-black rounded-lg object-cover ${currentlyScanning ? '' : 'invisible absolute'}`}
-          id="scanner-view"
+          ref={videoRef}
         ></video>
 
         <div className="relative w-full">

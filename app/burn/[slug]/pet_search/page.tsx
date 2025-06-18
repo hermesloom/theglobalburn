@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Heading from "@/app/_components/Heading";
 import { Input, Button, Card, CardBody } from "@nextui-org/react";
 import { apiGet, ApiError } from "@/app/_components/api";
 import { useSession, useProject } from "@/app/_components/SessionContext";
+import { BurnMembership } from "@/utils/types";
 
 import QrScanner from 'qr-scanner';
 
@@ -20,6 +21,13 @@ interface Child {
   first_name: string;
 }
 
+interface Pet {
+  key: string;
+  name: string;
+  type: string;
+  chip_code: string;
+}
+
 interface ScannedMember {
   id: string;
   first_name: string;
@@ -28,6 +36,7 @@ interface ScannedMember {
   checked_in_at: string | null;
   metadata: {
     children: Child[];
+    pets: Pet[];
   };
 }
 
@@ -72,14 +81,16 @@ export default function ScannerPage() {
   console.log({ profile })
   const { project } = useProject();
 
-  const [membershipResults, setMembershipResults] = useState<membershipResults>([]);
+  const [membershipResults, setMembershipResults] = useState<BurnMembership[] | null>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
+
+  const chipCodeRef = useRef<HTMLInputElement>(null);
 
   const searchForPet = () => {
     setMembershipResults([]);
     setSearchError(null);
 
-    let inputValue = document.getElementById('chip-code').value;
+    let inputValue = chipCodeRef.current?.value;
 
     apiGet(`/burn/${project!.slug}/admin/pet_search/${inputValue}`)
       .then((memberships) => {
@@ -103,7 +114,7 @@ export default function ScannerPage() {
       <div className="flex flex-col gap-4">
         <div className="relative w-full">
 
-          <Input type="text" id="chip-code" name="chip_code" className="border border-black rounded-lg mb-4" />
+          <Input type="text" ref={chipCodeRef} name="chip_code" className="border border-black rounded-lg mb-4" />
 
           <div className="mb-4">
             {
@@ -143,7 +154,7 @@ export default function ScannerPage() {
                       <div className="mt-4">
                         <h4 className="font-semibold mb-2">Children</h4>
                         <div className="flex flex-col gap-2">
-                          {membership.metadata.children.map((child) => (
+                          {membership.metadata.children.map((child: Child) => (
                             <div key={child.key} className="pl-4 border-l-2 border-gray-200">
                               <p><strong>Name:</strong> {child.first_name} {child.last_name}</p>
                               <p><strong>Birthdate:</strong> {formatDOB(child.dob)}</p>
@@ -157,7 +168,7 @@ export default function ScannerPage() {
                       <div className="mt-4">
                         <h4 className="font-semibold mb-2">Pets</h4>
                         <div className="flex flex-col gap-2">
-                          {membership.metadata.pets.map((pet) => (
+                          {membership.metadata.pets.map((pet: Pet) => (
                             <div key={pet.key} className="pl-4 border-l-2 border-gray-200">
                               <p><strong>Name:</strong> {pet.name}</p>
                               <p><strong>Type:</strong> {pet.type}</p>

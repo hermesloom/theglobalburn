@@ -4,6 +4,10 @@ import { BurnRole, BurnMembership } from "@/utils/types";
 
 import * as uuid from "uuid";
 
+type Pet = {
+  chip_code: string;
+};
+
 export const GET = requestWithProject(
   async (supabase, profile, request, body, project) => {
     const chipCode = request.nextUrl.pathname.split("/").pop();
@@ -20,10 +24,10 @@ export const GET = requestWithProject(
     // 2.) this functionality will probably only be used upwards of a few times during the event
     //
     // If it turns out to be a problem, it might be possible to use `ILIKE` to limit the first set of results
-    const ids = all_memberships.filter(m =>
+    const ids = all_memberships.filter((m: BurnMembership) =>
       Array.isArray(m.metadata?.pets) &&
-      m.metadata.pets.some(pet => pet.chip_code === chipCode)
-    ).map(m => m.id)
+      m.metadata.pets.some((pet: Pet) => pet.chip_code === chipCode)
+    ).map((m: BurnMembership) => m.id)
 
     let foundMemberships = await query(() =>
       supabase
@@ -34,7 +38,7 @@ export const GET = requestWithProject(
     );
 
     return (
-      foundMemberships.map(membership => {
+      foundMemberships.map((membership: BurnMembership) => {
         return {
           id: membership.id,
           first_name: membership.first_name,
