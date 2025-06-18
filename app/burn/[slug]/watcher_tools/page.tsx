@@ -100,25 +100,22 @@ export default function ScannerManagerPage() {
               <TableColumn key="reset-count">Reset Count</TableColumn>
             </TableHeader>
             <TableBody>
-              {scannerProfiles.map((scannerProfile) => {
-                let action = {
-                  key: "reset-count",
-                  icon: <ReloadOutlined />,
-                  onClick: async (scannerProfile) => {
-                    if (confirm("Are you sure?")) {
-                      await resetCheckInCounts(project!.slug, [scannerProfile.id]).then(() => { updateProfileScanners(project!.slug) })
-                    }
-                  },
-                }
-
+              {scannerProfiles.map((scannerProfile: Profile) => {
                 return <TableRow key={scannerProfile.metadata.scanner_id
                 } >
                   <TableCell key="scanner_id">{scannerProfile.metadata.scanner_id}</TableCell>
                   <TableCell key="check_in_count">{scannerProfile.metadata.check_in_count}</TableCell>
                   <TableCell key="reset-count">
                     <ActionButton
-                      key={action.key}
-                      action={action}
+                      action={{
+                        key: "reset-count",
+                        icon: <ReloadOutlined />,
+                        onClick: async (scannerProfile) => {
+                          if (scannerProfile && confirm("Are you sure?")) {
+                            await resetCheckInCounts(project!.slug, [scannerProfile.id]).then(() => { updateProfileScanners(project!.slug) })
+                          }
+                        },
+                      }}
                       data={scannerProfile}
                       size="sm"
                     />
