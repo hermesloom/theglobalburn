@@ -5,6 +5,7 @@ import Heading from "@/app/_components/Heading";
 import { Input, Button, Card, CardBody } from "@nextui-org/react";
 import { apiGet, ApiError } from "@/app/_components/api";
 import { useSession, useProject } from "@/app/_components/SessionContext";
+import { BurnMembership } from "@/utils/types";
 
 import QrScanner from 'qr-scanner';
 
@@ -72,7 +73,7 @@ export default function ScannerPage() {
   console.log({ profile })
   const { project } = useProject();
 
-  const [membershipResults, setMembershipResults] = useState<membershipResults>([]);
+  const [membershipResults, setMembershipResults] = useState<BurnMembership[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
 
   const searchForPet = () => {
