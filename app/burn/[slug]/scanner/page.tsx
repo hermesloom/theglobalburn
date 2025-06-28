@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Heading from "@/app/_components/Heading";
 import { Button, Card, CardBody } from "@nextui-org/react";
-import { apiGet, ApiError } from "@/app/_components/api";
+import { apiPost, ApiError } from "@/app/_components/api";
 import { useSession, useProject } from "@/app/_components/SessionContext";
 
 import {
@@ -165,7 +165,7 @@ export default function ScannerPage() {
     setCurrentlyScanning(true);
 
     fetchQRData().then((data) => {
-      apiGet(`/burn/${project!.slug}/admin/memberships/${data}`)
+      apiPost(`/burn/${project!.slug}/admin/check-in-member/${data}`)
         .then((foundMember) => {
           setScannedMember(foundMember);
           setCurrentlyScanning(false);
