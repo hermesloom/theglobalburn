@@ -75,5 +75,5 @@ export const POST = requestWithProject(
     };
   },
   SearchSchema,
-  BurnRole.MembershipManager,
+  [BurnRole.MembershipManager, BurnRole.ThresholdWatcher],
 );

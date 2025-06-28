@@ -137,7 +137,7 @@ export function requestWithAuthAdmin<T = any>(
 export function requestWithProject<T = any>(
   handler: RequestWithAuthHandler<T>,
   schema?: s.Object,
-  role?: BurnRole,
+  roleOrRoles?: BurnRole | BurnRole[],
 ) {
   return requestWithAuth(async (supabase, profile, req, body) => {
     const projectSlug = req.nextUrl.pathname.split("/")[3];
@@ -145,11 +145,21 @@ export function requestWithProject<T = any>(
     if (!project) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
-    if (role && !project.roles.includes(role)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    if (roleOrRoles) {
+      if (!roleMatches(project.roles, roleOrRoles)) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      }
     }
     return await handler(supabase, profile, req, body, project);
   }, schema);
+}
+
+function roleMatches(userRoles: BurnRole[], roleOrRoles : BurnRole | BurnRole[]) {
+  if (Array.isArray(roleOrRoles)) {
+    return roleOrRoles.some((role) => userRoles.includes(role));
+  } else {
+    return userRoles.includes(roleOrRoles);
+  }
 }
 
 export function requestWithAPIKeyAndProject<T = any>(
