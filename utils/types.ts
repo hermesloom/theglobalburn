@@ -73,6 +73,7 @@ export type BurnMembershipPurchaseRight = {
 
 export type BurnMembership = {
   id: string;
+  owner_id: string;
   created_at: string;
   first_name: string;
   last_name: string;
