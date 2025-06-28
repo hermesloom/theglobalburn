@@ -6,8 +6,8 @@ const SearchSchema = s.object({
 });
 export const POST = requestWithProject(
   async (supabase, profile, request, body, project) => {
-    console.log(request);
-    console.log(body);
+    // console.log(request);
+    // console.log(body);
     const searchTerm = body.q;
 
     const { data: membershipResults, error: membershipError } = await supabase
@@ -16,13 +16,15 @@ export const POST = requestWithProject(
         `
       owner_id,
       first_name,
-      last_name, 
+      last_name,
+      checked_in_at,
       metadata
     `,
       )
       .or(`first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%`)
       .eq("project_id", project!.id);
 
+    console.log({membershipResults})
     if (membershipError) {
       console.error("Error fetching memberships:", membershipError);
       return [];
@@ -31,14 +33,14 @@ export const POST = requestWithProject(
     // Query profiles for email matches
     const { data: profileResults, error: profileError } = await supabase
       .from("profiles")
-      .select(
-        `
+      .select(`
       id,
       email,
       metadata
-    `,
-      )
+    `)
       .ilike("email", `%${searchTerm}%`);
+
+    console.log({profileResults})
 
     if (profileError) {
       console.error("Error fetching profiles:", profileError);
@@ -61,6 +63,7 @@ export const POST = requestWithProject(
           owner_id: profile.id,
           first_name: null,
           last_name: null,
+          checked_in_at: null,
           email: profile.email,
           metadata: profile.metadata,
         });

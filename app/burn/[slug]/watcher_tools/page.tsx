@@ -11,7 +11,7 @@ import {
   TableCell
 } from "@nextui-org/react";
 import ActionButton from "@/app/_components/ActionButton";
-import { ReloadOutlined } from "@ant-design/icons";
+import { ReloadOutlined, UndoOutlined } from "@ant-design/icons";
 
 import React, { useState, useEffect, useRef } from "react";
 import { apiGet, apiPost } from "@/app/_components/api";
@@ -20,12 +20,20 @@ import { BurnMembership } from "@/utils/types";
 
 interface Profile {
   id: string;
+  email: string;
   metadata: {
     scanner_id: number,
     check_in_count: number,
   };
 }
 
+export type MemberSearchResult = {
+  owner_id: string;
+  first_name: string;
+  last_name: string;
+  checked_in_at: string;
+  email: string;
+};
 
 const resetCheckInCounts = (projectSlug: string, profileIds: string[]) => {
   // console.log({ profileIds })
@@ -36,9 +44,18 @@ const resetCheckInCounts = (projectSlug: string, profileIds: string[]) => {
   )
 }
 
+const resetMemberCheckIn = (projectSlug: string, profileIds: string[]) => {
+  // console.log({ profileIds })
+  return Promise.all(
+    profileIds.map((profileId) => {
+      return apiPost(`/burn/${projectSlug}/admin/profiles/${profileId}/resetMemberCheckIn`)
+    })
+  )
+}
+
 export default function ScannerManagerPage() {
   const [scannerProfiles, setScannerProfiles] = useState<Profile[] | null>(null);
-  const [membershipResults, setMembershipResults] = useState<BurnMembership[]>([]);
+  const [membershipResults, setMembershipResults] = useState<MemberSearchResult[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
 
   const memberQueryRef = useRef<HTMLInputElement>(null);
@@ -61,8 +78,11 @@ export default function ScannerManagerPage() {
 
       let inputValue = memberQueryRef.current?.value;
 
-      apiGet(`/burn/${project!.slug}/admin/pet_search/${inputValue}`)
-        .then((memberships) => {
+      apiPost(
+        `/burn/${project?.slug}/admin/member-search`,
+        { q: inputValue },
+      )
+        .then(({data: memberships}) => {
           setMembershipResults(memberships);
         })
         .catch((error) => {
@@ -77,6 +97,7 @@ export default function ScannerManagerPage() {
     updateProfileScanners(project!.slug)
 
     setScannerProfiles(null);
+    setMembershipResults([]);
   }, []); // Empty dependency array means this runs once on mount
 
   const resetAll = async () => {
@@ -96,6 +117,7 @@ export default function ScannerManagerPage() {
           <Table>
             <TableHeader>
               <TableColumn key="scanner_id">Scanner ID</TableColumn>
+              <TableColumn key="email">E-mail</TableColumn>
               <TableColumn key="check_in_count">Check-in Count</TableColumn>
               <TableColumn key="reset-count">Reset Count</TableColumn>
             </TableHeader>
@@ -104,6 +126,7 @@ export default function ScannerManagerPage() {
                 return <TableRow key={scannerProfile.metadata.scanner_id
                 } >
                   <TableCell key="scanner_id">{scannerProfile.metadata.scanner_id}</TableCell>
+                  <TableCell key="email">{scannerProfile.email}</TableCell>
                   <TableCell key="check_in_count">{scannerProfile.metadata.check_in_count}</TableCell>
                   <TableCell key="reset-count">
                     <ActionButton
@@ -151,8 +174,51 @@ export default function ScannerManagerPage() {
             </Button>
           </div>
 
-          <pre>{JSON.stringify(membershipResults)}</pre>
+          <Table>
+            <TableHeader>
+              <TableColumn key="first_name">First Name</TableColumn>
+              <TableColumn key="last_name">Last Name</TableColumn>
+              <TableColumn key="email">E-mail</TableColumn>
+              <TableColumn key="checked_in_at">Checked in at</TableColumn>
+              <TableColumn key="reset-member-check-in">Reset Member Check-in</TableColumn>
+            </TableHeader>
+            <TableBody>
+              {membershipResults.map((membershipResult) => {
+                return <TableRow key={membershipResult.owner_id} >
+                  <TableCell key="first_name">{membershipResult.first_name}</TableCell>
+                  <TableCell key="last_name">{membershipResult.last_name}</TableCell>
+                  <TableCell key="email">{membershipResult.email}</TableCell>
+                  <TableCell key="checked_in_at">{membershipResult.checked_in_at}</TableCell>
+                  <TableCell key="reset-member-check-in">
+                    {
+                      membershipResult.checked_in_at ?
+                      <ActionButton
+                        action={{
+                          key: "reset-member-check-in",
+                          icon: <UndoOutlined />,
+                          onClick: async () => {
+                            if (confirm("Are you sure?")) {
+                              await resetMemberCheckIn(project!.slug, [membershipResult.owner_id]).then(() => { searchForMember() })
+                            }
+                          },
+                        }}
+                        data={membershipResult}
+                        size="sm"
+                      /> :
+                      null
+                    }
+                  </TableCell>
+                </TableRow>
+              })}
+            </TableBody>
+          </Table >
 
+            <Button
+              color="primary"
+              onPress={async () => { await apiPost(`/burn/${project!.slug}/admin/setScannerIds`) }}
+            >
+              Brian click here!
+            </Button>
         </div>
       </div>
     </>
