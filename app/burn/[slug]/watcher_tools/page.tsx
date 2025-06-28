@@ -212,13 +212,6 @@ export default function ScannerManagerPage() {
               })}
             </TableBody>
           </Table >
-
-            <Button
-              color="primary"
-              onPress={async () => { await apiPost(`/burn/${project!.slug}/admin/setScannerIds`) }}
-            >
-              Brian click here!
-            </Button>
         </div>
       </div>
     </>
