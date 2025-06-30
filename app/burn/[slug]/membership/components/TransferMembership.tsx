@@ -36,10 +36,7 @@ export default function TransferMembership() {
     <>
       <Heading className="mt-12">Transfer your membership</Heading>
       <div className="flex flex-col gap-4">
-        <p>
-          If you want to transfer your membership, please do so{" "}
-          <b>before 2025-06-25 23:59 (Swedish time)</b>. This is how it works:
-        </p>
+        <p>If you want to transfer your membership, this is how it works:</p>
         <TransferMembershipInstructions />
         <Input
           label="Email address of the intended recipient"
