@@ -39,8 +39,12 @@ export default function TransferMembershipInstructions({
         automatically to your original payment card.
       </li>
       <li>
-        <b>Before 2025-06-25 23:59 (Swedish time)</b>, you'll receive the full
-        amount minus fees (
+        <b>
+          As the main transfer window has already closed on 2025-06-25 23:59
+          (Swedish time)
+        </b>
+        , you'll only receive 50% of the membership price back, which is
+        {/*amount minus fees (
         {formatMoney(
           project!.membership!.price,
           project!.membership!.price_currency,
@@ -51,18 +55,14 @@ export default function TransferMembershipInstructions({
             (project!.burn_config.transfer_fee_percentage / 100),
           project!.membership!.price_currency,
         )}{" "}
-        ={" "}
+        ={" "}*/}
         {formatMoney(
           project!.membership!.price -
             project!.membership!.price *
               (project!.burn_config.transfer_fee_percentage / 100),
           project!.membership!.price_currency,
         )}
-        ).
-      </li>
-      <li>
-        After <b>2025-06-25 23:59 (Swedish time)</b>, you'll only receive{" "}
-        <b>50%</b>, while the buyer still pays full price.
+        in your case.
       </li>
       <li>
         After{" "}
