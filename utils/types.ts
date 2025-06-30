@@ -10,6 +10,7 @@ export enum BurnRole {
   Participant = "participant",
   MembershipManager = "membership-manager",
   MembershipScanner = "membership-scanner",
+  ThresholdWatcher = "threshold-watcher",
 }
 
 export enum BurnMembershipPricing {
@@ -72,6 +73,7 @@ export type BurnMembershipPurchaseRight = {
 
 export type BurnMembership = {
   id: string;
+  owner_id: string;
   created_at: string;
   first_name: string;
   last_name: string;
@@ -108,6 +110,7 @@ export type Profile = {
   email: string;
   is_admin: boolean;
   projects: Project[];
+  metadata?: any;
 };
 export type Question = {
   id: string;

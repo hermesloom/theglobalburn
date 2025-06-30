@@ -1,6 +1,9 @@
 import { requestWithProject, query } from "@/app/api/_common/endpoints";
+import { NextResponse } from "next/server";
 import { BurnRole, BurnMembership } from "@/utils/types";
 import Stripe from "stripe";
+
+import * as uuid from "uuid";
 
 export const DELETE = requestWithProject(
   async (supabase, profile, request, body, project) => {
