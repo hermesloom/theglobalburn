@@ -138,19 +138,24 @@ export default function ScannerPage() {
           videoRef.current,
           ({ data }) => {
             resolve(data);
-            qrScanner?.stop();
-            qrScanner?.destroy();
-            qrScanner = null;
-
+            qrScanner.turnFlashOff().then(() => {
+              qrScanner?.stop();
+              qrScanner?.destroy();
+              qrScanner = null;
+            })
           },
           {
             preferredCamera: 'environment',
-            maxScansPerSecond: 15,
+            maxScansPerSecond: 8,
             // qrEngine: qrScannerEngine
           }
         );
 
-        qrScanner.start().catch((e) => {
+        qrScanner.start().then(async (e) => {
+          if (await qrScanner.hasFlash()) {
+            await qrScanner.turnFlashOn();
+          }
+        }).catch((e) => {
           reject(`Could not start QR scanner. ERROR: ${e}`)
         });
       }
