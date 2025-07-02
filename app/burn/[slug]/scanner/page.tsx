@@ -138,7 +138,7 @@ export default function ScannerPage() {
           videoRef.current,
           ({ data }) => {
             resolve(data);
-            qrScanner.turnFlashOff().then(() => {
+            qrScanner?.turnFlashOff().then(() => {
               qrScanner?.stop();
               qrScanner?.destroy();
               qrScanner = null;
@@ -152,8 +152,8 @@ export default function ScannerPage() {
         );
 
         qrScanner.start().then(async (e) => {
-          if (await qrScanner.hasFlash()) {
-            await qrScanner.turnFlashOn();
+          if (await qrScanner?.hasFlash()) {
+            await qrScanner?.turnFlashOn();
           }
         }).catch((e) => {
           reject(`Could not start QR scanner. ERROR: ${e}`)
