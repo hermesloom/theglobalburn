@@ -147,6 +147,7 @@ export default function ScannerPage() {
           {
             preferredCamera: 'environment',
             maxScansPerSecond: 8,
+            highlightScanRegion: true,
             // qrEngine: qrScannerEngine
           }
         );
