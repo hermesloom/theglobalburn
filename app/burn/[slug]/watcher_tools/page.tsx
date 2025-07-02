@@ -116,18 +116,15 @@ export default function ScannerManagerPage() {
         scannerProfiles ?
           <Table>
             <TableHeader>
-              <TableColumn key="scanner_id">Scanner ID</TableColumn>
-              <TableColumn key="email">E-mail</TableColumn>
-              <TableColumn key="check_in_count">Check-in Count</TableColumn>
               <TableColumn key="reset-count">Reset Count</TableColumn>
+              <TableColumn key="scanner_id">Scanner ID</TableColumn>
+              <TableColumn key="check_in_count">Check-in Count</TableColumn>
+              <TableColumn key="email">E-mail</TableColumn>
             </TableHeader>
             <TableBody>
               {scannerProfiles.map((scannerProfile: Profile) => {
                 return <TableRow key={scannerProfile.metadata.scanner_id
                 } >
-                  <TableCell key="scanner_id">{scannerProfile.metadata.scanner_id}</TableCell>
-                  <TableCell key="email">{scannerProfile.email}</TableCell>
-                  <TableCell key="check_in_count">{scannerProfile.metadata.check_in_count}</TableCell>
                   <TableCell key="reset-count">
                     <ActionButton
                       action={{
@@ -143,6 +140,9 @@ export default function ScannerManagerPage() {
                       size="sm"
                     />
                   </TableCell>
+                  <TableCell key="scanner_id">{scannerProfile.metadata.scanner_id}</TableCell>
+                  <TableCell key="check_in_count">{scannerProfile.metadata.check_in_count}</TableCell>
+                  <TableCell key="email">{scannerProfile.email}</TableCell>
                 </TableRow>
               })}
             </TableBody>
@@ -176,38 +176,40 @@ export default function ScannerManagerPage() {
 
           <Table>
             <TableHeader>
-              <TableColumn key="first_name">First Name</TableColumn>
-              <TableColumn key="last_name">Last Name</TableColumn>
-              <TableColumn key="email">E-mail</TableColumn>
               <TableColumn key="checked_in_at">Checked in at</TableColumn>
-              <TableColumn key="reset-member-check-in">Reset Member Check-in</TableColumn>
+              <TableColumn key="first_name">Name</TableColumn>
+              <TableColumn key="email">E-mail</TableColumn>
             </TableHeader>
             <TableBody>
               {membershipResults.map((membershipResult) => {
                 return <TableRow key={membershipResult.owner_id} >
-                  <TableCell key="first_name">{membershipResult.first_name}</TableCell>
-                  <TableCell key="last_name">{membershipResult.last_name}</TableCell>
-                  <TableCell key="email">{membershipResult.email}</TableCell>
-                  <TableCell key="checked_in_at">{membershipResult.checked_in_at}</TableCell>
-                  <TableCell key="reset-member-check-in">
-                    {
-                      membershipResult.checked_in_at ?
-                      <ActionButton
-                        action={{
-                          key: "reset-member-check-in",
-                          icon: <UndoOutlined />,
-                          onClick: async () => {
-                            if (confirm("Are you sure?")) {
-                              await resetMemberCheckIn(project!.slug, [membershipResult.owner_id]).then(() => { searchForMember() })
-                            }
-                          },
-                        }}
-                        data={membershipResult}
-                        size="sm"
-                      /> :
-                      null
-                    }
+                  <TableCell key="checked_in_at">
+                    <p>{membershipResult.checked_in_at}</p>
+
+                    <p>
+                      {
+                        membershipResult.checked_in_at ?
+                        <ActionButton
+                          action={{
+                            key: "reset-member-check-in",
+                            icon: <span>Reset</span>,
+                            onClick: async () => {
+                              if (confirm("Are you sure?")) {
+                                await resetMemberCheckIn(project!.slug, [membershipResult.owner_id]).then(() => { searchForMember() })
+                              }
+                            },
+                          }}
+                          data={membershipResult}
+                          size="md"
+                        /> :
+                        null
+                      }
+                    </p>
                   </TableCell>
+                  <TableCell key="name">
+                    {membershipResult.first_name}&nbsp;{membershipResult.last_name}
+                  </TableCell>
+                  <TableCell key="email">{membershipResult.email}</TableCell>
                 </TableRow>
               })}
             </TableBody>
