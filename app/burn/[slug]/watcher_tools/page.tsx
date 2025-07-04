@@ -114,7 +114,7 @@ export default function ScannerManagerPage() {
     <>
       {
         scannerProfiles ?
-          <Table>
+          <Table isStriped>
             <TableHeader>
               <TableColumn key="reset-count">Reset Count</TableColumn>
               <TableColumn key="scanner_id">Scanner ID</TableColumn>
@@ -174,7 +174,7 @@ export default function ScannerManagerPage() {
             </Button>
           </div>
 
-          <Table>
+          <Table isStriped>
             <TableHeader>
               <TableColumn key="checked_in_at">Checked in at</TableColumn>
               <TableColumn key="first_name">Name</TableColumn>
