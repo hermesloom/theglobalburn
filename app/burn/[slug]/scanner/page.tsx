@@ -7,6 +7,7 @@ import { apiPost, ApiError } from "@/app/_components/api";
 import { useSession, useProject } from "@/app/_components/SessionContext";
 
 import {
+  CloseOutlined,
   QrcodeOutlined,
   ReloadOutlined,
   BulbOutlined,
@@ -132,20 +133,18 @@ export default function ScannerPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const fetchQRData = () => {
+    console.log(100)
     return new Promise<string>((resolve, reject) => {
+    console.log(101)
       if (videoRef.current) {
-        setQrScanner(
+    console.log(102)
+        let scanner =
           new QrScanner(
             videoRef.current,
-            ({ data }) => {
+            async ({ data }) => {
               resolve(data);
 
-
-              qrScanner?.turnFlashOff().then(() => {
-                qrScanner?.stop();
-                qrScanner?.destroy();
-                setQrScanner(null);
-              })
+              await cancelScan(scanner);
             },
             {
               preferredCamera: 'environment',
@@ -153,50 +152,74 @@ export default function ScannerPage() {
               highlightScanRegion: true,
             }
           )
-        );
 
-        qrScanner?.start().then(async () => {
-          setQrScannerHasFlash(await qrScanner?.hasFlash());
+        setQrScanner(scanner);
+
+    console.log(107)
+        scanner?.start().then(async () => {
+    console.log(108)
+        setQrScannerHasFlash(await scanner?.hasFlash());
         })
         .catch((e) => {
+    console.log(109)
           reject(`Could not start QR scanner. ERROR: ${e}`)
         });
       }
     })
   }
 
+  const cancelScan = async (scanner) => {
+    console.log({scanner})
+
+    await scanner?.turnFlashOff()
+    scanner?.stop();
+    scanner?.destroy();
+    setQrScanner(null);
+    setCurrentlyScanning(false);
+  }
+
   const startScan = () => {
+    console.log(1)
     clickAudio.play();
 
+    console.log(2)
     setQrScannerHasFlash(false);
     setQrScanner(null);
     setScannedMember(null);
     setScanError(null);
     setCurrentlyScanning(true);
 
-    fetchQRData().then((data) => {
-      apiPost(`/burn/${project!.slug}/admin/check-in-member/${data}`)
+    console.log(3)
+    return fetchQRData().then((data) => {
+    console.log(4)
+      return apiPost(`/burn/${project!.slug}/admin/check-in-member/${data}`)
         .then((foundMember) => {
+    console.log(5)
           setScannedMember(foundMember);
-          setCurrentlyScanning(false);
 
+    console.log(6)
           refreshProfile();
 
+    console.log(7)
           if (foundMember.checked_in_at) {
+    console.log(8)
             // Should make a negative sound because the member has already been checked in
             deniedAudio.play();
             foundMember.checked_in_at = new Date(foundMember.checked_in_at).toISOString();
           } else {
+    console.log(9)
             // Should make a positive sound because the member has not yet been checked in
             dingAudio.play();
           }
         })
         .catch((error) => {
+    console.log(10)
           setCurrentlyScanning(false);
           deniedAudio.play();
           setScanError(error.message);
         })
     }).catch((error) => {
+    console.log(11)
       setScanError(error);
     });
   };
@@ -290,6 +313,19 @@ export default function ScannerPage() {
             >
               <BulbOutlined />
               Toggle Flashlight
+            </Button>
+          </div>
+        )}
+
+        {currentlyScanning &&
+          (<div className="w-full h-full flex items-center justify-center">
+            <Button
+              color="primary"
+              size="lg"
+              onPress={() => { cancelScan(qrScanner) }}
+            >
+              <CloseOutlined />
+              Cancel
             </Button>
           </div>
         )}
