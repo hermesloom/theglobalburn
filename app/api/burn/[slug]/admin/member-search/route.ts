@@ -10,6 +10,8 @@ export const POST = requestWithProject(
     // console.log(body);
     const searchTerm = body.q;
 
+    searchTerm = searchTerm.replace(/\s+/g, "%")
+
     const { data: membershipResults, error: membershipError } = await supabase
       .from("burn_memberships")
       .select(
