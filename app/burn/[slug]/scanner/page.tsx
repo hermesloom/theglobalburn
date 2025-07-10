@@ -124,7 +124,7 @@ export default function ScannerPage() {
   const { project } = useProject();
 
   const [qrScanner, setQrScanner] = useState<QrScanner | null>(null);
-  const [qrScannerHasFlash, setQrScannerHasFlash] = useState<boolean>(null);
+  const [qrScannerHasFlash, setQrScannerHasFlash] = useState<boolean>(false);
   const [scannedMember, setScannedMember] = useState<ScannedMember | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
   const [currentlyScanning, setCurrentlyScanning] = useState<boolean>(false);
@@ -155,7 +155,7 @@ export default function ScannerPage() {
           )
         );
 
-        qrScanner.start().then(async () => {
+        qrScanner?.start().then(async () => {
           setQrScannerHasFlash(await qrScanner?.hasFlash());
         })
         .catch((e) => {
