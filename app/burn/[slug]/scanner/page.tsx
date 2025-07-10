@@ -9,12 +9,10 @@ import { useSession, useProject } from "@/app/_components/SessionContext";
 import {
   QrcodeOutlined,
   ReloadOutlined,
+  BulbOutlined,
 } from "@ant-design/icons";
 
 import QrScanner from 'qr-scanner';
-
-let qrScanner: QrScanner | null,
-  qrScannerEngine: any; // Using any since QrEngine type is not exported
 
 interface Child {
   dob: string;
@@ -125,6 +123,8 @@ export default function ScannerPage() {
   const { profile, refreshProfile } = useSession();
   const { project } = useProject();
 
+  const [qrScanner, setQrScanner] = useState<QrScanner | null>(null);
+  const [qrScannerHasFlash, setQrScannerHasFlash] = useState<boolean>(null);
   const [scannedMember, setScannedMember] = useState<ScannedMember | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
   const [currentlyScanning, setCurrentlyScanning] = useState<boolean>(false);
@@ -134,29 +134,31 @@ export default function ScannerPage() {
   const fetchQRData = () => {
     return new Promise<string>((resolve, reject) => {
       if (videoRef.current) {
-        qrScanner = new QrScanner(
-          videoRef.current,
-          ({ data }) => {
-            resolve(data);
-            qrScanner?.turnFlashOff().then(() => {
-              qrScanner?.stop();
-              qrScanner?.destroy();
-              qrScanner = null;
-            })
-          },
-          {
-            preferredCamera: 'environment',
-            maxScansPerSecond: 8,
-            highlightScanRegion: true,
-            // qrEngine: qrScannerEngine
-          }
+        setQrScanner(
+          new QrScanner(
+            videoRef.current,
+            ({ data }) => {
+              resolve(data);
+
+
+              qrScanner?.turnFlashOff().then(() => {
+                qrScanner?.stop();
+                qrScanner?.destroy();
+                setQrScanner(null);
+              })
+            },
+            {
+              preferredCamera: 'environment',
+              maxScansPerSecond: 8,
+              highlightScanRegion: true,
+            }
+          )
         );
 
-        qrScanner.start().then(async (e) => {
-          if (await qrScanner?.hasFlash()) {
-            await qrScanner?.turnFlashOn();
-          }
-        }).catch((e) => {
+        qrScanner.start().then(async () => {
+          setQrScannerHasFlash(await qrScanner?.hasFlash());
+        })
+        .catch((e) => {
           reject(`Could not start QR scanner. ERROR: ${e}`)
         });
       }
@@ -166,6 +168,8 @@ export default function ScannerPage() {
   const startScan = () => {
     clickAudio.play();
 
+    setQrScannerHasFlash(false);
+    setQrScanner(null);
     setScannedMember(null);
     setScanError(null);
     setCurrentlyScanning(true);
@@ -276,6 +280,19 @@ export default function ScannerPage() {
             </Card>
           )}
         </div>
+
+        {qrScannerHasFlash && (
+          <div className="w-full h-full flex items-center justify-center">
+            <Button
+              color="primary"
+              size="lg"
+              onPress={qrScanner?.toggleFlash}
+            >
+              <BulbOutlined />
+              Toggle Flashlight
+            </Button>
+          </div>
+        )}
 
         <div className="w-full h-full flex items-center justify-center">
           <Button
