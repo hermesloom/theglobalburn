@@ -43,7 +43,7 @@ export const POST = requestWithProject(
     membershipResults =
       (membershipResults || []).sort((a, b) => {
         return(
-          countOfTermsMatched(b) - countOfTermsMatched(a)
+          countOfTermsMatched(a) - countOfTermsMatched(b)
         )
       })
 
