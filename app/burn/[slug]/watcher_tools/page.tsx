@@ -56,16 +56,28 @@ const resetMemberCheckIn = (projectSlug: string, profileIds: string[]) => {
 export default function ScannerManagerPage() {
   const [scannerProfiles, setScannerProfiles] = useState<Profile[] | null>(null);
   const [membershipResults, setMembershipResults] = useState<MemberSearchResult[]>([]);
+  const [membershipSearchQuery, setMembershipSearchQuery] = useState<string | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
 
   const memberQueryRef = useRef<HTMLInputElement>(null);
 
   const setOrderedScannerProfiles = (scannerProfiles: Profile[]) => {
-    setScannerProfiles(
+    let profiles =
       scannerProfiles.sort((a: Profile, b: Profile) =>
         a.metadata.scanner_id - b.metadata.scanner_id
       )
-    )
+    // HACK!! 🙀
+    profiles.push({
+      label: "SUM:",
+      metadata: {
+        scanner_id: null,
+        check_in_count: profiles.reduce((sum, profile) => {
+          return(sum + (profile.metadata.check_in_count || 0))
+        }, 0)
+      }
+    })
+
+    setScannerProfiles(profiles);
   }
 
   const updateProfileScanners = (projectSlug: string) => {
@@ -77,6 +89,7 @@ export default function ScannerManagerPage() {
       setSearchError(null);
 
       let inputValue = memberQueryRef.current?.value;
+      setMembershipSearchQuery(inputValue);
 
       apiPost(
         `/burn/${project?.slug}/admin/member-search`,
@@ -98,6 +111,8 @@ export default function ScannerManagerPage() {
 
     setScannerProfiles(null);
     setMembershipResults([]);
+    setMembershipSearchQuery(null);
+
   }, []); // Empty dependency array means this runs once on mount
 
   const resetAll = async () => {
@@ -108,13 +123,12 @@ export default function ScannerManagerPage() {
         updateProfileScanners(project!.slug)
       })
     }
-}
+  }
 
   return (
     <>
-      {
-        scannerProfiles ?
-          <Table isStriped>
+      {scannerProfiles ?
+            <Table isStriped>
             <TableHeader>
               <TableColumn key="reset-count">Reset Count</TableColumn>
               <TableColumn key="scanner_id">Scanner ID</TableColumn>
@@ -123,22 +137,21 @@ export default function ScannerManagerPage() {
             </TableHeader>
             <TableBody>
               {scannerProfiles.map((scannerProfile: Profile) => {
-                return <TableRow key={scannerProfile.metadata.scanner_id
-                } >
+                return <TableRow key={scannerProfile.metadata.scanner_id}>
                   <TableCell key="reset-count">
-                    <ActionButton
-                      action={{
-                        key: "reset-count",
-                        icon: <ReloadOutlined />,
-                        onClick: async (scannerProfile) => {
-                          if (scannerProfile && confirm("Are you sure?")) {
-                            await resetCheckInCounts(project!.slug, [scannerProfile.id]).then(() => { updateProfileScanners(project!.slug) })
-                          }
-                        },
-                      }}
-                      data={scannerProfile}
-                      size="sm"
-                    />
+                    {scannerProfile.label || <ActionButton
+                        action={{
+                          key: "reset-count",
+                          icon: <ReloadOutlined />,
+                          onClick: async (scannerProfile) => {
+                            if (scannerProfile && confirm("Are you sure?")) {
+                              await resetCheckInCounts(project!.slug, [scannerProfile.id]).then(() => { updateProfileScanners(project!.slug) })
+                            }
+                          },
+                        }}
+                        data={scannerProfile}
+                        size="sm"
+                      />}
                   </TableCell>
                   <TableCell key="scanner_id">{scannerProfile.metadata.scanner_id}</TableCell>
                   <TableCell key="check_in_count">{scannerProfile.metadata.check_in_count}</TableCell>
@@ -146,12 +159,12 @@ export default function ScannerManagerPage() {
                 </TableRow>
               })}
             </TableBody>
-          </Table >
-          : <div>Fetching scanner profiles...</div>
-      }
+          </Table > :
+          <div>Fetching scanner profiles...</div>}
 
             <Button
               color="secondary"
+              className="mt-4 mb-4"
               onPress={resetAll}
             >
               <ReloadOutlined />
@@ -174,46 +187,49 @@ export default function ScannerManagerPage() {
             </Button>
           </div>
 
-          <Table isStriped>
-            <TableHeader>
-              <TableColumn key="checked_in_at">Checked in at</TableColumn>
-              <TableColumn key="first_name">Name</TableColumn>
-              <TableColumn key="email">E-mail</TableColumn>
-            </TableHeader>
-            <TableBody>
-              {membershipResults.map((membershipResult) => {
-                return <TableRow key={membershipResult.owner_id} >
-                  <TableCell key="checked_in_at">
-                    <p>{membershipResult.checked_in_at}</p>
+          {membershipSearchQuery != null &&
+            (membershipResults.length == 0 ?
+            `No membership results found for: '${membershipSearchQuery}'` :
+            <Table isStriped>
+              <TableHeader>
+                <TableColumn key="checked_in_at">Checked in at</TableColumn>
+                <TableColumn key="first_name">Name</TableColumn>
+                <TableColumn key="email">E-mail</TableColumn>
+              </TableHeader>
+              <TableBody>
+                {membershipResults.map((membershipResult) => {
+                  return <TableRow key={membershipResult.owner_id} >
+                    <TableCell key="checked_in_at">
+                      <p>{membershipResult.checked_in_at}</p>
 
-                    <p>
-                      {
-                        membershipResult.checked_in_at ?
-                        <ActionButton
-                          action={{
-                            key: "reset-member-check-in",
-                            icon: <span>Reset</span>,
-                            onClick: async () => {
-                              if (confirm("Are you sure?")) {
-                                await resetMemberCheckIn(project!.slug, [membershipResult.owner_id]).then(() => { searchForMember() })
-                              }
-                            },
-                          }}
-                          data={membershipResult}
-                          size="md"
-                        /> :
-                        null
-                      }
-                    </p>
-                  </TableCell>
-                  <TableCell key="name">
-                    {membershipResult.first_name}&nbsp;{membershipResult.last_name}
-                  </TableCell>
-                  <TableCell key="email">{membershipResult.email}</TableCell>
-                </TableRow>
-              })}
-            </TableBody>
-          </Table >
+                      <p>
+                        {
+                          membershipResult.checked_in_at ?
+                          <ActionButton
+                            action={{
+                              key: "reset-member-check-in",
+                              icon: <span>Reset</span>,
+                              onClick: async () => {
+                                if (confirm("Are you sure?")) {
+                                  await resetMemberCheckIn(project!.slug, [membershipResult.owner_id]).then(() => { searchForMember() })
+                                }
+                              },
+                            }}
+                            data={membershipResult}
+                            size="md"
+                          /> :
+                          null
+                        }
+                      </p>
+                    </TableCell>
+                    <TableCell key="name">
+                      {membershipResult.first_name}&nbsp;{membershipResult.last_name}
+                    </TableCell>
+                    <TableCell key="email">{membershipResult.email}</TableCell>
+                  </TableRow>
+                })}
+              </TableBody>
+            </Table >)}
         </div>
       </div>
     </>
