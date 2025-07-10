@@ -5,14 +5,6 @@ const SearchSchema = s.object({
   q: s.string(),
 });
 
-const countOfTermsMatched = (result) => {
-  return(
-    searchTerms.filter((term) => {
-      return(result.first_name.match(term) || result.last_name.match(term))
-    }).length
-  );
-}
-
 export const POST = requestWithProject(
   async (supabase, profile, request, body, project) => {
     let searchTerm = body.q.toLowerCase();
@@ -29,23 +21,31 @@ export const POST = requestWithProject(
         metadata
       `)
       .or(
-        searchTerms.map(term =>
+        searchTerms.map((term: string) =>
           `first_name.ilike.%${term}%,last_name.ilike.%${term}%`
         ).join(',')
       )
       .eq("project_id", project!.id);
 
-    membershipResults =
-      membershipResults.sort((a, b) => {
-        return(
-          countOfTermsMatched(b) - countOfTermsMatched(a)
-        )
-      })
+    const countOfTermsMatched = (result: {first_name: string, last_name: string}) => {
+      return(
+        searchTerms.filter((term: string) => {
+          return(result.first_name.match(term) || result.last_name.match(term))
+        }).length
+      );
+    }
 
     if (membershipError) {
       console.error("Error fetching memberships:", membershipError);
       return [];
     }
+
+    membershipResults =
+      (membershipResults || []).sort((a, b) => {
+        return(
+          countOfTermsMatched(b) - countOfTermsMatched(a)
+        )
+      })
 
     // Query profiles for email matches
     const { data: profileResults, error: profileError } = await supabase

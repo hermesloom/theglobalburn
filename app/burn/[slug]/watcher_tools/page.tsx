@@ -55,6 +55,7 @@ const resetMemberCheckIn = (projectSlug: string, profileIds: string[]) => {
 
 export default function ScannerManagerPage() {
   const [scannerProfiles, setScannerProfiles] = useState<Profile[] | null>(null);
+  const [checkInCountSum, setCheckInCountSum] = useState<number>(0);
   const [membershipResults, setMembershipResults] = useState<MemberSearchResult[]>([]);
   const [membershipSearchQuery, setMembershipSearchQuery] = useState<string | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
@@ -66,16 +67,10 @@ export default function ScannerManagerPage() {
       scannerProfiles.sort((a: Profile, b: Profile) =>
         a.metadata.scanner_id - b.metadata.scanner_id
       )
-    // HACK!! 🙀
-    profiles.push({
-      label: "SUM:",
-      metadata: {
-        scanner_id: null,
-        check_in_count: profiles.reduce((sum, profile) => {
-          return(sum + (profile.metadata.check_in_count || 0))
-        }, 0)
-      }
-    })
+
+    setCheckInCountSum(profiles.reduce((sum, profile) => {
+      return(sum + (profile.metadata.check_in_count || 0))
+    }, 0))
 
     setScannerProfiles(profiles);
   }
@@ -89,7 +84,7 @@ export default function ScannerManagerPage() {
       setSearchError(null);
 
       let inputValue = memberQueryRef.current?.value;
-      setMembershipSearchQuery(inputValue);
+      setMembershipSearchQuery(inputValue || null);
 
       apiPost(
         `/burn/${project?.slug}/admin/member-search`,
@@ -128,38 +123,41 @@ export default function ScannerManagerPage() {
   return (
     <>
       {scannerProfiles ?
-            <Table isStriped>
-            <TableHeader>
-              <TableColumn key="reset-count">Reset Count</TableColumn>
-              <TableColumn key="scanner_id">Scanner ID</TableColumn>
-              <TableColumn key="check_in_count">Check-in Count</TableColumn>
-              <TableColumn key="email">E-mail</TableColumn>
-            </TableHeader>
-            <TableBody>
-              {scannerProfiles.map((scannerProfile: Profile) => {
-                return <TableRow key={scannerProfile.metadata.scanner_id}>
-                  <TableCell key="reset-count">
-                    {scannerProfile.label || <ActionButton
-                        action={{
-                          key: "reset-count",
-                          icon: <ReloadOutlined />,
-                          onClick: async (scannerProfile) => {
-                            if (scannerProfile && confirm("Are you sure?")) {
-                              await resetCheckInCounts(project!.slug, [scannerProfile.id]).then(() => { updateProfileScanners(project!.slug) })
-                            }
-                          },
-                        }}
-                        data={scannerProfile}
-                        size="sm"
-                      />}
-                  </TableCell>
-                  <TableCell key="scanner_id">{scannerProfile.metadata.scanner_id}</TableCell>
-                  <TableCell key="check_in_count">{scannerProfile.metadata.check_in_count}</TableCell>
-                  <TableCell key="email">{scannerProfile.email}</TableCell>
-                </TableRow>
-              })}
-            </TableBody>
-          </Table > :
+            <div>
+              <Table isStriped>
+              <TableHeader>
+                <TableColumn key="reset-count">Reset Count</TableColumn>
+                <TableColumn key="scanner_id">Scanner ID</TableColumn>
+                <TableColumn key="check_in_count">Check-in Count</TableColumn>
+                <TableColumn key="email">E-mail</TableColumn>
+              </TableHeader>
+              <TableBody>
+                {scannerProfiles.map((scannerProfile: Profile) => {
+                  return <TableRow key={scannerProfile.metadata.scanner_id}>
+                    <TableCell key="reset-count">
+                      {<ActionButton
+                          action={{
+                            key: "reset-count",
+                            icon: <ReloadOutlined />,
+                            onClick: async (scannerProfile) => {
+                              if (scannerProfile && confirm("Are you sure?")) {
+                                await resetCheckInCounts(project!.slug, [scannerProfile.id]).then(() => { updateProfileScanners(project!.slug) })
+                              }
+                            },
+                          }}
+                          data={scannerProfile}
+                          size="sm"
+                        />}
+                    </TableCell>
+                    <TableCell key="scanner_id">{scannerProfile.metadata.scanner_id}</TableCell>
+                    <TableCell key="check_in_count">{scannerProfile.metadata.check_in_count}</TableCell>
+                    <TableCell key="email">{scannerProfile.email}</TableCell>
+                  </TableRow>
+                })}
+              </TableBody>
+            </Table >
+            <div>Check-in count sum: {checkInCountSum}</div>
+          </div>:
           <div>Fetching scanner profiles...</div>}
 
             <Button
