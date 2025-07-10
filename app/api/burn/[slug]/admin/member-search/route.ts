@@ -4,29 +4,44 @@ import s from "ajv-ts";
 const SearchSchema = s.object({
   q: s.string(),
 });
+
+const countOfTermsMatched = (result) => {
+  return(
+    searchTerms.filter((term) => {
+      return(result.first_name.match(term) || result.last_name.match(term))
+    }).length
+  );
+}
+
 export const POST = requestWithProject(
   async (supabase, profile, request, body, project) => {
-    // console.log(request);
-    // console.log(body);
-    const searchTerm = body.q;
+    let searchTerm = body.q.toLowerCase();
 
-    searchTerm = searchTerm.replace(/\s+/g, "%")
+    const searchTerms = searchTerm.trim().split(/\s+/);
 
-    const { data: membershipResults, error: membershipError } = await supabase
+    let { data: membershipResults, error: membershipError } = await supabase
       .from("burn_memberships")
-      .select(
-        `
-      owner_id,
-      first_name,
-      last_name,
-      checked_in_at,
-      metadata
-    `,
+      .select(`
+        owner_id,
+        first_name,
+        last_name,
+        checked_in_at,
+        metadata
+      `)
+      .or(
+        searchTerms.map(term =>
+          `first_name.ilike.%${term}%,last_name.ilike.%${term}%`
+        ).join(',')
       )
-      .or(`first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%`)
       .eq("project_id", project!.id);
 
-    console.log({membershipResults})
+    membershipResults =
+      membershipResults.sort((a, b) => {
+        return(
+          countOfTermsMatched(b) - countOfTermsMatched(a)
+        )
+      })
+
     if (membershipError) {
       console.error("Error fetching memberships:", membershipError);
       return [];
@@ -41,8 +56,6 @@ export const POST = requestWithProject(
       metadata
     `)
       .ilike("email", `%${searchTerm}%`);
-
-    console.log({profileResults})
 
     if (profileError) {
       console.error("Error fetching profiles:", profileError);
