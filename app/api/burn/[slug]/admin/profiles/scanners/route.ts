@@ -12,7 +12,7 @@ export const GET = requestWithProject(
           .select("*")
       )
     return profiles
-      .filter((profile: Profile) => profile.metadata.check_in_count)
+      .filter((profile: Profile) => profile.metadata.scanner_id || profile.metadata.check_in_count)
       .sort((p1: Profile, p2: Profile) => {
         return(
           (p1.metadata.scanner_id || defaultScannerId) - (p2.metadata.scanner_id || defaultScannerId)
