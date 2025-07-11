@@ -311,16 +311,17 @@ export default function ScannerPage() {
           </div>
         )}
 
-        <div className="w-full h-full flex items-center justify-center">
-          <Button
-            color="primary"
-            size="lg"
-            onPress={startScan}
-          >
-            <QrcodeOutlined />
-            Scan QR Code
-          </Button>
-        </div>
+        {!currentlyScanning &&
+          <div className="w-full h-full flex items-center justify-center">
+            <Button
+              color="primary"
+              size="lg"
+              onPress={startScan}
+            >
+              <QrcodeOutlined />
+              Scan QR Code
+            </Button>
+          </div>}
 
         {(scannedMember || scanError) &&
         (<div className="w-full h-full flex items-center justify-center">
