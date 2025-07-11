@@ -30,7 +30,7 @@ export const POST = requestWithProject(
     const countOfTermsMatched = (result: {first_name: string, last_name: string}) => {
       return(
         searchTerms.filter((term: string) => {
-          return(result.first_name.match(term) || result.last_name.match(term))
+          return(result.first_name.toLowerCase().match(term) || result.last_name.toLowerCase().match(term))
         }).length
       );
     }
