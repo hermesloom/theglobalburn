@@ -38,7 +38,8 @@ export const POST = requestWithProject(
           last_name,
           checked_in_at,
           birthdate,
-          metadata
+          metadata->children
+          metadata->pets
         `)
         .eq("project_id", project!.id);
 
@@ -93,8 +94,8 @@ export const POST = requestWithProject(
       }).map((membership) => ({
         ...membership,
         metadata: {
-          children: membership.metadata.children,
-          pets: membership.metadata.pets,
+          children: membership.children,
+          pets: membership.pets,
         },
         profile: {
           email: profileEmailsById[membership.owner_id]
