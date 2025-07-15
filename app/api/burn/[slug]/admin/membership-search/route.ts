@@ -41,9 +41,7 @@ export const POST = requestWithProject(
         `)
         .eq("project_id", project!.id);
 
-    console.log('search all?')
-    if (searchTerm != 'search_all') {
-      console.log('search all!')
+    if (searchTerm != 'all hail the jort') {
       membershipQuery =
         membershipQuery
         .or([
