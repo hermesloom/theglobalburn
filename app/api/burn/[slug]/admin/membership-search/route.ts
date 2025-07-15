@@ -22,7 +22,8 @@ export const POST = requestWithProject(
 
     if (profileResult.error) {
       console.error("Error fetching profiles:", profileResult.error);
-      return [];
+      // return [];
+      return {error: profileResult.error};
     }
 
     let profileIds = profileResult.data.map((result) => result.id)
@@ -41,9 +42,7 @@ export const POST = requestWithProject(
         `)
         .eq("project_id", project!.id);
 
-    console.log('search all?')
-    if (searchTerm != 'search_all') {
-      console.log('search all!')
+    if (searchTerm != 'all hail the jort') {
       membershipQuery =
         membershipQuery
         .or([
@@ -66,7 +65,8 @@ export const POST = requestWithProject(
 
     if (membershipResult.error) {
       console.error("Error fetching memberships:", membershipResult.error);
-      return [];
+      // return [];
+      return {error: membershipResult.error};
     }
 
     let profileResult2 = await supabase
@@ -76,7 +76,8 @@ export const POST = requestWithProject(
 
     if (profileResult2.error) {
       console.error("Error fetching profiles (second time):", profileResult2.error);
-      return [];
+      // return [];
+      return {error: profileResult2.error};
     }
 
     let profileEmailsById =
