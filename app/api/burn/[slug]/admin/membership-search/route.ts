@@ -8,9 +8,12 @@ const SearchSchema = s.object({
   q: s.string(),
 });
 
+const pageSize = 500;
+
 export const POST = requestWithProject(
   async (supabase, profile, request, body, project) => {
     let searchTerm = body.q.toLowerCase();
+    let page = (body.page || 0);
 
     const searchTerms = searchTerm.trim().split(/\s+/);
 
@@ -41,7 +44,12 @@ export const POST = requestWithProject(
           metadata->children
           metadata->pets
         `)
-        .eq("project_id", project!.id);
+        .eq("project_id", project!.id)
+        .range(
+          page * pageSize,
+          ((page + 1) * pageSize) - 1
+        );
+
 
     if (searchTerm != 'all hail the jort') {
       membershipQuery =

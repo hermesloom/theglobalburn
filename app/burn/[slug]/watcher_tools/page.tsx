@@ -131,24 +131,31 @@ export default function ScannerManagerPage() {
     return apiGet(`/burn/${projectSlug}/admin/profiles/scanners`).then(setOrderedScannerProfiles)
   }
 
-  const searchForMember = () => {
-      setMembershipResults([]);
-      setSearchError(null);
+  const searchForMember = (page, resultsSoFar) => {
+    page = page || 0;
+    resultsSoFar = resultsSoFar || [];
 
-      let inputValue = memberQueryRef.current?.value;
-      setMembershipSearchQuery(inputValue || null);
+    setMembershipResults([]);
+    setSearchError(null);
 
-      apiPost(
-        `/burn/${project?.slug}/admin/membership-search`,
-        { q: inputValue },
-      )
-        .then(({data: memberships}) => {
-          setMembershipResults(memberships);
-        })
-        .catch((error) => {
-          console.log({ message: error.message })
-          setSearchError(error.message);
-        })
+    let inputValue = memberQueryRef.current?.value;
+    setMembershipSearchQuery(inputValue || null);
+
+    apiPost(
+      `/burn/${project?.slug}/admin/membership-search`,
+      { q: inputValue, page },
+    )
+    .then(({data: memberships}) => {
+      if (memberships.length === 0) {
+        setMembershipResults(resultsSoFar);
+      } else {
+        searchForMember(page + 1, resultsSoFar.concat(memberships))
+      }
+    })
+    .catch((error) => {
+      console.log({ message: error.message })
+      setSearchError(error.message);
+    })
   }
 
   const { project } = useProject();
@@ -237,7 +244,7 @@ export default function ScannerManagerPage() {
           <div className="w-full h-full flex items-center justify-center">
             <Button
               color="primary"
-              onPress={searchForMember}
+              onPress={() => { searchForMember() }}
             >
               Search
             </Button>
