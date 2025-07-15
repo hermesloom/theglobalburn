@@ -32,7 +32,9 @@ export type MemberSearchResult = {
   first_name: string;
   last_name: string;
   checked_in_at: string;
-  email: string;
+  profile: {
+    email: string;
+  }
 };
 
 const resetCheckInCounts = (projectSlug: string, profileIds: string[]) => {
@@ -87,7 +89,7 @@ export default function ScannerManagerPage() {
       setMembershipSearchQuery(inputValue || null);
 
       apiPost(
-        `/burn/${project?.slug}/admin/member-search`,
+        `/burn/${project?.slug}/admin/membership-search`,
         { q: inputValue },
       )
         .then(({data: memberships}) => {
@@ -132,7 +134,7 @@ export default function ScannerManagerPage() {
               </TableHeader>
               <TableBody>
                 {scannerProfiles.map((scannerProfile: Profile) => {
-                  return <TableRow key={scannerProfile.metadata.scanner_id}>
+                  return <TableRow key={`${scannerProfile.metadata.scanner_id}-${scannerProfile.email}`}>
                     <TableCell key="check_in_count" className="flex">
                       <div className="flex-none">
                         {scannerProfile.metadata.check_in_count}
@@ -172,7 +174,7 @@ export default function ScannerManagerPage() {
               onPress={resetAll}
             >
               <ReloadOutlined />
-              Reset all Counters
+              Reset All Counters
             </Button>
 
       <div className="flex flex-col gap-4">
@@ -229,7 +231,7 @@ export default function ScannerManagerPage() {
                     <TableCell key="name">
                       {membershipResult.first_name}&nbsp;{membershipResult.last_name}
                     </TableCell>
-                    <TableCell key="email">{membershipResult.email}</TableCell>
+                    <TableCell key="email">{membershipResult.profile.email}</TableCell>
                   </TableRow>
                 })}
               </TableBody>
