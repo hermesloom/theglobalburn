@@ -285,7 +285,7 @@ export default function ScannerPage() {
           )}
         </div>
 
-        {qrScannerHasFlash && (
+        {(qrScannerHasFlash && false) && (
           <div className="w-full h-full flex items-center justify-center">
             <Button
               color="primary"

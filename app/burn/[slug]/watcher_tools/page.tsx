@@ -126,31 +126,37 @@ export default function ScannerManagerPage() {
             <div>
               <Table isStriped>
               <TableHeader>
-                <TableColumn key="reset-count">Reset Count</TableColumn>
-                <TableColumn key="scanner_id">Scanner ID</TableColumn>
-                <TableColumn key="check_in_count">Check-in Count</TableColumn>
+                <TableColumn key="check_in_count">Check-in<br/>Count</TableColumn>
+                <TableColumn key="scanner_id">ID</TableColumn>
                 <TableColumn key="email">E-mail</TableColumn>
               </TableHeader>
               <TableBody>
                 {scannerProfiles.map((scannerProfile: Profile) => {
                   return <TableRow key={scannerProfile.metadata.scanner_id}>
-                    <TableCell key="reset-count">
-                      {<ActionButton
-                          action={{
-                            key: "reset-count",
-                            icon: <ReloadOutlined />,
-                            onClick: async (scannerProfile) => {
-                              if (scannerProfile && confirm("Are you sure?")) {
-                                await resetCheckInCounts(project!.slug, [scannerProfile.id]).then(() => { updateProfileScanners(project!.slug) })
-                              }
-                            },
-                          }}
-                          data={scannerProfile}
-                          size="sm"
-                        />}
+                    <TableCell key="check_in_count" className="flex">
+                      <div className="flex-none">
+                        {scannerProfile.metadata.check_in_count}
+                      </div>
+                      <div className="grow"></div>
+
+                      <div className="flex-none">
+                        {<ActionButton
+                            action={{
+                              key: "reset-count",
+                              icon: <ReloadOutlined />,
+                              onClick: async (scannerProfile) => {
+                                if (scannerProfile && confirm("Are you sure?")) {
+                                  await resetCheckInCounts(project!.slug, [scannerProfile.id]).then(() => { updateProfileScanners(project!.slug) })
+                                }
+                              },
+                            }}
+                            data={scannerProfile}
+                            size="sm"
+                            className="float-right"
+                          />}
+                      </div>
                     </TableCell>
                     <TableCell key="scanner_id">{scannerProfile.metadata.scanner_id}</TableCell>
-                    <TableCell key="check_in_count">{scannerProfile.metadata.check_in_count}</TableCell>
                     <TableCell key="email">{scannerProfile.email}</TableCell>
                   </TableRow>
                 })}
@@ -166,7 +172,7 @@ export default function ScannerManagerPage() {
               onPress={resetAll}
             >
               <ReloadOutlined />
-              Reset all
+              Reset all Counters
             </Button>
 
       <div className="flex flex-col gap-4">
