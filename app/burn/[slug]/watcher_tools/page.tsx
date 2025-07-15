@@ -215,7 +215,7 @@ export default function ScannerManagerPage() {
                           <ActionButton
                             action={{
                               key: "reset-member-check-in",
-                              label: <span>Check OUT</span>,
+                              label: "Check OUT",
                               onClick: async () => {
                                 if (confirm("Are you sure you want to MANUALLY CHECK OUT this member ?")) {
                                   await resetMemberCheckIn(project!.slug, [membershipResult.owner_id])
@@ -230,7 +230,7 @@ export default function ScannerManagerPage() {
                           <ActionButton
                             action={{
                               key: "manually-check-in",
-                              label: <span>Check IN</span>,
+                              label: "Check IN",
                               onClick: async () => {
                                 if (confirm("Are you sure you want to CHECK-IN this member?")) {
                                   await apiPost(`/burn/${project!.slug}/admin/check-in-member/${membershipResult.id}`)
