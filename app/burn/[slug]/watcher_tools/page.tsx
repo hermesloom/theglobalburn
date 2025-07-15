@@ -32,7 +32,9 @@ export type MemberSearchResult = {
   first_name: string;
   last_name: string;
   checked_in_at: string;
-  email: string;
+  profile: {
+    email: string;
+  }
 };
 
 const resetCheckInCounts = (projectSlug: string, profileIds: string[]) => {

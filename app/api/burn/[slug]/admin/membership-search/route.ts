@@ -41,7 +41,7 @@ export const POST = requestWithProject(
           `first_name.ilike.%${term}%,last_name.ilike.%${term}%`
         ),
         ...profileIds.map(id => `owner_id.eq.${id}`)
-      ])
+      ].join(','))
       .eq("project_id", project!.id);
 
     const countOfTermsMatched = (result: {first_name: string, last_name: string}) => {
@@ -64,23 +64,20 @@ export const POST = requestWithProject(
         )
       })
 
-    profileResult = await supabase
+    let profileResult2 = await supabase
       .from("profiles")
-      .select(`id, email`)
+      .select(`id,email`)
       .in('id', membershipResults.map((r) => r.owner_id));
 
-    if (profileResult.error) {
-      console.error("Error fetching profiles (second time):", profileResult.error);
+    if (profileResult2.error) {
+      console.error("Error fetching profiles (second time):", profileResult2.error);
       return [];
     }
 
     let profileEmailsById =
       Object.fromEntries(
-        profileResult.data.map(profile => [profile.id, profile.email])
+        profileResult2.data.map(profile => [profile.id, profile.email])
       );
-
-    console.log(profileEmailsById)
-    console.log(membershipResults)
 
     return {
       data: membershipResults.map((membership) => ({
