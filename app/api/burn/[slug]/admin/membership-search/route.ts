@@ -41,7 +41,7 @@ export const POST = requestWithProject(
           last_name,
           checked_in_at,
           birthdate,
-          metadata->children
+          metadata->children,
           metadata->pets
         `)
         .eq("project_id", project!.id)
