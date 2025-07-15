@@ -131,7 +131,7 @@ export default function ScannerManagerPage() {
     return apiGet(`/burn/${projectSlug}/admin/profiles/scanners`).then(setOrderedScannerProfiles)
   }
 
-  const searchForMember = (page, resultsSoFar) => {
+  const searchForMember = (page?: number, resultsSoFar?: MemberSearchResult[]) => {
     page = page || 0;
     resultsSoFar = resultsSoFar || [];
 
