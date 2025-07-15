@@ -28,22 +28,41 @@ interface Profile {
   };
 }
 
+interface Child {
+  dob: string;
+  key: string;
+  last_name: string;
+  first_name: string;
+}
+
+interface Pet {
+  key: string;
+  name: string;
+  type: string;
+  chip_code: string;
+}
+
 export type MemberSearchResult = {
   id: string;
   owner_id: string;
   first_name: string;
   last_name: string;
+  birthdate: string;
   checked_in_at: string;
   profile: {
     email: string;
-  }
+  };
+  metadata: {
+    children: Child[];
+    pets: Pet[];
+  };
 };
 
 // -------------------
 // Credit: https://stackoverflow.com/questions/14964035/how-to-export-javascript-array-info-to-csv-on-client-side
 // -------------------
 
-function arrayToCsv(data){
+function arrayToCsv(data: string[][]){
   return data.map(row =>
     row
     .map(String)  // convert every value to String
@@ -53,7 +72,7 @@ function arrayToCsv(data){
   ).join('\r\n');  // rows starting on new lines
 }
 
-function downloadBlob(content, filename, contentType) {
+function downloadBlob(content: string, filename: string, contentType: string) {
   // Create a blob
   var blob = new Blob([content], { type: contentType });
   var url = URL.createObjectURL(blob);
