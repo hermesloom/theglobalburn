@@ -30,6 +30,7 @@ export const POST = requestWithProject(
     let { data: membershipResults, error: membershipError } = await supabase
       .from("burn_memberships")
       .select(`
+        id,
         owner_id,
         first_name,
         last_name,

@@ -28,6 +28,7 @@ interface Profile {
 }
 
 export type MemberSearchResult = {
+  id: string;
   owner_id: string;
   first_name: string;
   last_name: string;
@@ -214,17 +215,33 @@ export default function ScannerManagerPage() {
                           <ActionButton
                             action={{
                               key: "reset-member-check-in",
-                              icon: <span>Reset</span>,
+                              label: <span>Check OUT</span>,
                               onClick: async () => {
-                                if (confirm("Are you sure?")) {
-                                  await resetMemberCheckIn(project!.slug, [membershipResult.owner_id]).then(() => { searchForMember() })
+                                if (confirm("Are you sure you want to MANUALLY CHECK OUT this member ?")) {
+                                  await resetMemberCheckIn(project!.slug, [membershipResult.owner_id])
+
+                                  await searchForMember()
                                 }
                               },
                             }}
                             data={membershipResult}
                             size="md"
                           /> :
-                          null
+                          <ActionButton
+                            action={{
+                              key: "manually-check-in",
+                              label: <span>Check IN</span>,
+                              onClick: async () => {
+                                if (confirm("Are you sure you want to CHECK-IN this member?")) {
+                                  await apiPost(`/burn/${project!.slug}/admin/check-in-member/${membershipResult.id}`)
+
+                                  await searchForMember()
+                                }
+                              },
+                            }}
+                            data={membershipResult}
+                            size="md"
+                          />
                         }
                       </p>
                     </TableCell>
