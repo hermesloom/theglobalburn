@@ -5,6 +5,7 @@ import Heading from "@/app/_components/Heading";
 import { Button, Card, CardBody } from "@nextui-org/react";
 import { apiPost, ApiError } from "@/app/_components/api";
 import { useSession, useProject } from "@/app/_components/SessionContext";
+import { formatRelativeDateTime, calculateAge, isSameDay } from "@/app/burn/[slug]/membership/components/helpers/date";
 
 import {
   CloseOutlined,
@@ -41,64 +42,23 @@ interface ScannedMember {
   };
 }
 
-const formatRelativeDateTime = (date: Date) => {
-  const now = new Date();
 
-  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+const clickAudio = new Audio('/sounds/click.mp3');
+const dingAudio = new Audio('/sounds/ding.mp3');
+const deniedAudio = new Audio('/sounds/denied.mp3');
+// TODO: For banned members
+const buzzAudio = new Audio('/sounds/buzz.mp3');
 
-  const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-  let relativeDay;
-
-  if (diffDays === 0 && now.getDate() === date.getDate()) {
-    relativeDay = 'Today'
-  } else if (diffDays <= 1 && now.getDate() - date.getDate() === 1) {
-    relativeDay = 'Yesterday';
-  } else if (diffDays < 7) {
-    relativeDay = `${diffDays === 1 ? "1 day" : `${diffDays} days`} ago`;
-  }
-
-  let weekday = date.toLocaleDateString('en-US', { weekday: 'long' });
-
-  return `${weekday} at ${timeString} (${relativeDay})`;
-}
-
-const calculateAge = (birthDate: Date) => {
-  let currentDate = new Date();
-
-  let age = currentDate.getFullYear() - birthDate.getFullYear();
-
-  // Check if the birthday has occurred yet this year
-  const hasHadBirthdayThisYear =
-    currentDate.getMonth() > birthDate.getMonth() ||
-    (currentDate.getMonth() === birthDate.getMonth() &&
-      currentDate.getDate() >= birthDate.getDate());
-
-  if (!hasHadBirthdayThisYear) {
-    age--;
-  }
-
-  return age;
-}
-
-function isSameDay(date1: Date, date2: Date) {
-  return (
-    date1.getMonth() === date2.getMonth() &&
-    date1.getDate() === date2.getDate()
-  );
-}
-
-
-const formatDOB = (dobString: string, highlightUnderage: boolean = false) => {
+function formatDOBJSX(dobString: string, highlightUnderage: boolean = false): JSX.Element {
   let dob = new Date(dobString);
-
-  let age = calculateAge(dob)
 
   let description = dob.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
+
+  let age = calculateAge(dob)
 
   let colorClass = (highlightUnderage && age < 18 ? "text-red-500 font-bold" : "")
 
@@ -113,12 +73,6 @@ const formatDOB = (dobString: string, highlightUnderage: boolean = false) => {
     {description} - <span className="text-red-500">{birthdayString}</span> <span className={colorClass}>{age} years old</span>
   </>
 }
-
-const clickAudio = new Audio('/sounds/click.mp3');
-const dingAudio = new Audio('/sounds/ding.mp3');
-const deniedAudio = new Audio('/sounds/denied.mp3');
-// TODO: For banned members
-const buzzAudio = new Audio('/sounds/buzz.mp3');
 
 export default function ScannerPage() {
   const { profile, refreshProfile } = useSession();
@@ -238,7 +192,7 @@ export default function ScannerPage() {
               <CardBody className="flex flex-col justify-between">
                 <div className="flex flex-col gap-2">
                   <p><strong>Name:</strong> {scannedMember.first_name} {scannedMember.last_name}</p>
-                  <p><strong>Birthdate:</strong> {formatDOB(scannedMember.birthdate, true)}</p>
+                  <p><strong>Birthdate:</strong> {formatDOBJSX(scannedMember.birthdate, true)}</p>
                   <p><strong>Checked in:</strong> {scannedMember.checked_in_at == null ? 'Just now' : formatRelativeDateTime(new Date(scannedMember.checked_in_at))}</p>
 
                   {scannedMember.metadata?.children?.length > 0 && (
@@ -248,7 +202,7 @@ export default function ScannerPage() {
                         {scannedMember.metadata.children.map((child) => (
                           <div key={child.key} className="pl-4 border-l-2 border-gray-200">
                             <p><strong>Name:</strong> {child.first_name} {child.last_name}</p>
-                            <p><strong>Birthdate:</strong> {formatDOB(child.dob)}</p>
+                            <p><strong>Birthdate:</strong> {formatDOBJSX(child.dob)}</p>
                           </div>
                         ))}
                       </div>

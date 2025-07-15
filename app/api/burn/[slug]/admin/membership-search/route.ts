@@ -27,23 +27,34 @@ export const POST = requestWithProject(
 
     let profileIds = profileResult.data.map((result) => result.id)
 
-    let { data: membershipResults, error: membershipError } = await supabase
-      .from("burn_memberships")
-      .select(`
-        id,
-        owner_id,
-        first_name,
-        last_name,
-        checked_in_at,
-        metadata
-      `)
-      .or([
-        ...searchTerms.map((term: string) =>
-          `first_name.ilike.%${term}%,last_name.ilike.%${term}%`
-        ),
-        ...profileIds.map(id => `owner_id.eq.${id}`)
-      ].join(','))
-      .eq("project_id", project!.id);
+    let membershipQuery =
+      supabase
+        .from("burn_memberships")
+        .select(`
+          id,
+          owner_id,
+          first_name,
+          last_name,
+          checked_in_at,
+          birthdate,
+          metadata
+        `)
+        .eq("project_id", project!.id);
+
+    console.log('search all?')
+    if (searchTerm != 'search_all') {
+      console.log('search all!')
+      membershipQuery =
+        membershipQuery
+        .or([
+          ...searchTerms.map((term: string) =>
+            `first_name.ilike.%${term}%,last_name.ilike.%${term}%`
+          ),
+          ...profileIds.map(id => `owner_id.eq.${id}`)
+        ].join(','))
+    }
+
+    let membershipResult = await membershipQuery;
 
     const countOfTermsMatched = (result: {first_name: string, last_name: string}) => {
       return(
@@ -53,22 +64,15 @@ export const POST = requestWithProject(
       );
     }
 
-    if (membershipError) {
-      console.error("Error fetching memberships:", membershipError);
+    if (membershipResult.error) {
+      console.error("Error fetching memberships:", membershipResult.error);
       return [];
     }
-
-    membershipResults =
-      (membershipResults || []).sort((a, b) => {
-        return(
-          countOfTermsMatched(b) - countOfTermsMatched(a)
-        )
-      })
 
     let profileResult2 = await supabase
       .from("profiles")
       .select(`id,email`)
-      .in('id', membershipResults.map((r) => r.owner_id));
+      .in('id', membershipResult.data.map((r) => r.owner_id));
 
     if (profileResult2.error) {
       console.error("Error fetching profiles (second time):", profileResult2.error);
@@ -81,8 +85,16 @@ export const POST = requestWithProject(
       );
 
     return {
-      data: membershipResults.map((membership) => ({
+      data: (membershipResult.data || []).sort((a, b) => {
+        return(
+          countOfTermsMatched(b) - countOfTermsMatched(a)
+        )
+      }).map((membership) => ({
         ...membership,
+        metadata: {
+          children: membership.metadata.children,
+          pets: membership.metadata.pets,
+        },
         profile: {
           email: profileEmailsById[membership.owner_id]
         },
