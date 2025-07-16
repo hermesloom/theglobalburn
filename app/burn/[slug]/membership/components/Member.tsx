@@ -29,8 +29,8 @@ export default function Member() {
       <div className="flex flex-col gap-4">
         <p>
           Congratulations, you have successfully purchased a membership for{" "}
-          {project?.name}! 🎉 This is your QR code. It will also be sent to you
-          via email separately closer to the event.
+          {project?.name}! 🎉 This is your QR code. Please have this code ready
+          to show at the gate when you enter the event.
         </p>
         <div className="border border-gray-200 rounded-lg p-4 w-fit">
           <QRCodeSVG value={project?.membership!.id!} />
