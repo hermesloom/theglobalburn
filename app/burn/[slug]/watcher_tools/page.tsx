@@ -298,29 +298,30 @@ export default function ScannerManagerPage() {
                   <TableColumn key="checked_in_at">Checked in at</TableColumn>
                   <TableColumn key="first_name">Name</TableColumn>
                   <TableColumn key="email">E-mail</TableColumn>
+                  <TableColumn key="children_pets">Children / Pets</TableColumn>
                 </TableHeader>
                 <TableBody>
-                  {membershipResults.map((membershipResult) => {
-                    return <TableRow key={membershipResult.owner_id} >
+                  {membershipResults.map((membership) => {
+                    return <TableRow key={membership.owner_id} >
                       <TableCell key="checked_in_at">
-                        <p>{membershipResult.checked_in_at}</p>
+                        <p>{membership.checked_in_at}</p>
 
                         <p>
                           {
-                            membershipResult.checked_in_at ?
+                            membership.checked_in_at ?
                             <ActionButton
                               action={{
                                 key: "reset-member-check-in",
                                 label: "Check OUT",
                                 onClick: async () => {
                                   if (confirm("Are you sure you want to MANUALLY CHECK OUT this member ?")) {
-                                    await resetMemberCheckIn(project!.slug, [membershipResult.owner_id])
+                                    await resetMemberCheckIn(project!.slug, [membership.owner_id])
 
                                     await searchForMember()
                                   }
                                 },
                               }}
-                              data={membershipResult}
+                              data={membership}
                               size="md"
                             /> :
                             <ActionButton
@@ -329,22 +330,43 @@ export default function ScannerManagerPage() {
                                 label: "Check IN",
                                 onClick: async () => {
                                   if (confirm("Are you sure you want to CHECK-IN this member?")) {
-                                    await apiPost(`/burn/${project!.slug}/admin/check-in-member/${membershipResult.id}`)
+                                    await apiPost(`/burn/${project!.slug}/admin/check-in-member/${membership.id}`)
 
                                     await searchForMember()
                                   }
                                 },
                               }}
-                              data={membershipResult}
+                              data={membership}
                               size="md"
                             />
                           }
                         </p>
                       </TableCell>
                       <TableCell key="name">
-                        {membershipResult.first_name}&nbsp;{membershipResult.last_name}
+                        {membership.first_name}&nbsp;{membership.last_name}
                       </TableCell>
-                      <TableCell key="email">{membershipResult.profile.email}</TableCell>
+                      <TableCell key="email">{membership.profile.email}</TableCell>
+                      <TableCell key="children_pets">
+                        {(membership.metadata.children || []).length > 0 && (
+                          <div>
+                            <h3 className="text-lg font-semibold mt-1">Children</h3>
+                            {membership.metadata.children.map((child) =>
+                              <p>{child.first_name} {child.last_name} - DOB: {formatDOB(child.dob)}</p>
+                            )}
+                          </div>
+                        )}
+
+                        {(membership.metadata.pets || []).length > 0 && (
+                          <div>
+                            <h3 className="text-lg font-semibold mt-1">Pets</h3>
+                            {membership.metadata.pets.map((pet) =>
+                              <p>{pet.name} / {pet.type} / Chip: {pet.chip_code}</p>
+                            )}
+                          </div>
+                        )}
+
+
+                        </TableCell>
                     </TableRow>
                   })}
                 </TableBody>
