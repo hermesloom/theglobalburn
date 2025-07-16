@@ -5,16 +5,16 @@ import Heading from "@/app/_components/Heading";
 import { Button, Card, CardBody } from "@nextui-org/react";
 import { apiPost, ApiError } from "@/app/_components/api";
 import { useSession, useProject } from "@/app/_components/SessionContext";
+import { formatRelativeDateTime, calculateAge, isSameDay } from "@/app/burn/[slug]/membership/components/helpers/date";
 
 import {
+  CloseOutlined,
   QrcodeOutlined,
   ReloadOutlined,
+  BulbOutlined,
 } from "@ant-design/icons";
 
 import QrScanner from 'qr-scanner';
-
-let qrScanner: QrScanner | null,
-  qrScannerEngine: any; // Using any since QrEngine type is not exported
 
 interface Child {
   dob: string;
@@ -42,64 +42,23 @@ interface ScannedMember {
   };
 }
 
-const formatRelativeDateTime = (date: Date) => {
-  const now = new Date();
 
-  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+const clickAudio = new Audio('/sounds/click.mp3');
+const dingAudio = new Audio('/sounds/ding.mp3');
+const deniedAudio = new Audio('/sounds/denied.mp3');
+// TODO: For banned members
+const buzzAudio = new Audio('/sounds/buzz.mp3');
 
-  const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-  let relativeDay;
-
-  if (diffDays === 0 && now.getDate() === date.getDate()) {
-    relativeDay = 'Today'
-  } else if (diffDays <= 1 && now.getDate() - date.getDate() === 1) {
-    relativeDay = 'Yesterday';
-  } else if (diffDays < 7) {
-    relativeDay = `${diffDays === 1 ? "1 day" : `${diffDays} days`} ago`;
-  }
-
-  let weekday = date.toLocaleDateString('en-US', { weekday: 'long' });
-
-  return `${weekday} at ${timeString} (${relativeDay})`;
-}
-
-const calculateAge = (birthDate: Date) => {
-  let currentDate = new Date();
-
-  let age = currentDate.getFullYear() - birthDate.getFullYear();
-
-  // Check if the birthday has occurred yet this year
-  const hasHadBirthdayThisYear =
-    currentDate.getMonth() > birthDate.getMonth() ||
-    (currentDate.getMonth() === birthDate.getMonth() &&
-      currentDate.getDate() >= birthDate.getDate());
-
-  if (!hasHadBirthdayThisYear) {
-    age--;
-  }
-
-  return age;
-}
-
-function isSameDay(date1: Date, date2: Date) {
-  return (
-    date1.getMonth() === date2.getMonth() &&
-    date1.getDate() === date2.getDate()
-  );
-}
-
-
-const formatDOB = (dobString: string, highlightUnderage: boolean = false) => {
+function formatDOBJSX(dobString: string, highlightUnderage: boolean = false): JSX.Element {
   let dob = new Date(dobString);
-
-  let age = calculateAge(dob)
 
   let description = dob.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
+
+  let age = calculateAge(dob)
 
   let colorClass = (highlightUnderage && age < 18 ? "text-red-500 font-bold" : "")
 
@@ -115,16 +74,12 @@ const formatDOB = (dobString: string, highlightUnderage: boolean = false) => {
   </>
 }
 
-const clickAudio = new Audio('/sounds/click.mp3');
-const dingAudio = new Audio('/sounds/ding.mp3');
-const deniedAudio = new Audio('/sounds/denied.mp3');
-// TODO: For banned members
-const buzzAudio = new Audio('/sounds/buzz.mp3');
-
 export default function ScannerPage() {
   const { profile, refreshProfile } = useSession();
   const { project } = useProject();
 
+  const [qrScanner, setQrScanner] = useState<QrScanner | null>(null);
+  const [qrScannerHasFlash, setQrScannerHasFlash] = useState<boolean>(false);
   const [scannedMember, setScannedMember] = useState<ScannedMember | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
   const [currentlyScanning, setCurrentlyScanning] = useState<boolean>(false);
@@ -134,41 +89,54 @@ export default function ScannerPage() {
   const fetchQRData = () => {
     return new Promise<string>((resolve, reject) => {
       if (videoRef.current) {
-        qrScanner = new QrScanner(
-          videoRef.current,
-          ({ data }) => {
-            resolve(data);
-            qrScanner?.stop();
-            qrScanner?.destroy();
-            qrScanner = null;
+        let scanner =
+          new QrScanner(
+            videoRef.current,
+            async ({ data }) => {
+              resolve(data);
 
-          },
-          {
-            preferredCamera: 'environment',
-            maxScansPerSecond: 15,
-            // qrEngine: qrScannerEngine
-          }
-        );
+              await cancelScan(scanner);
+            },
+            {
+              preferredCamera: 'environment',
+              maxScansPerSecond: 8,
+              highlightScanRegion: true,
+            }
+          )
 
-        qrScanner.start().catch((e) => {
+        setQrScanner(scanner);
+
+        scanner?.start().then(async () => {
+        setQrScannerHasFlash(await scanner?.hasFlash());
+        })
+        .catch((e) => {
           reject(`Could not start QR scanner. ERROR: ${e}`)
         });
       }
     })
   }
 
+  const cancelScan = async (scanner: QrScanner) => {
+    await scanner?.turnFlashOff()
+    scanner?.stop();
+    scanner?.destroy();
+    setQrScanner(null);
+    setCurrentlyScanning(false);
+  }
+
   const startScan = () => {
     clickAudio.play();
 
+    setQrScannerHasFlash(false);
+    setQrScanner(null);
     setScannedMember(null);
     setScanError(null);
     setCurrentlyScanning(true);
 
-    fetchQRData().then((data) => {
-      apiPost(`/burn/${project!.slug}/admin/check-in-member/${data}`)
+    return fetchQRData().then((data) => {
+      return apiPost(`/burn/${project!.slug}/admin/check-in-member/${data}`)
         .then((foundMember) => {
           setScannedMember(foundMember);
-          setCurrentlyScanning(false);
 
           refreshProfile();
 
@@ -224,7 +192,7 @@ export default function ScannerPage() {
               <CardBody className="flex flex-col justify-between">
                 <div className="flex flex-col gap-2">
                   <p><strong>Name:</strong> {scannedMember.first_name} {scannedMember.last_name}</p>
-                  <p><strong>Birthdate:</strong> {formatDOB(scannedMember.birthdate, true)}</p>
+                  <p><strong>Birthdate:</strong> {formatDOBJSX(scannedMember.birthdate, true)}</p>
                   <p><strong>Checked in:</strong> {scannedMember.checked_in_at == null ? 'Just now' : formatRelativeDateTime(new Date(scannedMember.checked_in_at))}</p>
 
                   {scannedMember.metadata?.children?.length > 0 && (
@@ -234,7 +202,7 @@ export default function ScannerPage() {
                         {scannedMember.metadata.children.map((child) => (
                           <div key={child.key} className="pl-4 border-l-2 border-gray-200">
                             <p><strong>Name:</strong> {child.first_name} {child.last_name}</p>
-                            <p><strong>Birthdate:</strong> {formatDOB(child.dob)}</p>
+                            <p><strong>Birthdate:</strong> {formatDOBJSX(child.dob)}</p>
                           </div>
                         ))}
                       </div>
@@ -271,16 +239,43 @@ export default function ScannerPage() {
           )}
         </div>
 
-        <div className="w-full h-full flex items-center justify-center">
-          <Button
-            color="primary"
-            size="lg"
-            onPress={startScan}
-          >
-            <QrcodeOutlined />
-            Scan QR Code
-          </Button>
-        </div>
+        {(qrScannerHasFlash && false) && (
+          <div className="w-full h-full flex items-center justify-center">
+            <Button
+              color="primary"
+              size="lg"
+              onPress={qrScanner?.toggleFlash}
+            >
+              <BulbOutlined />
+              Toggle Flashlight
+            </Button>
+          </div>
+        )}
+
+        {currentlyScanning &&
+          (<div className="w-full h-full flex items-center justify-center">
+            <Button
+              color="primary"
+              size="lg"
+              onPress={() => { if(qrScanner) { cancelScan(qrScanner) } }}
+            >
+              <CloseOutlined />
+              Cancel
+            </Button>
+          </div>
+        )}
+
+        {!currentlyScanning &&
+          <div className="w-full h-full flex items-center justify-center">
+            <Button
+              color="primary"
+              size="lg"
+              onPress={startScan}
+            >
+              <QrcodeOutlined />
+              Scan QR Code
+            </Button>
+          </div>}
 
         {(scannedMember || scanError) &&
         (<div className="w-full h-full flex items-center justify-center">
