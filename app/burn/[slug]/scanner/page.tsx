@@ -186,9 +186,10 @@ export default function ScannerPage() {
         <div className="relative w-full">
 
           {scannedMember && (
-            <Card className={`border border-black rounded-lg w-full h-full ${scannedMember.checked_in_at == null ? 'bg-green-100' : 'bg-yellow-100'}`}>
+            <Card className={`border border-black rounded-lg w-full h-full ${scannedMember.checked_in_at == null ? 'bg-green-100' : 'bg-red-300'}`}>
               <CardBody className="flex flex-col justify-between">
                 <div className="flex flex-col gap-2">
+                  <h2 className="text-2xl font-semibold mb-4">!!!ALREADY CHECKED IN!!!</h2>
                   <p><strong>Name:</strong> {scannedMember.first_name} {scannedMember.last_name}</p>
                   <p><strong>Birthdate:</strong> {formatDOBJSX(scannedMember.birthdate, true)}</p>
                   <p><strong>Checked in:</strong> {scannedMember.checked_in_at == null ? 'Just now' : formatRelativeDateTime(new Date(scannedMember.checked_in_at))}</p>
