@@ -25,31 +25,16 @@ export const POST = requestWithProject(
       return NextResponse.json({ error: "No member found" }, { status: 404 });
     }
 
-    if (!foundMembership.checked_in_at) {
-      const newMetaData = profile?.metadata ?? {};
-
-      if (newMetaData["check_in_count"] === undefined) {
-        newMetaData["check_in_count"] = 0;
-      }
-      newMetaData["check_in_count"] = newMetaData["check_in_count"] + 1;
-
-      await query(() =>
-        supabase
-          .from("profiles")
-          .update({ metadata: newMetaData })
-          .eq("id", profile.id)
-      );
-
-      await query(() =>
-        supabase
-          .from("burn_memberships")
-          .update({ checked_in_at: new Date() })
-          .eq("id", foundMembership.id)
-      );
-    }
-
     return {
-      status: "DONE"
+      id: foundMembership.id,
+      first_name: foundMembership.first_name,
+      last_name: foundMembership.last_name,
+      birthdate: foundMembership.birthdate,
+      checked_in_at: foundMembership.checked_in_at,
+      metadata: {
+        children: foundMembership.metadata.children,
+        pets: foundMembership.metadata.pets,
+      }
     }
   },
   undefined,

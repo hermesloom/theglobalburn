@@ -9,6 +9,7 @@ import { formatRelativeDateTime, calculateAge, isSameDay } from "@/app/burn/[slu
 
 import {
   CloseOutlined,
+  CheckOutlined,
   QrcodeOutlined,
   ReloadOutlined,
   BulbOutlined,
@@ -79,7 +80,7 @@ export default function ScannerPage() {
   const [qrScanner, setQrScanner] = useState<QrScanner | null>(null);
   const [qrScannerHasFlash, setQrScannerHasFlash] = useState<boolean>(false);
   const [scannedMember, setScannedMember] = useState<ScannedMember | null>(null);
-  const [scanError, setScanError] = useState<string | null>(null);
+  const [resultMessage, setResultMessage] = useState<{type: string, text: string} | null>(null);
   const [currentlyScanning, setCurrentlyScanning] = useState<boolean>(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -128,11 +129,11 @@ export default function ScannerPage() {
     setQrScannerHasFlash(false);
     setQrScanner(null);
     setScannedMember(null);
-    setScanError(null);
+    setResultMessage(null);
     setCurrentlyScanning(true);
 
     return fetchQRData().then((data) => {
-      return apiPost(`/burn/${project!.slug}/admin/check-in-member/${data}`)
+      return apiPost(`/burn/${project!.slug}/admin/get-member-details/${data}`)
         .then((foundMember) => {
           setScannedMember(foundMember);
 
@@ -146,26 +147,48 @@ export default function ScannerPage() {
             // Should make a positive sound because the member has not yet been checked in
             dingAudio.play();
           }
+          setCurrentlyScanning(false);
         })
         .catch((error) => {
           setCurrentlyScanning(false);
           deniedAudio.play();
-          setScanError(error.message);
+          setResultMessage({type: 'error', text: error.message});
         })
     }).catch((error) => {
-      setScanError(error);
+      setResultMessage({type: 'error', text: error});
     });
   };
 
+  const checkInMember = () => {
+    if (scannedMember == null) {
+      setResultMessage({type: 'error', text: "Member check-in when no member was scanned"});
+    } else {
+      return apiPost(`/burn/${project!.slug}/admin/check-in-member/${scannedMember.id}`)
+      .then((result) => {
+        if (result.status === "DONE") {
+          setScannedMember(null);
+          setResultMessage({type: 'notice', text: "Check-in successful"});
+        } else {
+          // ERROR
+          setScannedMember(null);
+          setResultMessage({type: 'error', text: "There was a problem checking in the member!"});
+        }
+      })
+      .catch((error) => {
+        setResultMessage({type: 'error', text: "There was a error checking in the member!"});
+      })
+    }
+  }
+
   const clearDisplay = () => {
     setScannedMember(null);
-    setScanError(null);
+    setResultMessage(null);
     setCurrentlyScanning(false);
   }
 
   useEffect(() => {
     setScannedMember(null);
-    setScanError(null);
+    setResultMessage(null);
     setCurrentlyScanning(false);
 
   }, []); // Empty dependency array means this runs once on mount
@@ -189,7 +212,7 @@ export default function ScannerPage() {
             <Card className={`border border-black rounded-lg w-full h-full ${scannedMember.checked_in_at == null ? 'bg-green-100' : 'bg-red-300'}`}>
               <CardBody className="flex flex-col justify-between">
                 <div className="flex flex-col gap-2">
-                  <h2 className="text-2xl font-semibold mb-4">!!!ALREADY CHECKED IN!!!</h2>
+                  {scannedMember.checked_in_at != null && <h2 className="text-2xl font-semibold mb-4">!!!ALREADY CHECKED IN!!!</h2>}
                   <p><strong>Name:</strong> {scannedMember.first_name} {scannedMember.last_name}</p>
                   <p><strong>Birthdate:</strong> {formatDOBJSX(scannedMember.birthdate, true)}</p>
                   <p><strong>Checked in:</strong> {scannedMember.checked_in_at == null ? 'Just now' : formatRelativeDateTime(new Date(scannedMember.checked_in_at))}</p>
@@ -227,11 +250,11 @@ export default function ScannerPage() {
             </Card>
           )}
 
-          {scanError && (
-            <Card className="w-full h-full bg-orange-100">
+          {resultMessage && (
+            <Card className={`w-full h-full ${resultMessage.type === 'error' ? 'bg-orange-100' : 'bg-green-100'}`}>
               <CardBody className="flex flex-col justify-between">
                 <div className="flex flex-col gap-2 text-center">
-                  {scanError}
+                  {resultMessage.text}
                 </div>
               </CardBody>
             </Card>
@@ -264,7 +287,19 @@ export default function ScannerPage() {
           </div>
         )}
 
-        {!currentlyScanning &&
+        {!currentlyScanning && scannedMember && scannedMember.checked_in_at == null &&
+          <div className="w-full h-full flex items-center justify-center">
+            <Button
+              color="primary"
+              size="lg"
+              onPress={checkInMember}
+            >
+              <CheckOutlined />
+              Check-in Member
+            </Button>
+          </div>}
+
+        {!currentlyScanning && !scannedMember &&
           <div className="w-full h-full flex items-center justify-center">
             <Button
               color="primary"
@@ -276,7 +311,7 @@ export default function ScannerPage() {
             </Button>
           </div>}
 
-        {(scannedMember || scanError) &&
+        {(scannedMember || resultMessage) &&
         (<div className="w-full h-full flex items-center justify-center">
           <Button
             color="secondary"
