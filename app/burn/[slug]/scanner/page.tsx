@@ -46,8 +46,6 @@ interface ScannedMember {
 const clickAudio = new Audio('/sounds/click.mp3');
 const dingAudio = new Audio('/sounds/ding.mp3');
 const deniedAudio = new Audio('/sounds/denied.mp3');
-// TODO: For banned members
-const buzzAudio = new Audio('/sounds/buzz.mp3');
 
 function formatDOBJSX(dobString: string, highlightUnderage: boolean = false): JSX.Element {
   let dob = new Date(dobString);
