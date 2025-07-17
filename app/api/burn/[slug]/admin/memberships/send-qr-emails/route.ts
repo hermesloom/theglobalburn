@@ -17,6 +17,15 @@ export const POST = requestWithProject(
         .in("id", body.membership_ids),
     );
 
+    // check if all memberships actually exist
+    if (memberships.length !== body.membership_ids.length) {
+      throw new Error(
+        `Membership IDs not found: ${body.membership_ids
+          .filter((id: string) => !memberships.some((m) => m.id === id))
+          .join(", ")}`,
+      );
+    }
+
     const owners = (
       await query(() =>
         supabase
