@@ -49,7 +49,15 @@ export const POST = requestWithProject(
     }
 
     return {
-      status: "DONE"
+      id: foundMembership.id,
+      first_name: foundMembership.first_name,
+      last_name: foundMembership.last_name,
+      birthdate: foundMembership.birthdate,
+      checked_in_at: foundMembership.checked_in_at,
+      metadata: {
+        children: foundMembership.metadata.children,
+        pets: foundMembership.metadata.pets,
+      }
     }
   },
   undefined,
