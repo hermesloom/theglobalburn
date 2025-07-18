@@ -27,6 +27,7 @@ interface SessionContextType {
 
   showSidebar: boolean;
   toggleSidebar: () => void;
+  setShowSidebar: (show: boolean) => void;
 }
 
 const SessionContext = createContext<SessionContextType>({
@@ -39,6 +40,7 @@ const SessionContext = createContext<SessionContextType>({
 
   showSidebar: false,
   toggleSidebar: () => { },
+  setShowSidebar: () => {},
 });
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
@@ -132,6 +134,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
         showSidebar,
         toggleSidebar: () => setShowSidebar(!showSidebar),
+        setShowSidebar,
       }}
     >
       {children}

@@ -3,6 +3,7 @@
 import { Button } from "@nextui-org/react";
 import { useRouter, usePathname } from "next/navigation";
 import { useSession } from "./SessionContext";
+import { isMobileDevice } from "./isMobileDevice";
 
 interface SidebarRoute {
   label: string;
@@ -17,7 +18,7 @@ interface SidebarProps {
 export function Sidebar({ routes }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { showSidebar } = useSession();
+  const { showSidebar, setShowSidebar } = useSession();
 
   return (
     <div
@@ -51,7 +52,12 @@ export function Sidebar({ routes }: SidebarProps) {
               className={`justify-start ${
                 pathname === route.path ? "bg-content3 font-bold" : ""
               }`}
-              onPress={() => router.push(route.path)}
+              onPress={() => {
+                router.push(route.path);
+                if (isMobileDevice()) {
+                  setShowSidebar(false);
+                }
+              }}
               startContent={route.icon}
             >
               <span className="overflow-hidden text-ellipsis whitespace-nowrap">
