@@ -290,18 +290,6 @@ export default function ScannerPage() {
           </div>
         )}
 
-        {!currentlyScanning && scannedMember && scannedMember.checked_in_at == null &&
-          <div className="w-full h-full flex items-center justify-center">
-            <Button
-              color="primary"
-              size="lg"
-              onPress={undoCheckInMember}
-            >
-              <CheckOutlined />
-              Undo Member Check-in
-            </Button>
-          </div>}
-
         {!currentlyScanning && !scannedMember &&
           <div className="w-full h-full flex items-center justify-center">
             <Button
@@ -317,14 +305,30 @@ export default function ScannerPage() {
         {(scannedMember || resultMessage) &&
         (<div className="w-full h-full flex items-center justify-center">
           <Button
-            color="secondary"
+            color="success"
             size="lg"
+            className="px-8 py-4 text-6xl min-h-20 min-w-80"
             onPress={clearDisplay}
           >
-            <ReloadOutlined />
-            Clear Display
+            Done
           </Button>
         </div>)}
+
+        {!currentlyScanning && scannedMember && scannedMember.checked_in_at == null &&
+          <div className="mt-12 w-full h-full flex items-center justify-center">
+            <Button
+              color="danger"
+              size="sm"
+              onPress={() => {
+                if (confirm("Are you sure you want to undo the member's check-in?")) {
+                  undoCheckInMember()
+                }
+              }}
+            >
+              Undo
+            </Button>
+          </div>}
+
       </div >
     </>
   );
