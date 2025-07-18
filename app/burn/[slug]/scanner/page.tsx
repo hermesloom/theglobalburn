@@ -133,7 +133,7 @@ export default function ScannerPage() {
     setCurrentlyScanning(true);
 
     return fetchQRData().then((data) => {
-      return apiPost(`/burn/${project!.slug}/admin/get-member-details/${data}`)
+      return apiPost(`/burn/${project!.slug}/admin/check-in-member/${data}`)
         .then((foundMember) => {
           setScannedMember(foundMember);
 
@@ -159,23 +159,26 @@ export default function ScannerPage() {
     });
   };
 
-  const checkInMember = () => {
+  const undoCheckInMember = () => {
     if (scannedMember == null) {
-      setResultMessage({type: 'error', text: "Member check-in when no member was scanned"});
+      // **Shouldn't** happen, but just in case...
+      setResultMessage({type: 'error', text: "Attempted undo of member check-in when no member was scanned"});
     } else {
-      return apiPost(`/burn/${project!.slug}/admin/check-in-member/${scannedMember.id}`)
-      .then((result) => {
+      return apiPost(`/burn/${project!.slug}/admin/undo-check-in-member/${scannedMember.id}`)
+      .then(async (result) => {
+        await refreshProfile();
+
         if (result.status === "DONE") {
           setScannedMember(null);
-          setResultMessage({type: 'notice', text: "Check-in successful"});
+          setResultMessage({type: 'notice', text: "Undo of check-in successful"});
         } else {
           // ERROR
           setScannedMember(null);
-          setResultMessage({type: 'error', text: "There was a problem checking in the member!"});
+          setResultMessage({type: 'error', text: "There was a problem undoing the check-in of the member!"});
         }
       })
       .catch((error) => {
-        setResultMessage({type: 'error', text: "There was a error checking in the member!"});
+        setResultMessage({type: 'error', text: "There was a error undoing check-in of the member!"});
       })
     }
   }
@@ -292,10 +295,10 @@ export default function ScannerPage() {
             <Button
               color="primary"
               size="lg"
-              onPress={checkInMember}
+              onPress={undoCheckInMember}
             >
               <CheckOutlined />
-              Check-in Member
+              Undo Member Check-in
             </Button>
           </div>}
 

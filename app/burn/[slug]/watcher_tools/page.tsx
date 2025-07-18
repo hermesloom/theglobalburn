@@ -183,6 +183,15 @@ export default function ScannerManagerPage() {
     <>
       {scannerProfiles ?
             <div>
+              <Button
+                color="primary"
+                className="mt-4 mb-4"
+                onPress={() => { updateProfileScanners(project!.slug) }}
+              >
+                <ReloadOutlined />
+                Reload Counters
+              </Button>
+
               <Table isStriped>
               <TableHeader>
                 <TableColumn key="check_in_count">Check-in<br/>Count</TableColumn>
@@ -348,19 +357,19 @@ export default function ScannerManagerPage() {
                       <TableCell key="email">{membership.profile.email}</TableCell>
                       <TableCell key="children_pets">
                         {(membership.metadata.children || []).length > 0 && (
-                          <div>
+                          <div key="children">
                             <h3 className="text-lg font-semibold mt-1">Children</h3>
                             {membership.metadata.children.map((child) =>
-                              <p>{child.first_name} {child.last_name} - DOB: {formatDOB(child.dob)}</p>
+                              <p key={`${child.first_name}-${child.last_name}`}>{child.first_name} {child.last_name} - DOB: {formatDOB(child.dob)}</p>
                             )}
                           </div>
                         )}
 
                         {(membership.metadata.pets || []).length > 0 && (
-                          <div>
+                          <div key="pets">
                             <h3 className="text-lg font-semibold mt-1">Pets</h3>
                             {membership.metadata.pets.map((pet) =>
-                              <p>{pet.name} / {pet.type} / Chip: {pet.chip_code}</p>
+                              <p key={pet.chip_code}>{pet.name} / {pet.type} / Chip: {pet.chip_code}</p>
                             )}
                           </div>
                         )}
