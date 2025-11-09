@@ -41,7 +41,7 @@ export default function OpenSale() {
       <p>
         There are currently{" "}
         <b>{availableMemberships < 0 ? 0 : availableMemberships}</b> memberships
-        available for purchase.
+        available.
       </p>
       <Alert color="warning">
         <span>

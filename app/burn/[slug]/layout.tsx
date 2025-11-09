@@ -39,13 +39,6 @@ export default function ProjectLayout({
             path: `/burn/${project?.slug}`,
             icon: <HomeOutlined />,
           },
-          project.membership
-            ? {
-                label: "Links",
-                path: `/burn/${project?.slug}/links`,
-                icon: <LinkOutlined />,
-              }
-            : null,
           {
             label:
               project.membership || project.membership_purchase_right
@@ -56,10 +49,22 @@ export default function ProjectLayout({
                       BurnStage.OpenSaleGeneral ||
                     project.burn_config.current_stage ===
                       BurnStage.OpenSaleNonTransferable
-                  ? "Open membership sale"
+                  ? "Fall membership sale"
                   : "Membership lottery",
             path: `/burn/${project?.slug}/membership`,
             icon: <IdcardOutlined />,
+          },
+          project.membership || project.membership_purchase_right
+            ? null
+            : {
+                label: "Spring membership sale",
+                path: `/burn/${project?.slug}/spring-membership-info`,
+                icon: <IdcardOutlined />,
+              },
+          {
+            label: "Links",
+            path: `/burn/${project?.slug}/links`,
+            icon: <LinkOutlined />,
           },
 
           ...(project.roles.includes(BurnRole.MembershipScanner) ||

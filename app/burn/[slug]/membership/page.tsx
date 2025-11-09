@@ -116,7 +116,7 @@ export default function MembershipPage() {
           ? "Your membership"
           : membershipStatus === MembershipStatus.OpenSale ||
               membershipStatus === MembershipStatus.OpenSaleUnavailable
-            ? "Open membership sale"
+            ? "Fall membership sale"
             : "Membership lottery"}
       </Heading>
       {renderContent()}
