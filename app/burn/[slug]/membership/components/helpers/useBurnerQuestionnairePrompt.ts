@@ -480,7 +480,7 @@ export const useBurnerQuestionnairePrompt = () => {
         if (unfinishedFieldIndices.length === 0) return "Submit";
 
         if (unfinishedFieldIndices.length <= 5) {
-          return `You still need to answer questions ${unfinishedFieldIndices.map((i) => `#${i + 1}`).join(", ")}`;
+          return `You still need to answer question${unfinishedFieldIndices.length === 1 ? "" : "s"} ${unfinishedFieldIndices.map((i) => `#${i + 1}`).join(", ")}`;
         }
 
         return "Please answer all the questions";
