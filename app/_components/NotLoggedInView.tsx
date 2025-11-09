@@ -49,7 +49,7 @@ export default function Home() {
           Membership platform
         </h2>
         <Button color="primary" onPress={() => setIsOpen(true)}>
-          Click to login
+          Click to sign up or login
         </Button>
         <Modal
           isOpen={isOpen}
