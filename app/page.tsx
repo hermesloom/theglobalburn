@@ -8,7 +8,7 @@ import { apiPost } from "@/app/_components/api";
 import { useSession } from "@/app/_components/SessionContext";
 import { BurnStage } from "@/utils/types";
 
-const DEFAULT_PROJECT_SLUG = "the-borderland-2025";
+const DEFAULT_PROJECT_SLUG = "the-borderland-2026";
 
 export default function Home() {
   const { profile, reloadProfile } = useSession();
@@ -33,12 +33,16 @@ export default function Home() {
         </Button>
       ) : (
         <ActionButton
+          color="primary"
           action={{
             key: "join",
-            label: "Please click here!",
+            label: "Manage my membership",
             onClick: async () => {
-              await apiPost(`/burn/${DEFAULT_PROJECT_SLUG}/join`);
-              await reloadProfile();
+              if (!project) {
+                await apiPost(`/burn/${DEFAULT_PROJECT_SLUG}/join`);
+                await reloadProfile();
+              }
+              router.push(`/burn/${DEFAULT_PROJECT_SLUG}/membership`);
             },
           }}
         />

@@ -3,6 +3,7 @@ export enum BurnStage {
   LotteryClosed = "lottery-closed",
   OpenSaleLotteryEntrantsOnly = "open-sale-lottery-entrants-only",
   OpenSaleGeneral = "open-sale-general",
+  OpenSaleNonTransferable = "open-sale-non-transferable",
 }
 
 export enum BurnRole {

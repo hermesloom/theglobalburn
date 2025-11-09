@@ -67,7 +67,10 @@ export default function MembershipPage() {
       } else {
         return MembershipStatus.OpenSaleUnavailable;
       }
-    } else if (stage === BurnStage.OpenSaleGeneral) {
+    } else if (
+      stage === BurnStage.OpenSaleGeneral ||
+      stage === BurnStage.OpenSaleNonTransferable
+    ) {
       return MembershipStatus.OpenSale;
     }
     return MembershipStatus.Invalid;
