@@ -116,7 +116,7 @@ export default function MembershipAvailable() {
           </>
         )}
 
-        {project?.burn_config.membership_addons?.length! > 0 ? (
+        {project?.burn_config.membership_addons?.length! > 0 && !isPolling ? (
           <div className="flex flex-col gap-2">
             <p>
               You can also purchase the following optional add-ons for your
