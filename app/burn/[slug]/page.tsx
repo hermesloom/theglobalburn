@@ -45,11 +45,11 @@ export default function ProjectPage() {
       : [
           {
             date: formatDate("2025-03-03T16:00:00.000Z"),
-            title: "Open sale of non-refundable memberships opens",
+            title: "Fall membership sale opens",
           },
           {
             date: formatDate("2025-03-10T16:00:00.000Z"),
-            title: "Open sale of non-refundable memberships closes",
+            title: "Fall membership sale closes",
           },
           {
             date: formatDate(project?.burn_config.lottery_opens_at!),
