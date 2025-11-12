@@ -43,7 +43,15 @@ export default function Home() {
             entirely by its participants - a community of creators, dreamers,
             and builders - using decentralized tools. The Borderland is named
             for the liminal space it inhabits - between imagination and reality,
-            its only boundaries are those set by your creativity.
+            its only boundaries are those set by your creativity.{" "}
+            <a
+              href="https://talk.theborderland.se"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-default-100 hover:bg-default-200 text-default-700 transition-colors duration-200"
+            >
+              🎙️ <span>Source: Talk</span>
+            </a>
           </p>
         </div>
       </div>
