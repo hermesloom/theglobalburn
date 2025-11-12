@@ -154,7 +154,30 @@ export function requestWithProject<T = any>(
   }, schema);
 }
 
-function roleMatches(userRoles: BurnRole[], roleOrRoles : BurnRole | BurnRole[]) {
+export function requestWithMembership<T = any>(
+  handler: RequestWithAuthHandler<T>,
+  schema?: s.Object,
+) {
+  return requestWithAuth(async (supabase, profile, req, body) => {
+    const projectSlug = req.nextUrl.pathname.split("/")[3];
+    const project = profile.projects.find((p) => p.slug === projectSlug);
+    if (!project) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+    if (!project.membership) {
+      return NextResponse.json(
+        { error: "Membership required" },
+        { status: 403 },
+      );
+    }
+    return await handler(supabase, profile, req, body, project);
+  }, schema);
+}
+
+function roleMatches(
+  userRoles: BurnRole[],
+  roleOrRoles: BurnRole | BurnRole[],
+) {
   if (Array.isArray(roleOrRoles)) {
     return roleOrRoles.some((role) => userRoles.includes(role));
   } else {
