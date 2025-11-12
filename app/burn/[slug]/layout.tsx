@@ -47,15 +47,19 @@ export default function ProjectLayout({
                 : project.burn_config.current_stage ===
                       BurnStage.OpenSaleLotteryEntrantsOnly ||
                     project.burn_config.current_stage ===
-                      BurnStage.OpenSaleGeneral ||
-                    project.burn_config.current_stage ===
+                      BurnStage.OpenSaleGeneral
+                  ? "Open Membership Sale"
+                  : project.burn_config.current_stage ===
                       BurnStage.OpenSaleNonTransferable
-                  ? "Fall Membership Sale"
-                  : "Membership Lottery",
+                    ? "Fall Membership Sale"
+                    : "Membership Lottery",
             path: `/burn/${project?.slug}/membership`,
             icon: <IdcardOutlined />,
           },
-          project.membership || project.membership_purchase_right
+          project.membership ||
+          project.membership_purchase_right ||
+          project.burn_config.current_stage !==
+            BurnStage.OpenSaleNonTransferable
             ? null
             : {
                 label: "Spring Membership Sale",
