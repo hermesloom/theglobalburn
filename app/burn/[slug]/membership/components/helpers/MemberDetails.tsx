@@ -5,6 +5,8 @@ import { Input } from "@nextui-org/react";
 import { LockOutlined } from "@ant-design/icons";
 import { LowIncomeQuestionnaireResult } from "./useLowIncomeQuestionnaire";
 import { Child } from "./ListOfChildren";
+import { useProject } from "@/app/_components/SessionContext";
+import { BurnStage } from "@/utils/types";
 
 export type MemberDetailsData = {
   first_name: string;
@@ -18,6 +20,8 @@ export type MemberDetailsData = {
 };
 
 export default function MemberDetails({ data }: { data: MemberDetailsData }) {
+  const { project } = useProject();
+
   return (
     <>
       <Input
@@ -38,7 +42,9 @@ export default function MemberDetails({ data }: { data: MemberDetailsData }) {
         isDisabled
         startContent={<LockOutlined />}
       />
-      {data.is_low_income !== undefined ? (
+      {project?.burn_config.current_stage !==
+        BurnStage.OpenSaleNonTransferable &&
+      data.is_low_income !== undefined ? (
         <p className="text-sm text-gray-500">
           {data.is_low_income ? "Low income" : "Regular or high income"}
         </p>

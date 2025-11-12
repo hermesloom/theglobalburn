@@ -28,6 +28,11 @@ export const POST = requestWithProject<
       throw new Error(`User has no memberships to transfer`);
     }
 
+    // check whether the membership is transferable
+    if (project!.membership.is_non_transferable) {
+      throw new Error(`Membership is not transferable`);
+    }
+
     // check that the recipient is registered, part of this project and has no membership and no membership purchase right yet
     const recipientProfile = await getProfileByEmail(
       supabase,

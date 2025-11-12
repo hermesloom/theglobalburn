@@ -70,6 +70,7 @@ export type BurnMembershipPurchaseRight = {
   is_low_income: boolean;
   details_modifiable: boolean;
   metadata?: any;
+  is_non_transferable: boolean;
 };
 
 export type BurnMembership = {
@@ -86,6 +87,7 @@ export type BurnMembership = {
   is_being_transferred_to?: string; // id of the purchase right that the membership is being transferred to
   is_low_income: boolean;
   metadata?: any;
+  is_non_transferable: boolean;
 };
 
 export type Project = {

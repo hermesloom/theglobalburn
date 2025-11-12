@@ -17,7 +17,13 @@ export default function MembershipAvailableDetailsIncomplete() {
 
   return (
     <div className="flex flex-col gap-4">
-      <p>There is a membership available for you to purchase!</p>
+      <p>
+        There is a{" "}
+        {project?.membership_purchase_right?.is_non_transferable
+          ? "non-transferable "
+          : ""}
+        membership available for you to purchase!
+      </p>
       <p>
         Your membership is reserved for you until{" "}
         <b>{formatDate(project?.membership_purchase_right?.expires_at!)}</b>. If

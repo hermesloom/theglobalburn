@@ -44,37 +44,23 @@ export default function ProjectPage() {
         ]
       : [
           {
-            date: formatDate("2025-03-03T16:00:00.000Z"),
-            title: "Fall membership sale opens",
+            date: formatDate("2025-11-17T16:00:00.000Z"),
+            title: "Fall Membership Sale opens",
           },
           {
-            date: formatDate("2025-03-10T16:00:00.000Z"),
-            title: "Fall membership sale closes",
-          },
-          {
-            date: formatDate(project?.burn_config.lottery_opens_at!),
-            title: "Membership lottery signup opens",
-          },
-          {
-            date: formatDate(project?.burn_config.lottery_closes_at!),
-            title: "Lottery is drawn and winners can buy their membership",
-          },
-          {
-            date: formatDate(
-              project?.burn_config.open_sale_lottery_entrants_only_starting_at!,
-            ),
-            title:
-              "Open sale opens for those who entered the lottery but didn't win",
+            date: formatDate("2025-11-23T16:00:00.000Z"),
+            title: "Fall Membership Sale closes",
           },
           {
             date: formatDate(
               project?.burn_config.open_sale_general_starting_at!,
             ),
-            title: "Open sale and transfers open for everyone",
+            title: "Spring Membership Sale opens",
           },
           {
             date: formatDate(project?.burn_config.last_possible_transfer_at!),
-            title: "Open sale and transfers close",
+            title:
+              "Spring Membership Sale and transfers of Spring Memberships close",
           },
           {
             date: "July 20 – July 26, 2026",

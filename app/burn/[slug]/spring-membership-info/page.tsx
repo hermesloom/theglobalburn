@@ -27,7 +27,7 @@ export default function SpringMembershipInfoPage() {
 
   return (
     <>
-      <Heading>Spring membership sale</Heading>
+      <Heading>Spring Membership Sale</Heading>
       <p>TODO: explanation text from Peter</p>
       {seatSaved ? (
         <Button
@@ -44,7 +44,9 @@ export default function SpringMembershipInfoPage() {
           Save me a seat! (no commitments)
         </Button>
       )}
-      <p style={{ fontSize: "0.7rem" }}>There were already 123 sets saved!</p>
+      <p className="text-xs text-gray-500 italic">
+        There were already 123 seats saved without commitment!
+      </p>
     </>
   );
 }

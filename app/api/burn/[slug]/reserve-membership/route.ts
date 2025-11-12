@@ -30,6 +30,9 @@ export const POST = requestWithProject(
       ).toISOString(),
       is_low_income: lowIncomeAvailable,
       details_modifiable: true,
+      is_non_transferable:
+        project?.burn_config.current_stage ===
+        BurnStage.OpenSaleNonTransferable,
     });
   },
   undefined,

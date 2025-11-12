@@ -15,6 +15,7 @@ import MembershipBeingTransferred from "./components/MembershipBeingTransferred"
 import Support from "./components/Support";
 import OpenSale from "./components/OpenSale";
 import OpenSaleUnavailable from "./components/OpenSaleUnavailable";
+import OpenSaleNonTransferable from "./components/OpenSaleNonTransferable";
 
 enum MembershipStatus {
   LotteryOpenNotEntered,
@@ -27,6 +28,7 @@ enum MembershipStatus {
   MembershipBeingTransferred,
   OpenSale,
   OpenSaleUnavailable,
+  OpenSaleNonTransferable,
   Invalid,
 }
 
@@ -67,11 +69,10 @@ export default function MembershipPage() {
       } else {
         return MembershipStatus.OpenSaleUnavailable;
       }
-    } else if (
-      stage === BurnStage.OpenSaleGeneral ||
-      stage === BurnStage.OpenSaleNonTransferable
-    ) {
+    } else if (stage === BurnStage.OpenSaleGeneral) {
       return MembershipStatus.OpenSale;
+    } else if (stage === BurnStage.OpenSaleNonTransferable) {
+      return MembershipStatus.OpenSaleNonTransferable;
     }
     return MembershipStatus.Invalid;
   };
@@ -100,6 +101,8 @@ export default function MembershipPage() {
         return <OpenSale />;
       case MembershipStatus.OpenSaleUnavailable:
         return <OpenSaleUnavailable />;
+      case MembershipStatus.OpenSaleNonTransferable:
+        return <OpenSaleNonTransferable />;
       case MembershipStatus.Invalid:
         return <div>Invalid membership status</div>;
     }
@@ -113,11 +116,13 @@ export default function MembershipPage() {
         membershipStatus ===
           MembershipStatus.MembershipAvailableDetailsIncomplete ||
         membershipStatus === MembershipStatus.MembershipBeingTransferred
-          ? "Your membership"
+          ? "Your Membership"
           : membershipStatus === MembershipStatus.OpenSale ||
               membershipStatus === MembershipStatus.OpenSaleUnavailable
-            ? "Fall membership sale"
-            : "Membership lottery"}
+            ? "Open Membership Sale"
+            : membershipStatus === MembershipStatus.OpenSaleNonTransferable
+              ? "Fall Membership Sale"
+              : "Membership Lottery"}
       </Heading>
       {renderContent()}
       <Support />

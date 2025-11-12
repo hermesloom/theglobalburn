@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Checkbox, Spinner, Button } from "@nextui-org/react";
 import { useProject } from "@/app/_components/SessionContext";
 import MemberDetailsWithHeading from "./helpers/MemberDetailsWithHeading";
-import { BurnMembershipPricing } from "@/utils/types";
+import { BurnMembershipPricing, BurnStage } from "@/utils/types";
 import { formatMoney } from "@/app/_components/utils";
 import { apiPost, apiGet } from "@/app/_components/api";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -102,16 +102,23 @@ export default function MembershipAvailable() {
           </div>
         ) : (
           <>
-            <p>There is a membership available for you to purchase!</p>
+            <p>
+              There is a{" "}
+              {project?.membership_purchase_right?.is_non_transferable
+                ? "non-transferable "
+                : ""}
+              membership available for you to purchase!
+            </p>
             <p>
               Your membership is reserved for you until{" "}
               <b>
                 {formatDate(project?.membership_purchase_right?.expires_at!)}
               </b>
-              . If you don't complete the purchase of your membership by then,
-              it will be released to the public in the open sale or, if you
-              obtained it through a transfer, returned to the person who
-              transferred it to you.
+              . If you don't complete the purchase of your membership by then,{" "}
+              {project?.burn_config.current_stage ===
+              BurnStage.OpenSaleNonTransferable
+                ? "it will be released back to the public in the open sale."
+                : "it will be released to the public in the open sale or, if you obtained it through a transfer, returned to the person who transferred it to you."}
             </p>
           </>
         )}
