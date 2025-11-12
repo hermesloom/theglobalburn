@@ -32,8 +32,28 @@ export default function OpenSale() {
     }
   }, []);
 
+  const startingAt =
+    project?.burn_config.open_sale_non_transferable_starting_at;
+  const isSaleOpen = startingAt && new Date() >= new Date(startingAt);
+
   if (isLoading) {
     return <Spinner />;
+  }
+
+  if (!isSaleOpen) {
+    return (
+      <div className="flex flex-col gap-4">
+        <Alert color="default">
+          <span>
+            The Fall Membership Sale has not started yet. It will open on{" "}
+            <b>
+              {startingAt ? formatDate(startingAt) : "a date to be announced"}
+            </b>
+            . Please check back then.
+          </span>
+        </Alert>
+      </div>
+    );
   }
 
   return (
@@ -51,7 +71,7 @@ export default function OpenSale() {
           Borderland, as you will <b>not</b> be able to transfer it to anyone,
           no matter what happens. If you're not entirely sure yet, please wait
           until the Spring Membership Sale which will start at{" "}
-          {formatDate(project?.burn_config.lottery_opens_at!)}. See{" "}
+          {formatDate(project?.burn_config.open_sale_general_starting_at!)}. See{" "}
           <Link
             href="https://talk.theborderland.se/d/PkDwBQaf/two-membership-sales-ap-second-iteration-of-renew-memberships-"
             target="_blank"
