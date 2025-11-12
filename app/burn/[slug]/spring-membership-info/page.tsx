@@ -28,7 +28,18 @@ export default function SpringMembershipInfoPage() {
   return (
     <>
       <Heading>Spring Membership Sale</Heading>
-      <p>TODO: explanation text from Peter</p>
+      <p className="mb-4">
+        The Spring Membership Sale will operate on a{" "}
+        <i>first-come, first-served</i> basis on this platform.
+      </p>
+      <p>
+        <b>Our Pledge: </b> We want the Spring Membership Sale to be a
+        meaningful and practical option—something you might choose if you’re
+        still uncertain about your plans for next summer. We’re working against
+        natural human behavior here, and it may take some time—perhaps even
+        years—to find the right balance. We’ll determine how many memberships to
+        release as we learn and adjust.
+      </p>
       {seatSaved ? (
         <Button
           style={{ marginTop: "2rem" }}
