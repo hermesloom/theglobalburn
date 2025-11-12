@@ -87,6 +87,7 @@ export default function SpringMembershipInfoPage() {
           isLoading={saving}
           isDisabled={saving}
           startContent={<CheckOutlined />}
+          color="success"
         >
           There is a seat saved for you! (no commitments)
         </Button>
