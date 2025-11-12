@@ -44,11 +44,15 @@ export default function ProjectPage() {
         ]
       : [
           {
-            date: formatDate("2025-11-17T16:00:00.000Z"),
+            date: formatDate(
+              project?.burn_config.open_sale_non_transferable_starting_at!,
+            ),
             title: "Fall Membership Sale opens",
           },
           {
-            date: formatDate("2025-11-23T16:00:00.000Z"),
+            date: formatDate(
+              project?.burn_config.open_sale_non_transferable_ending_at!,
+            ),
             title: "Fall Membership Sale closes",
           },
           {

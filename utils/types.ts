@@ -32,6 +32,8 @@ export type BurnConfig = {
   lottery_closes_at: string;
   open_sale_lottery_entrants_only_starting_at: string;
   open_sale_general_starting_at: string;
+  open_sale_non_transferable_starting_at?: string;
+  open_sale_non_transferable_ending_at?: string;
   open_sale_reservation_duration: number;
   transfer_reservation_duration: number;
   plus_one_reservation_duration: number;

@@ -8,6 +8,8 @@ const UpdateBurnConfigRequestSchema = s.object({
   lottery_closes_at: s.string(),
   open_sale_lottery_entrants_only_starting_at: s.string(),
   open_sale_general_starting_at: s.string(),
+  open_sale_non_transferable_starting_at: s.string().optional().nullable(),
+  open_sale_non_transferable_ending_at: s.string().optional().nullable(),
   open_sale_reservation_duration: s.number(),
   transfer_reservation_duration: s.number(),
   plus_one_reservation_duration: s.number(),
