@@ -104,6 +104,7 @@ export default function OpenSale() {
             action={{
               key: "reserve-membership",
               label: "I want to get a non-transferable Fall Membership",
+              allowLineBreaks: true,
               onClick: async () => {
                 await apiPost(`/burn/${project?.slug}/reserve-membership`);
                 await reloadProfile();
