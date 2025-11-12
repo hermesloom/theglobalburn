@@ -134,12 +134,12 @@ export default function LinksPage() {
               <Button
                 startContent={<EditOutlined />}
                 onPress={() => setEditMode(true)}
-                variant="light"
+                color="primary"
               >
                 Edit
               </Button>
             ) : (
-              <Button onPress={() => setEditMode(false)} variant="light">
+              <Button onPress={() => setEditMode(false)} color="primary">
                 Done
               </Button>
             )}
