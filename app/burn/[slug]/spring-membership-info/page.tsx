@@ -83,6 +83,7 @@ export default function SpringMembershipInfoPage() {
       {seatSaved ? (
         <Button
           style={{ marginTop: "2rem" }}
+          className="whitespace-normal py-2.5 h-auto"
           onPress={handleToggleSeat}
           isLoading={saving}
           isDisabled={saving}
@@ -94,6 +95,7 @@ export default function SpringMembershipInfoPage() {
       ) : (
         <Button
           style={{ marginTop: "2rem" }}
+          className="whitespace-normal py-2.5 h-auto"
           onPress={handleToggleSeat}
           isLoading={saving}
           isDisabled={saving}
