@@ -312,7 +312,6 @@ function IdeaModal({
         <ModalBody>
           <Input
             label="Feature Title"
-            placeholder="e.g., Add event calendar integration"
             value={title}
             onValueChange={setTitle}
             isRequired
