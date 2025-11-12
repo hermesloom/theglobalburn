@@ -177,7 +177,7 @@ export default function MembershipAvailable() {
               <ActionButton
                 action={{
                   key: "purchase-membership-tier-1",
-                  label: `Purchase low-income membership\n(${formatMoney(
+                  label: `Purchase ${project.membership_purchase_right?.is_non_transferable ? "non-transferable " : ""}low-income membership\n(${formatMoney(
                     project?.burn_config.membership_price_tier_1,
                     project?.burn_config.membership_price_currency,
                   )})${enabledAddonsSuffix}`,
@@ -202,7 +202,7 @@ export default function MembershipAvailable() {
             <ActionButton
               action={{
                 key: "purchase-membership-tier-2",
-                label: `Purchase regular-income membership\n(${formatMoney(
+                label: `Purchase ${project.membership_purchase_right?.is_non_transferable ? "non-transferable " : ""}regular-income membership\n(${formatMoney(
                   project?.burn_config.membership_price_tier_2,
                   project?.burn_config.membership_price_currency,
                 )})${enabledAddonsSuffix}`,
@@ -220,7 +220,7 @@ export default function MembershipAvailable() {
             <ActionButton
               action={{
                 key: "purchase-membership-tier-3",
-                label: `Purchase high-income membership\n(${formatMoney(
+                label: `Purchase ${project.membership_purchase_right?.is_non_transferable ? "non-transferable " : ""}high-income membership\n(${formatMoney(
                   project?.burn_config.membership_price_tier_3,
                   project?.burn_config.membership_price_currency,
                 )})${enabledAddonsSuffix}`,
