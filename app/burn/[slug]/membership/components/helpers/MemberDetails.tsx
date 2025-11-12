@@ -42,9 +42,7 @@ export default function MemberDetails({ data }: { data: MemberDetailsData }) {
         isDisabled
         startContent={<LockOutlined />}
       />
-      {project?.burn_config.current_stage !==
-        BurnStage.OpenSaleNonTransferable &&
-      data.is_low_income !== undefined ? (
+      {data.is_low_income !== undefined ? (
         <p className="text-sm text-gray-500">
           {data.is_low_income ? "Low income" : "Regular or high income"}
         </p>

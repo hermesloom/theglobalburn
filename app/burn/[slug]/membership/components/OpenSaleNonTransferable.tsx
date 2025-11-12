@@ -82,6 +82,14 @@ export default function OpenSale() {
           for more background.
         </span>
       </Alert>
+      <Alert color="default">
+        <span>
+          A low-income option will be available to anyone who had one last year,
+          using the same email login. This is the best we can offer for now. A
+          new application process can be created before the Spring sale if a
+          dedicated low-income team forms.
+        </span>
+      </Alert>
       <div className="flex flex-col gap-2">
         <ActionButton
           action={{

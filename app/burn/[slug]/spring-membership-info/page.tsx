@@ -6,6 +6,7 @@ import { useProject } from "@/app/_components/SessionContext";
 import { Button, Spinner } from "@nextui-org/react";
 import { apiGet, apiPost, apiDelete } from "@/app/_components/api";
 import { CheckOutlined } from "@ant-design/icons";
+import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
 
 export default function SpringMembershipInfoPage() {
   const { project } = useProject();
@@ -70,15 +71,18 @@ export default function SpringMembershipInfoPage() {
       <Heading>Spring Membership Sale</Heading>
       <p className="mb-4">
         The Spring Membership Sale will operate on a{" "}
-        <i>first-come, first-served</i> basis on this platform.
+        <i>first-come, first-served</i> basis on this platform, starting on{" "}
+        <b>{formatDate(project!.burn_config.open_sale_general_starting_at!)}</b>{" "}
+        and staying open for one week.
       </p>
       <p>
-        <b>Our Pledge: </b> We want the Spring Membership Sale to be a
-        meaningful and practical option—something you might choose if you're
-        still uncertain about your plans for next summer. We're working against
-        natural human behavior here, and it may take some time—perhaps even
-        years—to find the right balance. We'll determine how many memberships to
-        release as we learn and adjust.
+        We know it can feel like there won’t be enough memberships in spring,
+        but we’re committed to making both sales work. Since uncertainty is part
+        of this, we believe transparency helps most. You can see how many fall
+        memberships remain and mark that you’re waiting for spring—information
+        we’ll also use when deciding on growth through the AP. And remember the
+        Scandinavian truth: the sun will return, and everyone who wants to go
+        will go to Borderland.
       </p>
       {seatSaved ? (
         <Button
