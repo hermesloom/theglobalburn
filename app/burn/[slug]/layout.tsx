@@ -74,6 +74,7 @@ export default function ProjectLayout({
           project.membership
             ? {
                 label: "Have an idea?",
+                path: `/burn/${project?.slug}/ideas`,
                 icon: <PlusOutlined />,
               }
             : null,
