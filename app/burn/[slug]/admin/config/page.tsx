@@ -137,10 +137,10 @@ export default function ConfigPage() {
       ).toISOString(),
       open_sale_non_transferable_starting_at: openSaleNonTransferableStartingAt
         ? new Date(openSaleNonTransferableStartingAt).toISOString()
-        : null,
+        : undefined,
       open_sale_non_transferable_ending_at: openSaleNonTransferableEndingAt
         ? new Date(openSaleNonTransferableEndingAt).toISOString()
-        : null,
+        : undefined,
       open_sale_reservation_duration: parseInt(openSaleReservationDuration),
       transfer_reservation_duration: parseInt(transferReservationDuration),
       plus_one_reservation_duration: parseInt(plusOneReservationDuration),
