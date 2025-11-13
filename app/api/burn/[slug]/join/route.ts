@@ -9,8 +9,17 @@ export const POST = requestWithAuth(async (supabase, profile, req, body) => {
   }
 
   const project = await query(() =>
-    supabase.from("projects").select("*").eq("slug", projectSlug).single()
+    supabase.from("projects").select("*").eq("slug", projectSlug).maybeSingle(),
   );
+
+  if (!project) {
+    return NextResponse.json(
+      {
+        error: "You're too early! Check back later! 🕐",
+      },
+      { status: 404 },
+    );
+  }
 
   const role = await query(() =>
     supabase
@@ -18,12 +27,12 @@ export const POST = requestWithAuth(async (supabase, profile, req, body) => {
       .select("*")
       .eq("project_id", project.id)
       .eq("name", BurnRole.Participant)
-      .single()
+      .single(),
   );
 
   await query(() =>
     supabase
       .from("role_assignments")
-      .insert({ user_id: profile.id, role_id: role.id })
+      .insert({ user_id: profile.id, role_id: role.id }),
   );
 });
