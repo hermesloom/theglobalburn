@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Checkbox, Spinner, Button } from "@nextui-org/react";
 import { useProject } from "@/app/_components/SessionContext";
 import MemberDetailsWithHeading from "./helpers/MemberDetailsWithHeading";
-import { BurnMembershipPricing } from "@/utils/types";
+import { BurnMembershipPricing, BurnStage } from "@/utils/types";
 import { formatMoney } from "@/app/_components/utils";
 import { apiPost, apiGet } from "@/app/_components/api";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -102,21 +102,28 @@ export default function MembershipAvailable() {
           </div>
         ) : (
           <>
-            <p>There is a membership available for you to purchase!</p>
+            <p>
+              There is a{" "}
+              {project?.membership_purchase_right?.is_non_transferable
+                ? "non-transferable "
+                : ""}
+              membership available for you to purchase!
+            </p>
             <p>
               Your membership is reserved for you until{" "}
               <b>
                 {formatDate(project?.membership_purchase_right?.expires_at!)}
               </b>
-              . If you don't complete the purchase of your membership by then,
-              it will be released to the public in the open sale or, if you
-              obtained it through a transfer, returned to the person who
-              transferred it to you.
+              . If you don't complete the purchase of your membership by then,{" "}
+              {project?.burn_config.current_stage ===
+              BurnStage.OpenSaleNonTransferable
+                ? "it will be released back to the public in the open sale."
+                : "it will be released to the public in the open sale or, if you obtained it through a transfer, returned to the person who transferred it to you."}
             </p>
           </>
         )}
 
-        {project?.burn_config.membership_addons?.length! > 0 ? (
+        {project?.burn_config.membership_addons?.length! > 0 && !isPolling ? (
           <div className="flex flex-col gap-2">
             <p>
               You can also purchase the following optional add-ons for your
@@ -170,7 +177,7 @@ export default function MembershipAvailable() {
               <ActionButton
                 action={{
                   key: "purchase-membership-tier-1",
-                  label: `Purchase low-income membership\n(${formatMoney(
+                  label: `Purchase ${project.membership_purchase_right?.is_non_transferable ? "non-transferable " : ""}low-income membership\n(${formatMoney(
                     project?.burn_config.membership_price_tier_1,
                     project?.burn_config.membership_price_currency,
                   )})${enabledAddonsSuffix}`,
@@ -195,7 +202,7 @@ export default function MembershipAvailable() {
             <ActionButton
               action={{
                 key: "purchase-membership-tier-2",
-                label: `Purchase regular-income membership\n(${formatMoney(
+                label: `Purchase ${project.membership_purchase_right?.is_non_transferable ? "non-transferable " : ""}regular-income membership\n(${formatMoney(
                   project?.burn_config.membership_price_tier_2,
                   project?.burn_config.membership_price_currency,
                 )})${enabledAddonsSuffix}`,
@@ -213,7 +220,7 @@ export default function MembershipAvailable() {
             <ActionButton
               action={{
                 key: "purchase-membership-tier-3",
-                label: `Purchase high-income membership\n(${formatMoney(
+                label: `Purchase ${project.membership_purchase_right?.is_non_transferable ? "non-transferable " : ""}high-income membership\n(${formatMoney(
                   project?.burn_config.membership_price_tier_3,
                   project?.burn_config.membership_price_currency,
                 )})${enabledAddonsSuffix}`,

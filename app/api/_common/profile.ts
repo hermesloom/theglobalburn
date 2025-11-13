@@ -6,6 +6,7 @@ import {
   BurnMembershipPurchaseRight,
   BurnConfig,
   ProjectWithMemberships,
+  BurnStage,
 } from "@/utils/types";
 
 export async function getProjectBySlug(
@@ -288,8 +289,10 @@ export async function getAvailableMemberships(
       (membershipPurchaseRights.count ?? 0) +
       numMembershipsBeingTransferred,
     lowIncomeAvailable:
-      (project.lottery_ticket?.is_low_income ?? false) &&
-      lowIncomeSpotsAvailable > 0,
+      project.burn_config.current_stage === BurnStage.OpenSaleNonTransferable
+        ? lowIncomeSpotsAvailable > 0
+        : (project.lottery_ticket?.is_low_income ?? false) &&
+          lowIncomeSpotsAvailable > 0,
   };
 
   if (debug) {

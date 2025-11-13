@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { Spinner } from "@nextui-org/react";
+import { Spinner, Alert } from "@nextui-org/react";
 import { useProject } from "@/app/_components/SessionContext";
 import { apiGet } from "@/app/_components/api";
 import ActionButton from "@/app/_components/ActionButton";
@@ -39,7 +39,7 @@ export default function OpenSale() {
       <p>
         There are currently{" "}
         <b>{availableMemberships < 0 ? 0 : availableMemberships}</b> memberships
-        available for purchase.
+        available.
       </p>
       <div className="flex flex-col gap-2">
         <ActionButton

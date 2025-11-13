@@ -113,12 +113,12 @@ export async function POST(req: Request) {
             payment_intent: revokedMembership.stripe_payment_intent_id,
             amount: Math.round(
               revokedMembership.price *
-              (1 - (burnConfig.transfer_fee_percentage ?? 0) / 100) *
-              (stripeCurrenciesWithoutDecimals.includes(
-                revokedMembership.price_currency.toUpperCase(),
-              )
-                ? 1
-                : 100),
+                (1 - (burnConfig.transfer_fee_percentage ?? 0) / 100) *
+                (stripeCurrenciesWithoutDecimals.includes(
+                  revokedMembership.price_currency.toUpperCase(),
+                )
+                  ? 1
+                  : 100),
             ),
           });
         }
@@ -164,6 +164,7 @@ export async function POST(req: Request) {
           price_currency: session.currency!.toUpperCase(),
           metadata: membershipPurchaseRight.metadata,
           is_low_income: isLowIncome,
+          is_non_transferable: membershipPurchaseRight.is_non_transferable,
         }),
       );
 

@@ -5,6 +5,8 @@ import { Input } from "@nextui-org/react";
 import { LockOutlined } from "@ant-design/icons";
 import { LowIncomeQuestionnaireResult } from "./useLowIncomeQuestionnaire";
 import { Child } from "./ListOfChildren";
+import { useProject } from "@/app/_components/SessionContext";
+import { BurnStage } from "@/utils/types";
 
 export type MemberDetailsData = {
   first_name: string;
@@ -18,6 +20,8 @@ export type MemberDetailsData = {
 };
 
 export default function MemberDetails({ data }: { data: MemberDetailsData }) {
+  const { project } = useProject();
+
   return (
     <>
       <Input

@@ -9,34 +9,68 @@ import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date
 export default function ProjectPage() {
   const { project } = useProject();
 
-  const timelineEvents = [
-    {
-      date: formatDate(project?.burn_config.lottery_opens_at!),
-      title: "Membership lottery signup opens",
-    },
-    {
-      date: formatDate(project?.burn_config.lottery_closes_at!),
-      title: "Lottery is drawn and winners can buy their membership",
-    },
-    {
-      date: formatDate(
-        project?.burn_config.open_sale_lottery_entrants_only_starting_at!,
-      ),
-      title: "Open sale opens for those who entered the lottery but didn't win",
-    },
-    {
-      date: formatDate(project?.burn_config.open_sale_general_starting_at!),
-      title: "Open sale and transfers open for everyone",
-    },
-    {
-      date: formatDate(project?.burn_config.last_possible_transfer_at!),
-      title: "Open sale and transfers close",
-    },
-    {
-      date: "July 21 – July 27, 2025",
-      title: "Burn",
-    },
-  ];
+  const timelineEvents =
+    project?.slug === "the-borderland-2025"
+      ? [
+          {
+            date: formatDate(project?.burn_config.lottery_opens_at!),
+            title: "Membership lottery signup opens",
+          },
+          {
+            date: formatDate(project?.burn_config.lottery_closes_at!),
+            title: "Lottery is drawn and winners can buy their membership",
+          },
+          {
+            date: formatDate(
+              project?.burn_config.open_sale_lottery_entrants_only_starting_at!,
+            ),
+            title:
+              "Open sale opens for those who entered the lottery but didn't win",
+          },
+          {
+            date: formatDate(
+              project?.burn_config.open_sale_general_starting_at!,
+            ),
+            title: "Open sale and transfers open for everyone",
+          },
+          {
+            date: formatDate(project?.burn_config.last_possible_transfer_at!),
+            title: "Open sale and transfers close",
+          },
+          {
+            date: "July 21 – July 27, 2025",
+            title: "Burn",
+          },
+        ]
+      : [
+          {
+            date: formatDate(
+              project?.burn_config.open_sale_non_transferable_starting_at!,
+            ),
+            title: "Fall Membership Sale opens",
+          },
+          {
+            date: formatDate(
+              project?.burn_config.open_sale_non_transferable_ending_at!,
+            ),
+            title: "Fall Membership Sale closes",
+          },
+          {
+            date: formatDate(
+              project?.burn_config.open_sale_general_starting_at!,
+            ),
+            title: "Spring Membership Sale opens",
+          },
+          {
+            date: formatDate(project?.burn_config.last_possible_transfer_at!),
+            title:
+              "Spring Membership Sale and transfers of Spring Memberships close",
+          },
+          {
+            date: "July 20 – July 26, 2026",
+            title: "Burn",
+          },
+        ];
 
   return (
     <>

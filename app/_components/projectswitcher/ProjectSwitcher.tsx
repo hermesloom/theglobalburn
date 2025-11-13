@@ -8,7 +8,7 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
 } from "@ant-design/icons";
-import AddProjectButton from "./AddProjectButton";
+//import AddProjectButton from "./AddProjectButton";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
@@ -67,7 +67,11 @@ export default function ProjectSwitcher() {
             >
               <div className="w-full h-full relative">
                 <Image
-                  src="/borderland.png"
+                  src={
+                    p.slug === "the-borderland-2025"
+                      ? "/borderland.png"
+                      : "/borderland-2026.png"
+                  }
                   alt={p.name}
                   fill
                   className="object-contain rounded-2xl"
@@ -77,7 +81,7 @@ export default function ProjectSwitcher() {
           </Tooltip>
         ))}
 
-        <AddProjectButton />
+        {/*<AddProjectButton />*/}
 
         {/* Spacer to push sign out to bottom */}
         <div className="flex-grow" />

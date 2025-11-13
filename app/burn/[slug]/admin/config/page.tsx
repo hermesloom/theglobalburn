@@ -39,6 +39,14 @@ export default function ConfigPage() {
   const [openSaleGeneralStartingAt, setOpenSaleGeneralStartingAt] = useState(
     project!.burn_config.open_sale_general_starting_at ?? "",
   );
+  const [
+    openSaleNonTransferableStartingAt,
+    setOpenSaleNonTransferableStartingAt,
+  ] = useState(
+    project!.burn_config.open_sale_non_transferable_starting_at ?? "",
+  );
+  const [openSaleNonTransferableEndingAt, setOpenSaleNonTransferableEndingAt] =
+    useState(project!.burn_config.open_sale_non_transferable_ending_at ?? "");
   const [openSaleReservationDuration, setOpenSaleReservationDuration] =
     useState(
       (project!.burn_config.open_sale_reservation_duration ?? 0).toString(),
@@ -127,6 +135,12 @@ export default function ConfigPage() {
       open_sale_general_starting_at: new Date(
         openSaleGeneralStartingAt,
       ).toISOString(),
+      open_sale_non_transferable_starting_at: openSaleNonTransferableStartingAt
+        ? new Date(openSaleNonTransferableStartingAt).toISOString()
+        : undefined,
+      open_sale_non_transferable_ending_at: openSaleNonTransferableEndingAt
+        ? new Date(openSaleNonTransferableEndingAt).toISOString()
+        : undefined,
       open_sale_reservation_duration: parseInt(openSaleReservationDuration),
       transfer_reservation_duration: parseInt(transferReservationDuration),
       plus_one_reservation_duration: parseInt(plusOneReservationDuration),
@@ -189,6 +203,16 @@ export default function ConfigPage() {
           label="open_sale_general_starting_at"
           value={openSaleGeneralStartingAt}
           onValueChange={setOpenSaleGeneralStartingAt}
+        />
+        <Input
+          label="open_sale_non_transferable_starting_at"
+          value={openSaleNonTransferableStartingAt}
+          onValueChange={setOpenSaleNonTransferableStartingAt}
+        />
+        <Input
+          label="open_sale_non_transferable_ending_at"
+          value={openSaleNonTransferableEndingAt}
+          onValueChange={setOpenSaleNonTransferableEndingAt}
         />
         <Input
           label="open_sale_reservation_duration"

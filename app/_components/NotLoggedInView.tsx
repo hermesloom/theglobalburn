@@ -30,7 +30,7 @@ export default function Home() {
         style={{ backdropFilter: "blur(10px)" }}
       >
         <Image
-          src="/borderland.png"
+          src="/borderland-2026.png"
           alt="The Borderland"
           width={100}
           height={100}
@@ -49,7 +49,7 @@ export default function Home() {
           Membership platform
         </h2>
         <Button color="primary" onPress={() => setIsOpen(true)}>
-          Click to login
+          Click to sign up or login
         </Button>
         <Modal
           isOpen={isOpen}

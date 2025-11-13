@@ -37,6 +37,7 @@
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.5",
     "@vercel/analytics": "^1.5.0",
+    "@vercel/speed-insights": "^1.2.0",
     "ajv": "^8.17.1",
     "ajv-errors": "^3.0.0",
     "ajv-ts": "^0.9.0",
@@ -94,7 +95,6 @@
     "secrets": [
       "NEXT_PUBLIC_SUPABASE_URL",
       "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-      "NEXT_PUBLIC_SYNTHETICLOOM_URL",
       "NEXT_PUBLIC_TURNSTILE_SITE_KEY"
     ]
   }

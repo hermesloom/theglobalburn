@@ -3,6 +3,7 @@ export enum BurnStage {
   LotteryClosed = "lottery-closed",
   OpenSaleLotteryEntrantsOnly = "open-sale-lottery-entrants-only",
   OpenSaleGeneral = "open-sale-general",
+  OpenSaleNonTransferable = "open-sale-non-transferable",
 }
 
 export enum BurnRole {
@@ -31,6 +32,8 @@ export type BurnConfig = {
   lottery_closes_at: string;
   open_sale_lottery_entrants_only_starting_at: string;
   open_sale_general_starting_at: string;
+  open_sale_non_transferable_starting_at?: string;
+  open_sale_non_transferable_ending_at?: string;
   open_sale_reservation_duration: number;
   transfer_reservation_duration: number;
   plus_one_reservation_duration: number;
@@ -69,6 +72,7 @@ export type BurnMembershipPurchaseRight = {
   is_low_income: boolean;
   details_modifiable: boolean;
   metadata?: any;
+  is_non_transferable: boolean;
 };
 
 export type BurnMembership = {
@@ -85,6 +89,7 @@ export type BurnMembership = {
   is_being_transferred_to?: string; // id of the purchase right that the membership is being transferred to
   is_low_income: boolean;
   metadata?: any;
+  is_non_transferable: boolean;
 };
 
 export type Project = {
