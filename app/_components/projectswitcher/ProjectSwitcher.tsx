@@ -56,30 +56,32 @@ export default function ProjectSwitcher() {
 
         <div className="w-8 h-[2px] bg-divider rounded-full my-1" />
 
-        {profile?.projects.map((p) => (
-          <Tooltip key={p.id} content={p.name} placement="right">
-            <Button
-              isIconOnly
-              radius="full"
-              variant="light"
-              className="bg-white hover:bg-default-200 p-1"
-              onPress={() => router.push(`/${p.type}/${p.slug}`)}
-            >
-              <div className="w-full h-full relative">
-                <Image
-                  src={
-                    p.slug === "the-borderland-2025"
-                      ? "/borderland.png"
-                      : "/borderland-2026.png"
-                  }
-                  alt={p.name}
-                  fill
-                  className="object-contain rounded-2xl"
-                />
-              </div>
-            </Button>
-          </Tooltip>
-        ))}
+        {profile?.projects
+          .filter((p) => p.slug.startsWith("the-borderland-2026"))
+          .map((p) => (
+            <Tooltip key={p.id} content={p.name} placement="right">
+              <Button
+                isIconOnly
+                radius="full"
+                variant="light"
+                className="bg-white hover:bg-default-200 p-1"
+                onPress={() => router.push(`/${p.type}/${p.slug}`)}
+              >
+                <div className="w-full h-full relative">
+                  <Image
+                    src={
+                      p.slug === "the-borderland-2025"
+                        ? "/borderland.png"
+                        : "/borderland-2026.png"
+                    }
+                    alt={p.name}
+                    fill
+                    className="object-contain rounded-2xl"
+                  />
+                </div>
+              </Button>
+            </Tooltip>
+          ))}
 
         {/*<AddProjectButton />*/}
 
