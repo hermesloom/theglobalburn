@@ -13,9 +13,17 @@ const DEFAULT_PROJECT_SLUG = "the-borderland-2026";
 export default function Home() {
   const { profile, reloadProfile, showSidebar } = useSession();
   const router = useRouter();
-  const project = profile?.projects.find(
-    (p) => p.slug === DEFAULT_PROJECT_SLUG,
-  );
+
+  const usedProjectSlug = [
+    "ju99na@gmail.com",
+    "dina.aa.dall@gmail.com",
+    "mike@lekonst.se",
+    "psa@detfri.dk",
+  ].includes(profile!.email.toLowerCase())
+    ? "the-borderland-2026-demo"
+    : DEFAULT_PROJECT_SLUG;
+
+  const project = profile?.projects.find((p) => p.slug === usedProjectSlug);
 
   return (
     <div
@@ -58,9 +66,7 @@ export default function Home() {
       {project ? (
         <Button
           color="primary"
-          onPress={() =>
-            router.push(`/burn/${DEFAULT_PROJECT_SLUG}/membership`)
-          }
+          onPress={() => router.push(`/burn/${usedProjectSlug}/membership`)}
         >
           {project.burn_config.current_stage === BurnStage.LotteryOpen
             ? "Click here to go to the lottery"
@@ -74,10 +80,10 @@ export default function Home() {
             label: "Manage my membership",
             onClick: async () => {
               if (!project) {
-                await apiPost(`/burn/${DEFAULT_PROJECT_SLUG}/join`);
+                await apiPost(`/burn/${usedProjectSlug}/join`);
                 await reloadProfile();
               }
-              router.push(`/burn/${DEFAULT_PROJECT_SLUG}/membership`);
+              router.push(`/burn/${usedProjectSlug}/membership`);
             },
           }}
         />
