@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Heading from "@/app/_components/Heading";
 import { useProject } from "@/app/_components/SessionContext";
-import { Button, Spinner } from "@nextui-org/react";
+import { Button, Spinner, Alert } from "@nextui-org/react";
 import { apiGet, apiPost, apiDelete } from "@/app/_components/api";
 import { CheckOutlined } from "@ant-design/icons";
 import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
@@ -71,22 +71,38 @@ export default function SpringMembershipInfoPage() {
       <Heading>Spring Membership Sale</Heading>
       <p className="mb-4">
         The Spring Membership Sale will operate on a{" "}
-        <i>first-come, first-served</i> basis on this platform, starting on{" "}
+        <i>first-come, first-served</i> basis on this platform. It begins{" "}
         <b>{formatDate(project!.burn_config.open_sale_general_starting_at!)}</b>{" "}
-        and staying open for one week.
+        and runs for one week.
       </p>
-      <p>
+      <p className="mb-4">
+        The Spring Membership is transferable, should your plans change.
+      </p>
+      <p className="mb-4">
         We know it can feel like there won’t be enough memberships in spring,
-        but we’re committed to making both sales work. Since uncertainty is part
-        of this, we believe transparency helps most. You can see how many fall
-        memberships remain and mark that you’re waiting for spring—information
-        we’ll also use when deciding on growth through the AP. And remember the
-        Scandinavian truth: the sun will return, and everyone who wants to go
-        will go to Borderland.
+        but we’re committed to making both sales work. To do so, we believe
+        transparency is important. Therefore, you can see how many Fall
+        Memberships are left and you can mark if you are waiting for spring.
       </p>
+      <p className="mb-4">
+        You may use the information to guide you - just as we will, when we
+        debate how many memberships to add through the growth AP.
+      </p>
+      <p className="mb-4">
+        Remember the Scandinavian truth: the sun will return, and everyone who
+        wants to go will go to Borderland.
+      </p>
+      <Alert color="warning">
+        <span>
+          “Save me a seat!” doesn’t reserve or guarantee a membership - you
+          still need to buy one during the Spring Sale. But the information will
+          be used, when we debate how many memberships should be added for
+          spring.
+        </span>
+      </Alert>
       {seatSaved ? (
         <Button
-          style={{ marginTop: "2rem" }}
+          style={{ marginTop: "1rem" }}
           className="whitespace-normal py-2.5 h-auto"
           onPress={handleToggleSeat}
           isLoading={saving}
@@ -98,7 +114,7 @@ export default function SpringMembershipInfoPage() {
         </Button>
       ) : (
         <Button
-          style={{ marginTop: "2rem" }}
+          style={{ marginTop: "1rem" }}
           className="whitespace-normal py-2.5 h-auto"
           onPress={handleToggleSeat}
           isLoading={saving}

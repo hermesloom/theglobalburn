@@ -56,6 +56,10 @@ export default function ProjectPage() {
             title: "Fall Membership Sale closes",
           },
           {
+            date: formatDate("2025-11-24T19:00:00Z"),
+            title: "Annual General Meeting",
+          },
+          {
             date: formatDate(
               project?.burn_config.open_sale_general_starting_at!,
             ),

@@ -63,29 +63,36 @@ export default function OpenSale() {
         <b>{availableMemberships < 0 ? 0 : availableMemberships}</b> memberships
         available.
       </p>
+      <p>The Fall Membership is non-transferable.</p>
+      <p>
+        See{" "}
+        <Link
+          isExternal
+          href="https://talk.theborderland.se/d/PkDwBQaf/two-membership-sales-ap-second-iteration-of-renew-memberships-/63"
+        >
+          here
+        </Link>{" "}
+        for more background on the Fall and Spring Sale.
+      </p>
       <Alert color="warning">
-        <span>
-          Warning: This open sale is purely for <b>non-transferable</b>{" "}
-          memberships. That means that if you decide to buy a membership here,
-          you must be 100% certain that you'll be able to attend the upcoming
-          Borderland, as you will <b>not</b> be able to transfer it to anyone,
-          no matter what happens. If you're not entirely sure yet, please wait
-          until the Spring Membership Sale which will start at{" "}
-          {formatDate(project?.burn_config.open_sale_general_starting_at!)}. See{" "}
-          <Link
-            href="https://talk.theborderland.se/d/PkDwBQaf/two-membership-sales-ap-second-iteration-of-renew-memberships-"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+        <p className="mb-2">
+          Warning: The Fall Membership{" "}
+          <b>cannot be transferred, no matter what happens</b>. If you are not
+          completely certain you’ll attend, please wait until the Spring
+          Membership Sale.
+        </p>
+        <p>
+          You can indicate{" "}
+          <Link href={`/burn/${project.slug}/spring-membership-info`}>
             here
           </Link>{" "}
-          for more background.
-        </span>
+          that you are waiting.
+        </p>
       </Alert>
       <Alert color="default">
         <span>
-          A low-income option will be available to anyone who had one last year,
-          using the same email login. This is the best we can offer for now. A
+          A low-income option will be available to anyone who had one last year
+          when using the same email. This is the best we can offer for now. A
           new application process can be created before the Spring sale if a
           dedicated low-income team forms.
         </span>
