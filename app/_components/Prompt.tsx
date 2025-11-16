@@ -257,7 +257,7 @@ export default function Prompt({ config }: { config: PromptConfig }) {
               </div>
             </ModalBody>
             <ModalFooter>
-              {(!config.fields || config.fields.length === 0) ? (
+              {!config.fields || config.fields.length === 0 ? (
                 <>
                   <Button
                     color="default"
