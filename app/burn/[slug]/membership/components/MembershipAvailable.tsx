@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Checkbox, Spinner, Button, Alert } from "@nextui-org/react";
+import { Checkbox, Spinner, Alert, Button } from "@nextui-org/react";
 import { useProject } from "@/app/_components/SessionContext";
 import MemberDetailsWithHeading from "./helpers/MemberDetailsWithHeading";
 import { BurnMembershipPricing, BurnStage } from "@/utils/types";
@@ -16,6 +16,7 @@ import {
   BurnerQuestionnaireResult,
 } from "./helpers/useBurnerQuestionnairePrompt";
 import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
+import CancelMembershipReservation from "./CancelMembershipReservation";
 
 export default function MembershipAvailable() {
   const { project, reloadProfile } = useProject();
@@ -127,7 +128,9 @@ export default function MembershipAvailable() {
           <div className="flex flex-col gap-2">
             <p>
               You can also purchase the following <b>optional</b> add-on
-              {project?.burn_config.membership_addons?.length === 1 ? "" : "s"}{" "}
+              {project?.burn_config.membership_addons?.length === 1
+                ? ""
+                : "s"}{" "}
               for your membership:
             </p>
             {project?.burn_config.membership_addons.map((addon) => (
@@ -245,6 +248,8 @@ export default function MembershipAvailable() {
             />
           </div>
         ) : null}
+
+        {!isPolling ? <CancelMembershipReservation /> : null}
       </div>
       <InvitePlusOne />
       <MemberDetailsWithHeading data={project?.membership_purchase_right!} />

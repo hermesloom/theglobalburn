@@ -9,6 +9,7 @@ import ActionButton from "@/app/_components/ActionButton";
 import { validateBurnAge } from "@/app/_components/utils";
 import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
 import { BurnStage } from "@/utils/types";
+import CancelMembershipReservation from "./CancelMembershipReservation";
 
 export default function MembershipAvailableDetailsIncomplete() {
   const { project, reloadProfile } = useProject();
@@ -59,6 +60,7 @@ export default function MembershipAvailableDetailsIncomplete() {
           },
         }}
       />
+      <CancelMembershipReservation />
     </div>
   );
 }
