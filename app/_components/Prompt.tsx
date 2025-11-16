@@ -51,6 +51,7 @@ export type PromptConfig = {
   message?: string | React.ReactNode;
   fields?: PromptField[];
   submitButtonText?: string | ((params: SubmitButtonTextParams) => string);
+  closeOnBackdropClick?: boolean;
   resolve: (value: PromptResult | undefined) => void;
 };
 
@@ -224,6 +225,7 @@ export default function Prompt({ config }: { config: PromptConfig }) {
         setIsOpen(false);
       }}
       placement="top"
+      isDismissable={config.closeOnBackdropClick !== false}
     >
       <ModalContent>
         {(onClose) => (
@@ -239,29 +241,55 @@ export default function Prompt({ config }: { config: PromptConfig }) {
               </div>
             </ModalBody>
             <ModalFooter>
-              <Button
-                color="primary"
-                fullWidth
-                isDisabled={submitDisabled}
-                onPress={() => {
-                  config.fields?.forEach((field) => {
-                    if (field.transform) {
-                      inputs[field.key] = field.transform(inputs[field.key]);
-                    }
-                  });
+              {(!config.fields || config.fields.length === 0) ? (
+                <>
+                  <Button
+                    color="default"
+                    variant="light"
+                    onPress={() => {
+                      config.resolve(undefined);
+                      setIsOpen(false);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    color="primary"
+                    onPress={() => {
+                      config.resolve({});
+                      setIsOpen(false);
+                    }}
+                  >
+                    {typeof config.submitButtonText === "string"
+                      ? config.submitButtonText
+                      : "Confirm"}
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  color="primary"
+                  fullWidth
+                  isDisabled={submitDisabled}
+                  onPress={() => {
+                    config.fields?.forEach((field) => {
+                      if (field.transform) {
+                        inputs[field.key] = field.transform(inputs[field.key]);
+                      }
+                    });
 
-                  config.resolve(inputs);
-                  setIsOpen(false);
-                }}
-              >
-                {typeof config.submitButtonText === "string"
-                  ? config.submitButtonText
-                  : typeof config.submitButtonText === "function"
-                    ? config.submitButtonText({ unfinishedFieldIndices })
-                    : config.fields?.every((f) => f.readOnly)
-                      ? "Close"
-                      : "Submit"}
-              </Button>
+                    config.resolve(inputs);
+                    setIsOpen(false);
+                  }}
+                >
+                  {typeof config.submitButtonText === "string"
+                    ? config.submitButtonText
+                    : typeof config.submitButtonText === "function"
+                      ? config.submitButtonText({ unfinishedFieldIndices })
+                      : config.fields?.every((f) => f.readOnly)
+                        ? "Close"
+                        : "Submit"}
+                </Button>
+              )}
             </ModalFooter>
           </>
         )}

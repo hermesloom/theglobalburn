@@ -1,12 +1,14 @@
 import { usePrompt } from "@/app/_components/PromptContext";
 
 export type BurnerQuestionnaireResult = {
+  dreams_hopes_plans: string;
+  age: string;
   country: string;
+  certainty: string;
   arrival_time: string;
   departure_time: string;
   previous_events: string;
   borderland_visits: string;
-  education: string;
   experiment_awareness: string;
   responsibility: string;
   volunteer_interests: string;
@@ -32,74 +34,102 @@ export const useBurnerQuestionnairePrompt = () => {
       "First, please answer the following questions.",
       [
         {
-          key: "country",
-          label: "1. In which country do you currently reside?",
+          key: "dreams_hopes_plans",
+          label:
+            "1. Anything you want to share about your dreams, hopes or plans for your Borderland participation this year?",
+          type: "textWithTopLabel",
+          multiLine: true,
+          canBeEmpty: true,
+        },
+        {
+          key: "age",
+          label: "2. What's your age?",
           type: "textWithTopLabel",
         },
         {
+          key: "country",
+          label: "3. In which country do you currently reside?",
+          type: "textWithTopLabel",
+        },
+        {
+          key: "certainty",
+          label: "4. How certain do you feel of going? No judgment!",
+          type: "radio",
+          options: [
+            {
+              id: "never_more_certain",
+              label: "I've never felt more certain of anything in my life!",
+            },
+            {
+              id: "pretty_certain",
+              label: "Pretty certain",
+            },
+            {
+              id: "likely_go",
+              label: "I'll likely go, but you never know",
+            },
+            {
+              id: "maybe",
+              label:
+                "Maybe I don't, maybe I do - I want to keep my options open!",
+            },
+            {
+              id: "likely_not",
+              label: "I'll likely not go",
+            },
+          ],
+        },
+        {
           key: "arrival_time",
-          label: "2. When do you plan to arrive?",
+          label:
+            "5. When do you plan to arrive? If you don't know yet, choose your best guess.",
           type: "radio",
           options: [
             {
               id: "early",
-              label:
-                "Arriving earlier to build stuff and help out (like a boss)",
+              label: "Arriving earlier to build stuff and help out",
             },
             {
               id: "normal",
-              label:
-                "Arriving between Sunday and Monday (like a normal person)",
+              label: "Arriving between Sunday and Monday",
             },
-            { id: "late", label: "Arriving Tuesday or later (like a tourist)" },
+            {
+              id: "late",
+              label: "Arriving Tuesday or later",
+            },
             {
               id: "weekend",
-              label: "Only there for the weekend (what am I even doing here?)",
+              label: "Only there for the weekend",
             },
           ],
         },
         {
           key: "departure_time",
-          label: "3. When do you plan to leave?",
+          label:
+            "6. When do you plan to leave? If you don't know yet, choose your best guess",
           type: "radio",
           options: [
             { id: "before_sunday", label: "Before Sunday (but why..?)" },
             { id: "sunday", label: "Sunday" },
-            { id: "monday", label: "Monday (LNT is sexy!)" },
+            { id: "monday", label: "Monday or later (LNT is sexy!)" },
           ],
         },
         {
           key: "previous_events",
           label:
-            "4. How many events based on the 10 (11) principles have you been to before? (e.g. Burning Man, Nowhere, The Borderland, ...)",
+            "7. How many events based on the 10 (11) principles have you (approximately) been to before? (e.g. Burning Man, Nowhere, The Borderland, ...)",
           type: "textWithTopLabel",
         },
         {
           key: "borderland_visits",
-          label: "5. How many times have you been to The Borderland before?",
+          label:
+            "8. How many times have you (approximately) been to The Borderland before?",
           type: "textWithTopLabel",
-        },
-        {
-          key: "education",
-          label: "6. What's your highest level of completed education?",
-          type: "radio",
-          options: [
-            { id: "bachelors", label: "Bachelor's degree" },
-            { id: "masters", label: "Master's degree" },
-            { id: "primary", label: "Primary education (up to 10 years)" },
-            {
-              id: "secondary",
-              label: "Secondary education (10 years or more)",
-            },
-            { id: "technical", label: "Technical or vocational certification" },
-            { id: "phd", label: "PhD" },
-            { id: "none", label: "No formal education completed" },
-          ],
         },
         {
           key: "experiment_awareness",
           label:
-            "7. Are you aware of the fact that you're heading straight into a radical experiment in community, co-creation and creativity?",
+            "9. Are you aware of the fact that you're heading straight into a radical experiment in community, co-creation and creativity?",
           type: "checkboxGroup",
           options: [
             { id: "yes_no_spectators", label: "Yes, there are no spectators" },
@@ -116,7 +146,7 @@ export const useBurnerQuestionnairePrompt = () => {
         },
         {
           key: "responsibility",
-          label: "8. Who is responsible for the Borderland to happen?",
+          label: "10. Who is responsible for the Borderland to happen?",
           type: "radio",
           options: [
             {
@@ -128,9 +158,7 @@ export const useBurnerQuestionnairePrompt = () => {
               label:
                 "Margrethe II of Denmark (that's why we have sponsored ballet classes)",
             },
-            { id: "chatgpt", label: "ChatGPT" },
             { id: "that_guy", label: "That guy *pointing*" },
-            { id: "vito", label: "Vito Corleone and the family" },
             {
               id: "questionnaire",
               label: "Probably the one who created this endless questionnaire",
@@ -140,7 +168,7 @@ export const useBurnerQuestionnairePrompt = () => {
         {
           key: "volunteer_interests",
           label:
-            "9. There are a lot of ways to engage in the Borderland on site, and some super important factions that keep the event rolling. To join one of these is also an amazing (and fun!) way to connect with new people and involve yourself in the community! Would you like to be part of any of these teams of heroes?",
+            "11. Would you like to be part of any of these teams of heroes?",
           type: "checkboxGroup",
           options: [
             { id: "clown_police", label: "Clown police" },
@@ -158,32 +186,31 @@ export const useBurnerQuestionnairePrompt = () => {
         },
         {
           key: "clown_police_duties",
-          label: "10. What does the clown police do?",
+          label: "12. What does the clown police do?",
           type: "checkboxGroup",
           options: [
-            { id: "keep_everyone_safe", label: "help to keep everyone safe" },
-            { id: "advise_and_educate", label: "advise and educate" },
+            { id: "keep_everyone_safe", label: "Help to keep everyone safe" },
+            { id: "advise_and_educate", label: "Advise and educate" },
             {
               id: "wear_a_cute_clown_costume",
-              label: "wear a cute clown costume to be easily identifiable",
+              label: "Wear a cute clown costume to be easily identifiable",
             },
             {
               id: "support_people_in_making_decisions",
               label:
-                "support people in making decisions based on community standards",
+                "Support people in making decisions based on community standards",
             },
             {
               id: "be_sober_alert_and_approachable",
-              label: "be sober, alert and approachable",
+              label: "Be sober, alert and approachable",
             },
-            { id: "be_silly_and_playful", label: "be silly and playful" },
+            { id: "be_silly_and_playful", label: "Be silly and playful" },
             { id: "all", label: "All of the above!" },
           ],
         },
         {
           key: "clown_police_eligibility",
-          label:
-            "11. Sounds great, doesn't it? Can anyone with a membership become a clown police?",
+          label: "13. Can anyone with a membership become a clown police?",
           type: "radio",
           options: [
             { id: "veterans", label: "No, only veterans." },
@@ -200,7 +227,7 @@ export const useBurnerQuestionnairePrompt = () => {
         },
         {
           key: "dream_status",
-          label: "12. Do you have a dream for this year's Borderland?",
+          label: "14. Do you have a dream for this year's Borderland?",
           type: "radio",
           options: [
             {
@@ -230,7 +257,7 @@ export const useBurnerQuestionnairePrompt = () => {
         },
         {
           key: "camp_status",
-          label: "13. Are you part of a camp?",
+          label: "15. Are you part of a camp?",
           type: "radio",
           options: [
             { id: "free", label: "No, I'm free-camping" },
@@ -255,41 +282,37 @@ export const useBurnerQuestionnairePrompt = () => {
         },
         {
           key: "sound_camp_approach",
-          label:
-            "14. So, you want to start a sound camp to bring that old school disco back to the Borderland. What do you do?",
+          label: "16. What do you do if you want to start a sound camp?",
           type: "radio",
           options: [
             {
               id: "discord",
               label:
-                "I go to Borderlands Discord channel and propose the sound-camp as a part of the co-created mish-mash",
+                "Go to Borderlands Discord channel and propose it as a co-created idea",
             },
             {
               id: "facebook",
-              label:
-                "Go to Borderlands Facebook page to see if someone wants to help out",
+              label: "Go to Borderlands Facebook page to find collaborators",
             },
             {
               id: "guide",
-              label:
-                "Check in the Survival Guide to see if there are any pointers there",
+              label: "Check the Survival Guide for guidance",
             },
             {
               id: "kidsville",
               label:
-                'I put a big ass speaker in the middle of Kidsville and scream "RADICAL SELF EXPRESSION"',
+                'Put a big speaker in Kidsville and scream "RADICAL SELF EXPRESSION"',
             },
             {
               id: "pr",
-              label:
-                "Hire famous DJs and make a fancy PR campaign to get the crowd hyped",
+              label: "Hire famous DJs and make a PR campaign",
             },
           ],
         },
         {
           key: "food_awareness",
           label:
-            "15. Did you know you have to bring all your own food and drinks to the Borderland?",
+            "17. Did you know you have to bring all your own food and drinks to the Borderland?",
           type: "radio",
           options: [
             {
@@ -306,8 +329,7 @@ export const useBurnerQuestionnairePrompt = () => {
         },
         {
           key: "favorite_principle",
-          label:
-            "16. The Borderland is informed by a set of guidelines known as the 10 (11) principles. Which one is your favorite?",
+          label: "18. Which of the 10 (11) principles is your favorite?",
           type: "checkboxGroup",
           options: [
             { id: "reliance", label: "Radical self-reliance" },
@@ -330,40 +352,36 @@ export const useBurnerQuestionnairePrompt = () => {
         },
         {
           key: "lnt_understanding",
-          label:
-            "17. Leaving No Trace is an important Borderland principle. What does it mean?",
+          label: "19. What does 'Leave No Trace' mean?",
           type: "checkboxGroup",
           options: [
             {
               id: "pack_it_in_pack_it_out",
               label:
-                "I will pack everything I brought in and take it out with me, including my rubbish and recycling.",
+                "I will pack everything I brought in and take it out with me",
             },
             {
               id: "pick_up_moop",
-              label:
-                "I will pick up and take care of any Matter Out Of Place (MOOP) I see on site, even if I didn't make it.",
+              label: "I will pick up and take care of any MOOP I see on site",
             },
             {
               id: "no_moop_left_behind",
-              label: "I will not leave MOOP around the site.",
+              label: "I will not leave MOOP around the site",
             },
             {
               id: "poop_in_toilets",
-              label: "I won't poop anywhere but in the toilets.",
+              label: "I won't poop anywhere but in the toilets",
             },
             {
               id: "remind_others",
-              label:
-                "I will gently remind others to take care of their MOOP if I see it on the site.",
+              label: "I will remind others about MOOP responsibility",
             },
             { id: "all", label: "All of the above!" },
           ],
         },
         {
           key: "nature_reserve_awareness",
-          label:
-            "18. Are you aware that The Borderland in Alversjö is surrounded by a nature reserve, and that we should not camp, make fires or build things there?",
+          label: "20. Are you aware of the nature reserve rules in Alversjö?",
           type: "radio",
           options: [
             {
@@ -374,54 +392,47 @@ export const useBurnerQuestionnairePrompt = () => {
             {
               id: "partial",
               label:
-                "I knew about the reserve, but not about the rules. I will make sure I know about it!",
+                "I knew about the reserve, but not about the rules. I will learn them!",
             },
             {
               id: "no",
               label:
-                "No I didn't know that, but I will read the Survival Guide and educate myself!",
+                "No, but I will read the Survival Guide and educate myself!",
             },
           ],
         },
         {
           key: "consent_understanding",
-          label:
-            "19. Consent is the unofficial 11th principle of the Borderland. What does it mean?",
+          label: "21. What does consent mean at the Borderland?",
           type: "checkboxGroup",
           options: [
             {
               id: "yes",
-              label:
-                "Only yes means yes! Not everyone is comfortable saying 'no' directly",
+              label: "Only yes means yes!",
             },
             {
               id: "consent_can_be_revoked",
-              label:
-                "Consent can be revoked at any time, even if something else was agreed upon before",
+              label: "Consent can be revoked at any time",
             },
             {
               id: "nudity_and_sexy_costume",
-              label: "Nudity and sexy costume is not an invitation to touch",
+              label: "Nudity is not an invitation to touch",
             },
             {
               id: "not_owed_anything",
-              label:
-                "I'm not owed anything by anyone, and I will gracefully accept a 'no'",
+              label: "I'm not owed anything by anyone",
             },
             {
               id: "can_just_ask",
-              label:
-                "I can just ask if there's something I want, I can deal with getting a 'no'",
+              label: "I can just ask and handle a 'no'",
             },
             {
               id: "ok_to_check_in",
-              label:
-                "It's OK for me to check in if I see something that looks non-consensual",
+              label: "It's OK to check in if something looks non-consensual",
             },
             {
               id: "get_permission",
-              label:
-                "I'll get permission from everyone in the frame before taking photos",
+              label: "I'll get permission before taking photos",
             },
             {
               id: "all",
@@ -432,46 +443,44 @@ export const useBurnerQuestionnairePrompt = () => {
         {
           key: "entry_requirements",
           label:
-            "20. What do you need to bring to the event to be let in by the Threshold gate crew?",
+            "22. What do you need to bring to be let in by the Threshold gate crew?",
           type: "radio",
           options: [
             {
               id: "nothing",
-              label: "Nothing, everybody in the world knows who I am already",
+              label: "Nothing, everybody knows who I am already",
             },
             {
               id: "id",
               label:
-                "A valid ID and my membership QR code (downloaded or printed in advance)",
+                "A valid ID (bring the physical version!) and membership QR code",
             },
             {
               id: "check",
               label:
-                "What? I thought we are free souls and shouldn't need any of that stuff. I'll double-check the survival guide to make sure I have everything I need when arriving at the gate.",
+                "I'll double-check the survival guide to make sure I have everything I need",
             },
           ],
         },
         {
           key: "questionnaire_understanding",
           label:
-            "21. Are you aware of the fact that this questionnaire is but a failed attempt at explaining the beautiful chaos that is the Borderland?",
+            "23. Are you aware that this questionnaire is just an attempt at describing the Borderland?",
           type: "checkboxGroup",
           options: [
             {
               id: "decentralized",
-              label:
-                "Yes, Borderland is a fully decentralized madness with no formal authority",
+              label: "Yes, Borderland is fully decentralized madness",
             },
-            { id: "great", label: "No, you're doing great! Hooray for you!" },
+            { id: "great", label: "No, you're doing great!" },
             {
               id: "impossible",
               label:
-                "Yes, it's impossible to briefly describe an event that is always in the process, and never fixed.",
+                "Yes, it's impossible to describe something always in process",
             },
             {
               id: "tired",
-              label:
-                "Yes, and I'm super tired of it. Let's meet on Discord to organize stuff instead!",
+              label: "Yes, and I'm tired of it. Let's meet on Discord!",
             },
           ],
         },
@@ -485,5 +494,6 @@ export const useBurnerQuestionnairePrompt = () => {
 
         return "Please answer all the questions";
       },
+      false, // closeOnBackdropClick: prevent closing when clicking background
     );
 };
