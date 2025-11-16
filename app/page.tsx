@@ -18,14 +18,7 @@ export default function Home() {
   const prompt = usePrompt();
   const [isLoadingWelcome, setIsLoadingWelcome] = useState(false);
 
-  const usedProjectSlug = [
-    "ju99na@gmail.com",
-    "dina.aa.dall@gmail.com",
-    "mike@lekonst.se",
-    "psa@detfri.dk",
-  ].includes(profile!.email.toLowerCase())
-    ? "the-borderland-2026-demo"
-    : DEFAULT_PROJECT_SLUG;
+  const usedProjectSlug = DEFAULT_PROJECT_SLUG;
 
   const project = profile?.projects.find((p) => p.slug === usedProjectSlug);
 
@@ -33,7 +26,7 @@ export default function Home() {
     setIsLoadingWelcome(true);
     try {
       // Load a random welcome from BL2026
-      const response = await apiGet(`/burn/${DEFAULT_PROJECT_SLUG}/welcome`);
+      const response = await apiGet(`/burn/${usedProjectSlug}/welcome`);
       const receivedWelcome =
         response.message || "No welcomes in the pond yet. Be the first!";
 
