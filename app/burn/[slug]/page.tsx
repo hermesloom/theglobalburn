@@ -66,9 +66,16 @@ export default function ProjectPage() {
             title: "Spring Membership Sale opens",
           },
           {
+            date: formatDate("2026-03-17T16:00:00Z"),
+            title: "Spring Membership Sale closes",
+          },
+          {
+            date: formatDate("2026-06-22T21:59:59Z"),
+            title: "Spring Membership transfers close (full refund)",
+          },
+          {
             date: formatDate(project?.burn_config.last_possible_transfer_at!),
-            title:
-              "Spring Membership Sale and transfers of Spring Memberships close",
+            title: "Spring Membership transfers close (partial refund)",
           },
           {
             date: "July 20 – July 26, 2026",
