@@ -118,7 +118,7 @@ export default function Home() {
           isDisabled={isLoadingWelcome}
           startContent={isLoadingWelcome ? <Spinner size="sm" /> : null}
         >
-          {isLoadingWelcome ? "Loading..." : "Take a welcome, give a welcome"}
+          Take a welcome, give a welcome
         </Button>
         {project ? (
           <Button
