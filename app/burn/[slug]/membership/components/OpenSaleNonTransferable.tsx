@@ -37,7 +37,11 @@ export default function OpenSale() {
   const isSaleOpen = startingAt && new Date() >= new Date(startingAt);
 
   if (isLoading) {
-    return <Spinner />;
+    return (
+      <div className="flex justify-center items-center py-8">
+        <Spinner size="lg" />
+      </div>
+    );
   }
 
   if (!isSaleOpen) {
