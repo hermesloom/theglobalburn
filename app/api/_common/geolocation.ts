@@ -1,3 +1,19 @@
+type LocationCacheEntry = {
+  location: {
+    country: string | null;
+    region: string | null;
+    city: string | null;
+    latitude: number | null;
+    longitude: number | null;
+  } | null;
+  timestamp: number;
+};
+
+// In-memory cache for IP location lookups
+// Cache TTL: 24 hours (IP geolocation doesn't change frequently)
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const locationCache = new Map<string, LocationCacheEntry>();
+
 /**
  * Gets location information from an IP address using ip-api.com (free, open source)
  * @param ipAddress The IP address to look up
@@ -36,6 +52,13 @@ export async function getLocationFromIP(ipAddress: string): Promise<{
     return null;
   }
 
+  // Check cache first
+  const cached = locationCache.get(ipAddress);
+  const now = Date.now();
+  if (cached && now - cached.timestamp < CACHE_TTL_MS) {
+    return cached.location;
+  }
+
   try {
     // Using ip-api.com free tier (no API key required, 45 requests/minute)
     const response = await fetch(
@@ -48,24 +71,35 @@ export async function getLocationFromIP(ipAddress: string): Promise<{
     );
 
     if (!response.ok) {
+      // Cache the null result to avoid repeated failed requests
+      locationCache.set(ipAddress, { location: null, timestamp: now });
       return null;
     }
 
     const data = await response.json();
 
     if (data.status === "fail") {
+      // Cache the null result to avoid repeated failed requests
+      locationCache.set(ipAddress, { location: null, timestamp: now });
       return null;
     }
 
-    return {
+    const location = {
       country: data.country || null,
       region: data.regionName || null,
       city: data.city || null,
       latitude: data.lat || null,
       longitude: data.lon || null,
     };
+
+    // Cache the result
+    locationCache.set(ipAddress, { location, timestamp: now });
+
+    return location;
   } catch (error) {
     console.error("Error fetching location from IP:", error);
+    // Cache the null result to avoid repeated failed requests
+    locationCache.set(ipAddress, { location: null, timestamp: now });
     return null;
   }
 }
