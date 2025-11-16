@@ -20,6 +20,7 @@ export default function CancelMembershipReservation() {
       <Button
         color="danger"
         variant="flat"
+        className="whitespace-normal py-2.5 h-auto"
         onPress={async () => {
           const result = await prompt(
             "Are you sure you want to cancel your membership reservation?",
