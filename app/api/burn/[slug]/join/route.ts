@@ -15,7 +15,7 @@ export const POST = requestWithAuth(async (supabase, profile, req, body) => {
   if (!project) {
     return NextResponse.json(
       {
-        error: "You're too early! Check back later! 🕐",
+        error: "The project you're trying to join does not exist",
       },
       { status: 404 },
     );
