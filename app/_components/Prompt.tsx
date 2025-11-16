@@ -28,7 +28,8 @@ export type PromptField = {
     | "checkbox"
     | "checkboxGroup"
     | "radio"
-    | "dropdown";
+    | "dropdown"
+    | "quote";
   options?: {
     id: string;
     label: string;
@@ -128,6 +129,21 @@ export default function Prompt({ config }: { config: PromptConfig }) {
                 isReadOnly={field.readOnly}
               />
             )}
+          </div>
+        );
+
+      case "quote":
+        return (
+          <div key={field.key} className="w-full">
+            {field.label && renderLabel(field.label)}
+            <div className="relative p-6 bg-gradient-to-br from-default-50 to-default-100 rounded-lg border-l-4 border-primary-500 shadow-sm">
+              <div className="absolute top-2 left-2 text-4xl text-primary-300/50 font-serif leading-none">
+                "
+              </div>
+              <p className="relative pl-8 pr-4 text-default-700 italic text-base leading-relaxed whitespace-pre-wrap">
+                {inputs[field.key] || field.defaultValue || ""}
+              </p>
+            </div>
           </div>
         );
 
