@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Checkbox, Spinner, Button } from "@nextui-org/react";
+import { Checkbox, Spinner, Alert, Button } from "@nextui-org/react";
 import { useProject } from "@/app/_components/SessionContext";
 import MemberDetailsWithHeading from "./helpers/MemberDetailsWithHeading";
 import { BurnMembershipPricing, BurnStage } from "@/utils/types";
@@ -16,6 +16,7 @@ import {
   BurnerQuestionnaireResult,
 } from "./helpers/useBurnerQuestionnairePrompt";
 import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
+import CancelMembershipReservation from "./CancelMembershipReservation";
 
 export default function MembershipAvailable() {
   const { project, reloadProfile } = useProject();
@@ -114,11 +115,11 @@ export default function MembershipAvailable() {
               <b>
                 {formatDate(project?.membership_purchase_right?.expires_at!)}
               </b>
-              . If you don't complete the purchase of your membership by then,{" "}
+              . If you don't complete the purchase of your membership by then
               {project?.burn_config.current_stage ===
               BurnStage.OpenSaleNonTransferable
-                ? "it will be released back to the public in the open sale."
-                : "it will be released to the public in the open sale or, if you obtained it through a transfer, returned to the person who transferred it to you."}
+                ? ", it will be returned to the sale."
+                : ", it will be released to the public in the open sale or, if you obtained it through a transfer, returned to the person who transferred it to you."}
             </p>
           </>
         )}
@@ -126,8 +127,11 @@ export default function MembershipAvailable() {
         {project?.burn_config.membership_addons?.length! > 0 && !isPolling ? (
           <div className="flex flex-col gap-2">
             <p>
-              You can also purchase the following optional add-ons for your
-              membership:
+              You can also purchase the following <b>optional</b> add-on
+              {project?.burn_config.membership_addons?.length === 1
+                ? ""
+                : "s"}{" "}
+              for your membership:
             </p>
             {project?.burn_config.membership_addons.map((addon) => (
               <div key={addon.id} className="flex flex-row gap-2 ml-10">
@@ -168,6 +172,13 @@ export default function MembershipAvailable() {
             ))}
           </div>
         ) : null}
+
+        <Alert color="default">
+          <span>
+            Choose a high-income membership to fund more low-income memberships
+            in the Spring Sale.
+          </span>
+        </Alert>
 
         {!isPolling &&
         project?.burn_config.membership_pricing_type ===
@@ -223,7 +234,7 @@ export default function MembershipAvailable() {
                 label: `Purchase ${project.membership_purchase_right?.is_non_transferable ? "non-transferable " : ""}high-income membership\n(${formatMoney(
                   project?.burn_config.membership_price_tier_3,
                   project?.burn_config.membership_price_currency,
-                )})${enabledAddonsSuffix}`,
+                )}) ${enabledAddonsSuffix}`,
                 allowLineBreaks: true,
                 onClick: {
                   prompt: burnerQuestionnaire,
@@ -237,6 +248,8 @@ export default function MembershipAvailable() {
             />
           </div>
         ) : null}
+
+        {!isPolling ? <CancelMembershipReservation /> : null}
       </div>
       <InvitePlusOne />
       <MemberDetailsWithHeading data={project?.membership_purchase_right!} />

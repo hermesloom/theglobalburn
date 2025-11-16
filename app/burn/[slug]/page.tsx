@@ -3,7 +3,7 @@
 import React from "react";
 import { useProject } from "@/app/_components/SessionContext";
 import Heading from "@/app/_components/Heading";
-import { Card, CardBody } from "@nextui-org/react";
+import { Card, CardBody, Alert, Link } from "@nextui-org/react";
 import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
 
 export default function ProjectPage() {
@@ -56,15 +56,27 @@ export default function ProjectPage() {
             title: "Fall Membership Sale closes",
           },
           {
+            date: formatDate("2025-11-24T19:00:00Z"),
+            title: "Annual General Meeting",
+            link: "https://talk.theborderland.se/d/Xh7k8Lov/annual-general-meeting-november-24-2025-at-20-00-8pm-",
+          },
+          {
             date: formatDate(
               project?.burn_config.open_sale_general_starting_at!,
             ),
             title: "Spring Membership Sale opens",
           },
           {
+            date: formatDate("2026-03-17T16:00:00Z"),
+            title: "Spring Membership Sale closes",
+          },
+          {
+            date: formatDate("2026-06-22T21:59:59Z"),
+            title: "Spring Membership transfers close (full refund)",
+          },
+          {
             date: formatDate(project?.burn_config.last_possible_transfer_at!),
-            title:
-              "Spring Membership Sale and transfers of Spring Memberships close",
+            title: "Spring Membership transfers close (partial refund)",
           },
           {
             date: "July 20 – July 26, 2026",
@@ -93,6 +105,14 @@ export default function ProjectPage() {
                 <div>
                   <p className="text-small text-default-500">{event.date}</p>
                   <h3 className="text-lg font-semibold mt-1">{event.title}</h3>
+                  {event.link ? (
+                    <Link
+                      isExternal
+                      href="https://talk.theborderland.se/d/Xh7k8Lov/annual-general-meeting-november-24-2025-at-20-00-8pm-"
+                    >
+                      See here for more info
+                    </Link>
+                  ) : null}
                 </div>
               </CardBody>
             </Card>

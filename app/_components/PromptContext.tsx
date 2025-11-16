@@ -13,6 +13,7 @@ type PromptContextType = (
   message?: string | React.ReactNode,
   fields?: PromptField[],
   submitButtonText?: string | ((params: SubmitButtonTextParams) => string),
+  closeOnBackdropClick?: boolean,
 ) => Promise<PromptResult | undefined>;
 
 const PromptContext = createContext<PromptContextType>(() => Promise.reject());
@@ -24,6 +25,7 @@ export function PromptProvider({ children }: { children: React.ReactNode }) {
     message?: string | React.ReactNode,
     fields?: PromptField[],
     submitButtonText?: string | ((params: SubmitButtonTextParams) => string),
+    closeOnBackdropClick?: boolean,
   ) => {
     return new Promise<PromptResult | undefined>((resolve) => {
       const id = uuidv4();
@@ -35,6 +37,7 @@ export function PromptProvider({ children }: { children: React.ReactNode }) {
           message,
           fields,
           submitButtonText,
+          closeOnBackdropClick,
           resolve: (res) => {
             resolve(res);
 
