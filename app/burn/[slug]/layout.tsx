@@ -14,6 +14,7 @@ import {
   FileDoneOutlined,
   LinkOutlined,
   PlusOutlined,
+  BarChartOutlined,
 } from "@ant-design/icons";
 import { useProject } from "@/app/_components/SessionContext";
 import { redirect } from "next/navigation";
@@ -71,6 +72,13 @@ export default function ProjectLayout({
             path: `/burn/${project?.slug}/links`,
             icon: <LinkOutlined />,
           },
+          project.membership
+            ? {
+                label: "Statistics",
+                path: `/burn/${project?.slug}/statistics`,
+                icon: <BarChartOutlined />,
+              }
+            : null,
           project.membership
             ? {
                 label: "Have an idea?",
