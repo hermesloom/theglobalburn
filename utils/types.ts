@@ -12,6 +12,7 @@ export enum BurnRole {
   MembershipManager = "membership-manager",
   MembershipScanner = "membership-scanner",
   ThresholdWatcher = "threshold-watcher",
+  IdeaResolver = "idea-resolver",
 }
 
 export enum BurnMembershipPricing {

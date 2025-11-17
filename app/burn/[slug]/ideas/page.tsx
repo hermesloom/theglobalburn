@@ -13,6 +13,7 @@ import {
   useDisclosure,
   Spinner,
   Textarea,
+  Checkbox,
 } from "@nextui-org/react";
 import { useProject, useSession } from "@/app/_components/SessionContext";
 import { apiGet, apiPost, apiDelete, apiPatch } from "@/app/_components/api";
@@ -22,7 +23,10 @@ import {
   LikeOutlined,
   LikeFilled,
   EditOutlined,
+  CheckOutlined,
+  CloseOutlined,
 } from "@ant-design/icons";
+import { BurnRole } from "@/utils/types";
 
 interface BurnIdea {
   id: string;
@@ -33,6 +37,7 @@ interface BurnIdea {
   updated_at: string;
   vote_count: number;
   user_has_voted: boolean;
+  resolved: boolean;
 }
 
 export default function IdeasPage() {
@@ -44,6 +49,8 @@ export default function IdeasPage() {
   const [deletingIdeaId, setDeletingIdeaId] = useState<string | null>(null);
   const [editingIdea, setEditingIdea] = useState<BurnIdea | null>(null);
   const [savingIdea, setSavingIdea] = useState(false);
+  const [resolvingIdeaId, setResolvingIdeaId] = useState<string | null>(null);
+  const [showResolved, setShowResolved] = useState(false);
   const {
     isOpen: isModalOpen,
     onOpen: onModalOpen,
@@ -53,7 +60,10 @@ export default function IdeasPage() {
   const loadIdeas = async () => {
     try {
       setLoading(true);
-      const response = await apiGet(`/burn/${project?.slug}/ideas`);
+      const url = `/burn/${project?.slug}/ideas${
+        showResolved ? "?include_resolved=true" : ""
+      }`;
+      const response = await apiGet(url);
       setIdeas(response.data || []);
     } catch (error) {
       console.error("Failed to load ideas:", error);
@@ -66,7 +76,7 @@ export default function IdeasPage() {
     if (project?.slug) {
       loadIdeas();
     }
-  }, [project?.slug]);
+  }, [project?.slug, showResolved]);
 
   const handleAddIdea = () => {
     setEditingIdea(null);
@@ -108,6 +118,20 @@ export default function IdeasPage() {
       setVotingIdeaId(null);
     }
   };
+
+  const handleToggleResolved = async (idea: BurnIdea) => {
+    try {
+      setResolvingIdeaId(idea.id);
+      await apiPatch(`/burn/${project?.slug}/ideas/${idea.id}/resolve`);
+      await loadIdeas();
+    } catch (error) {
+      console.error("Failed to toggle resolved status:", error);
+    } finally {
+      setResolvingIdeaId(null);
+    }
+  };
+
+  const canResolveIdeas = project?.roles.includes(BurnRole.IdeaResolver);
 
   const handleSaveIdea = async (formData: {
     title: string;
@@ -169,9 +193,22 @@ export default function IdeasPage() {
         any use case, so no idea is too ambitious.
       </p>
 
+      {canResolveIdeas && (
+        <div className="mb-4">
+          <Checkbox
+            isSelected={showResolved}
+            onValueChange={setShowResolved}
+          >
+            Show resolved ideas
+          </Checkbox>
+        </div>
+      )}
+
       {ideas.length === 0 && (
         <p className="text-gray-500">
-          No feature ideas yet. Be the first to suggest one!
+          {showResolved
+            ? "No feature ideas found."
+            : "No feature ideas yet. Be the first to suggest one!"}
         </p>
       )}
 
@@ -179,49 +216,93 @@ export default function IdeasPage() {
         {ideas.map((idea) => (
           <div
             key={idea.id}
-            className="border border-divider rounded-lg p-4 flex flex-col gap-2"
+            className={`border border-divider rounded-lg p-4 flex flex-col gap-2 ${
+              idea.resolved
+                ? "opacity-60 bg-default-50"
+                : ""
+            }`}
           >
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1">
-                <h3 className="font-semibold text-lg mb-1">{idea.title}</h3>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3
+                    className={`font-semibold text-lg ${
+                      idea.resolved ? "line-through text-default-400" : ""
+                    }`}
+                  >
+                    {idea.title}
+                  </h3>
+                  {idea.resolved && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-success-100 text-success-700">
+                      Resolved
+                    </span>
+                  )}
+                </div>
                 {idea.description && (
-                  <p className="text-default-600 text-sm whitespace-pre-wrap">
+                  <p
+                    className={`text-sm whitespace-pre-wrap ${
+                      idea.resolved ? "text-default-400" : "text-default-600"
+                    }`}
+                  >
                     {idea.description}
                   </p>
                 )}
               </div>
-              {isOwnIdea(idea) && (
-                <div className="flex gap-1">
+              <div className="flex gap-1">
+                {canResolveIdeas && (
                   <Button
                     isIconOnly
                     size="sm"
                     variant="light"
-                    onPress={() => handleEditIdea(idea)}
+                    color={idea.resolved ? "warning" : "success"}
+                    onPress={() => handleToggleResolved(idea)}
+                    isLoading={resolvingIdeaId === idea.id}
                     isDisabled={
                       deletingIdeaId !== null ||
                       votingIdeaId !== null ||
-                      savingIdea
+                      savingIdea ||
+                      resolvingIdeaId !== null
                     }
+                    title={idea.resolved ? "Mark as unresolved" : "Mark as resolved"}
                   >
-                    <EditOutlined />
+                    {idea.resolved ? <CloseOutlined /> : <CheckOutlined />}
                   </Button>
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    variant="light"
-                    color="danger"
-                    onPress={() => handleDeleteIdea(idea.id)}
-                    isLoading={deletingIdeaId === idea.id}
-                    isDisabled={
-                      deletingIdeaId !== null ||
-                      votingIdeaId !== null ||
-                      savingIdea
-                    }
-                  >
-                    <DeleteOutlined />
-                  </Button>
-                </div>
-              )}
+                )}
+                {isOwnIdea(idea) && (
+                  <>
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      onPress={() => handleEditIdea(idea)}
+                      isDisabled={
+                        deletingIdeaId !== null ||
+                        votingIdeaId !== null ||
+                        savingIdea ||
+                        resolvingIdeaId !== null
+                      }
+                    >
+                      <EditOutlined />
+                    </Button>
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      color="danger"
+                      onPress={() => handleDeleteIdea(idea.id)}
+                      isLoading={deletingIdeaId === idea.id}
+                      isDisabled={
+                        deletingIdeaId !== null ||
+                        votingIdeaId !== null ||
+                        savingIdea ||
+                        resolvingIdeaId !== null
+                      }
+                    >
+                      <DeleteOutlined />
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-2 mt-2">
               <Button
