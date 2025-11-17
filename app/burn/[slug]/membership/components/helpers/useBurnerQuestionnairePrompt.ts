@@ -53,7 +53,7 @@ export const useBurnerQuestionnairePrompt = () => {
         },
         {
           key: "certainty",
-          label: "4. How certain do you feel of going? No judgment!",
+          label: "4. How certain do you feel of going? No judgement!",
           type: "radio",
           options: [
             {
