@@ -9,20 +9,9 @@ const PROJECT_SLUG = "the-borderland-2026";
  * Prometheus metrics endpoint
  * Exposes platform metrics in Prometheus text format
  * All statistics are filtered to only include data for the-borderland-2026 project
- * Protected by Bearer token authentication using GRAFANA_API_KEY
+ * Protected by Bearer token or Basic auth using GRAFANA_API_KEY
  */
 export async function GET(req: NextRequest) {
-  // Check Bearer token authentication
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const [scheme, token] = authHeader.split(" ");
-  if (scheme !== "Bearer" || !token) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const grafanaApiKey = process.env.GRAFANA_API_KEY;
   if (!grafanaApiKey) {
     console.error("GRAFANA_API_KEY environment variable is not set");
@@ -32,7 +21,31 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  if (token !== grafanaApiKey) {
+  // Check authentication (Bearer token or Basic auth)
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const [scheme, credentials] = authHeader.split(" ");
+  let isAuthenticated = false;
+
+  if (scheme === "Bearer" && credentials) {
+    // Bearer token authentication
+    isAuthenticated = credentials === grafanaApiKey;
+  } else if (scheme === "Basic" && credentials) {
+    // Basic authentication: username "user", password from GRAFANA_API_KEY
+    try {
+      const decoded = Buffer.from(credentials, "base64").toString("utf-8");
+      const [username, password] = decoded.split(":");
+      isAuthenticated = username === "user" && password === grafanaApiKey;
+    } catch (error) {
+      // Invalid base64 encoding
+      isAuthenticated = false;
+    }
+  }
+
+  if (!isAuthenticated) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

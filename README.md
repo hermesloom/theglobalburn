@@ -66,12 +66,18 @@ For next year my dream is to have something like self-hosted Vercel, but instead
 
 ## Metrics Endpoint
 
-The platform exposes Prometheus metrics at `/api/metrics`. The endpoint is protected by Bearer token authentication using the `GRAFANA_API_KEY` environment variable.
+The platform exposes Prometheus metrics at `/api/metrics`. The endpoint is protected by Bearer token or Basic authentication using the `GRAFANA_API_KEY` environment variable.
 
 To access the metrics endpoint using cURL while reading the API key from `.env`:
 
+**Bearer token authentication:**
 ```bash
 curl -H "Authorization: Bearer $(grep GRAFANA_API_KEY .env | cut -d '=' -f2)" http://localhost:3000/api/metrics
+```
+
+**Basic authentication (username: "user", password: GRAFANA_API_KEY):**
+```bash
+curl -u "user:$(grep GRAFANA_API_KEY .env | cut -d '=' -f2)" http://localhost:3000/api/metrics
 ```
 
 For production, replace `http://localhost:3000` with your production URL.
