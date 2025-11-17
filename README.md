@@ -64,6 +64,18 @@ For next year my dream is to have something like self-hosted Vercel, but instead
 22. Run `npm run stripe:listen` in a separate console. Follow the instructions on activating the keys. Once done run the command again, copy out the webhook signing secret (starting with `whsec_`) and copy it into the `stripe_webhook_secret` of the burn config
 23. Click on "Save configuration"
 
+## Metrics Endpoint
+
+The platform exposes Prometheus metrics at `/api/metrics`. The endpoint is protected by Bearer token authentication using the `GRAFANA_API_KEY` environment variable.
+
+To access the metrics endpoint using cURL while reading the API key from `.env`:
+
+```bash
+curl -H "Authorization: Bearer $(grep GRAFANA_API_KEY .env | cut -d '=' -f2)" http://localhost:3000/api/metrics
+```
+
+For production, replace `http://localhost:3000` with your production URL.
+
 ## Co-creation
 
 Please contact synergies@hermesloom.org for collaboration and co-creation.
