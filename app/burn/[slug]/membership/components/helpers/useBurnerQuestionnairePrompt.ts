@@ -182,6 +182,7 @@ export const useBurnerQuestionnairePrompt = () => {
                 "Threshold (The gate crew with black vests who checks memberships)",
             },
             { id: "electricity", label: "Electricity" },
+            { id: "conflict_resolution", label: "Conflict resolution team" },
           ],
         },
         {
