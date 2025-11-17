@@ -54,7 +54,7 @@ export const PATCH = requestWithProject<
           " " +
           body.last_name +
           " just tried to acquire a membership!",
-        `Dear board,\n\nThis is to inform you that **${body.first_name} ${body.last_name}** has just tried to enter their personal details in the membership platform to acquire a membership, but has been prevented from doing so through an error message.\n\nNote that this individual, registered in the platform as ${profile.email}, currently has an active membership purchase right which can be revoked by an admin. Alternatively, it will automatically expire at ${project.membership_purchase_right.expires_at}.\n\nBest regards\nMembership platform for ${project.name}`,
+        `Dear board,\n\nThis is to inform you that **${body.first_name} ${body.last_name}** has just tried to enter their personal details in the membership platform to acquire a membership, but has been prevented from doing so through an error message.\n\nNote that this individual, registered in the platform as ${profile.email}, currently has an active membership purchase right which can be revoked by an admin. Alternatively, it will automatically expire at ${project.membership_purchase_right.expires_at}.\n\nThis email has been generated automatically.\n\nBest regards\nMembership platform for ${project.name}`,
       );
       throw new Error(
         `You have been formally excluded from ${project.name}. The board has been informed of your attempt to sign up anyway. If this doesn't seem right, please contact support via the email address at the bottom.`,
