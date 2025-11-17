@@ -43,9 +43,7 @@ export default function StatisticsPage() {
     const fetchStatistics = async () => {
       try {
         setLoading(true);
-        const data = await apiGet<Statistics>(
-          `/burn/${project?.slug}/statistics`,
-        );
+        const data = await apiGet(`/burn/${project?.slug}/statistics`);
         setStatistics(data);
         setError(null);
       } catch (err: any) {
@@ -143,7 +141,7 @@ export default function StatisticsPage() {
                 cy="50%"
                 labelLine={false}
                 label={({ name, percent }) =>
-                  `${name}: ${(percent * 100).toFixed(0)}%`
+                  `${name}: ${(percent! * 100).toFixed(0)}%`
                 }
                 outerRadius={80}
                 fill="#8884d8"
