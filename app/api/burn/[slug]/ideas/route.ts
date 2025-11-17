@@ -8,13 +8,20 @@ const CreateIdeaRequestSchema = s.object({
 
 // GET - Get all ideas for a project, sorted by vote count
 export const GET = requestWithMembership(async (supabase, profile, request, body, project) => {
-  const ideas = await query(() =>
-    supabase
-      .from("burn_ideas")
-      .select("*")
-      .eq("project_id", project!.id)
-      .order("created_at", { ascending: false })
-  );
+  // Check if user wants to include resolved ideas (query parameter)
+  const includeResolved = request.nextUrl.searchParams.get("include_resolved") === "true";
+
+  let queryBuilder = supabase
+    .from("burn_ideas")
+    .select("*")
+    .eq("project_id", project!.id);
+
+  // Filter out resolved ideas by default
+  if (!includeResolved) {
+    queryBuilder = queryBuilder.eq("resolved", false);
+  }
+
+  const ideas = await query(() => queryBuilder.order("created_at", { ascending: false }));
 
   if (ideas.length === 0) {
     return { data: [] };

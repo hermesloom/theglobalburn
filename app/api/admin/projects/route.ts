@@ -68,6 +68,7 @@ export const POST = requestWithAuthAdmin<
     BurnRole.Participant,
     BurnRole.MembershipManager,
     BurnRole.MembershipScanner,
+    BurnRole.IdeaResolver,
   ];
 
   for (const role of initialRoles) {
