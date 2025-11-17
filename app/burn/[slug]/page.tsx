@@ -50,15 +50,15 @@ export default function ProjectPage() {
             title: "Fall Membership Sale opens",
           },
           {
-            date: formatDate("2025-11-24T19:00:00Z"),
-            title: "Annual General Meeting",
-            link: "https://talk.theborderland.se/d/Xh7k8Lov/annual-general-meeting-november-24-2025-at-20-00-8pm-",
-          },
-          {
             date: formatDate(
               project?.burn_config.open_sale_non_transferable_ending_at!,
             ),
             title: "Fall Membership Sale closes",
+          },
+          {
+            date: formatDate("2025-11-24T19:00:00Z"),
+            title: "Annual General Meeting",
+            link: "https://talk.theborderland.se/d/Xh7k8Lov/annual-general-meeting-november-24-2025-at-20-00-8pm-",
           },
           {
             date: formatDate(
