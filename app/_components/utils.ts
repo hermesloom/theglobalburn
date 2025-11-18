@@ -14,7 +14,7 @@ export function calculateAge(birthday: string, today: Date = new Date()) {
 }
 
 export function validateBurnAge(birthday: string): boolean {
-  const age = calculateAge(birthday, new Date("2025-07-21"));
+  const age = calculateAge(birthday, new Date("2026-07-20"));
   return age >= 14;
 }
 
