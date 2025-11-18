@@ -193,16 +193,14 @@ export default function IdeasPage() {
         any use case, so no idea is too ambitious.
       </p>
 
-      {canResolveIdeas && (
-        <div className="mb-4">
-          <Checkbox
-            isSelected={showResolved}
-            onValueChange={setShowResolved}
-          >
-            Show resolved ideas
-          </Checkbox>
-        </div>
-      )}
+      <div className="mb-4">
+        <Checkbox
+          isSelected={showResolved}
+          onValueChange={setShowResolved}
+        >
+          Show resolved ideas
+        </Checkbox>
+      </div>
 
       {ideas.length === 0 && (
         <p className="text-gray-500">
