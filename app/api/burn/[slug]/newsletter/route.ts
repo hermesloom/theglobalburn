@@ -13,7 +13,7 @@ let cache: {
   timestamp: number;
 } | null = null;
 
-const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes in milliseconds
 const NEWSLETTER_URL =
   "https://us7.campaign-archive.com/home/?u=4470de6245e702ef226931fa9&id=7967e4716f";
 
