@@ -194,10 +194,7 @@ export default function IdeasPage() {
       </p>
 
       <div className="mb-4">
-        <Checkbox
-          isSelected={showResolved}
-          onValueChange={setShowResolved}
-        >
+        <Checkbox isSelected={showResolved} onValueChange={setShowResolved}>
           Show resolved ideas
         </Checkbox>
       </div>
@@ -215,9 +212,7 @@ export default function IdeasPage() {
           <div
             key={idea.id}
             className={`border border-divider rounded-lg p-4 flex flex-col gap-2 ${
-              idea.resolved
-                ? "opacity-60 bg-default-50"
-                : ""
+              idea.resolved ? "opacity-60 bg-default-50" : ""
             }`}
           >
             <div className="flex items-start justify-between gap-2">
@@ -261,7 +256,9 @@ export default function IdeasPage() {
                       savingIdea ||
                       resolvingIdeaId !== null
                     }
-                    title={idea.resolved ? "Mark as unresolved" : "Mark as resolved"}
+                    title={
+                      idea.resolved ? "Mark as unresolved" : "Mark as resolved"
+                    }
                   >
                     {idea.resolved ? <CloseOutlined /> : <CheckOutlined />}
                   </Button>
