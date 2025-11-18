@@ -15,6 +15,7 @@ import {
   LinkOutlined,
   PlusOutlined,
   BarChartOutlined,
+  MailOutlined,
 } from "@ant-design/icons";
 import { useProject } from "@/app/_components/SessionContext";
 import { redirect } from "next/navigation";
@@ -79,6 +80,11 @@ export default function ProjectLayout({
                 icon: <BarChartOutlined />,
               }
             : null,
+          {
+            label: "Newsletter",
+            path: `/burn/${project?.slug}/newsletter`,
+            icon: <MailOutlined />,
+          },
           project.membership
             ? {
                 label: "Have an idea?",
