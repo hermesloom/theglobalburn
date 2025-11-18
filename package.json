@@ -26,6 +26,7 @@
   "dependencies": {
     "@ant-design/icons": "^5.5.1",
     "@dotenvx/dotenvx": "^1.24.1",
+    "@mailchimp/mailchimp_marketing": "^3.0.80",
     "@marsidev/react-turnstile": "^1.0.2",
     "@nextui-org/react": "^2.4.8",
     "@nextui-org/system": "^2.2.6",
@@ -36,6 +37,7 @@
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.5",
+    "@types/mailchimp__mailchimp_marketing": "^3.0.22",
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
     "ajv": "^8.17.1",
