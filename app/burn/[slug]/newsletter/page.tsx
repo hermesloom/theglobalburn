@@ -134,7 +134,7 @@ export default function NewsletterPage() {
         <Heading>Manage subscription</Heading>
         {subscriptionLoading ? (
           <div className="flex justify-center items-center py-4">
-            <Spinner size="sm" />
+            <Spinner size="lg" />
           </div>
         ) : subscriptionStatus ? (
           <>
