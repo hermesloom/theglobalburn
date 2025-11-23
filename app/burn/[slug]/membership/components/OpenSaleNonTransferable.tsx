@@ -35,16 +35,29 @@ export default function OpenSale() {
   const startingAt =
     project?.burn_config.open_sale_non_transferable_starting_at;
   const endingAt = project?.burn_config.open_sale_non_transferable_ending_at;
-  const isSaleOpen =
-    startingAt &&
-    endingAt &&
-    new Date() >= new Date(startingAt) &&
-    new Date() <= new Date(endingAt);
+  const isSaleOpen = startingAt && new Date() >= new Date(startingAt);
+  const isSaleClosed = endingAt && new Date() >= new Date(endingAt);
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-8">
         <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (isSaleClosed) {
+    return (
+      <div className="flex flex-col gap-4">
+        <Alert color="default">
+          <span>
+            The Fall Membership Sale is over. Please see{" "}
+            <Link href={`/burn/${project.slug}/spring-membership-info`}>
+              here
+            </Link>{" "}
+            to get more info about the Spring Membership Sale.
+          </span>
+        </Alert>
       </div>
     );
   }
