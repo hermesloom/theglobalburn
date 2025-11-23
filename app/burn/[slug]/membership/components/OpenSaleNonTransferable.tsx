@@ -34,7 +34,12 @@ export default function OpenSale() {
 
   const startingAt =
     project?.burn_config.open_sale_non_transferable_starting_at;
-  const isSaleOpen = startingAt && new Date() >= new Date(startingAt);
+  const endingAt = project?.burn_config.open_sale_non_transferable_ending_at;
+  const isSaleOpen =
+    startingAt &&
+    endingAt &&
+    new Date() >= new Date(startingAt) &&
+    new Date() <= new Date(endingAt);
 
   if (isLoading) {
     return (
