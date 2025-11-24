@@ -5,6 +5,7 @@ import { useProject } from "@/app/_components/SessionContext";
 import { apiGet } from "@/app/_components/api";
 import { Spinner } from "@nextui-org/react";
 import Heading from "@/app/_components/Heading";
+import { formatMoney } from "@/app/_components/utils";
 import {
   BarChart,
   Bar,
@@ -15,7 +16,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
 
@@ -177,7 +177,6 @@ export default function StatisticsPage() {
                   props.payload.fullName || name,
                 ]}
               />
-              <Legend wrapperStyle={{ fontSize: "12px" }} />
               <Bar dataKey="count" fill="#8884d8" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -283,6 +282,51 @@ export default function StatisticsPage() {
           {statistics.total}
         </div>
       </div>
+
+      {project?.burn_config && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
+            <div className="text-sm sm:text-base text-gray-600 mb-2">
+              Total Membership Income
+            </div>
+            <div className="text-xl sm:text-2xl md:text-3xl font-bold">
+              {formatMoney(
+                statistics.lowIncome *
+                  project.burn_config.membership_price_tier_1 +
+                  statistics.mediumIncome *
+                    project.burn_config.membership_price_tier_2 +
+                  statistics.highIncome *
+                    project.burn_config.membership_price_tier_3,
+                project.burn_config.membership_price_currency,
+              )}
+            </div>
+            <div className="text-xs sm:text-sm text-gray-500 mt-1">
+              Before Stripe fees
+            </div>
+          </div>
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
+            <div className="text-sm sm:text-base text-gray-600 mb-2">
+              Total Alversjö Membership Income
+            </div>
+            <div className="text-xl sm:text-2xl md:text-3xl font-bold">
+              {(() => {
+                const alversjoAddon =
+                  project.burn_config.membership_addons.find(
+                    (a) => a.id === "alversjo-membership",
+                  );
+                const alversjoPrice = alversjoAddon?.price ?? 0;
+                return formatMoney(
+                  statistics.alversjo * alversjoPrice,
+                  project.burn_config.membership_price_currency,
+                );
+              })()}
+            </div>
+            <div className="text-xs sm:text-sm text-gray-500 mt-1">
+              Before Stripe fees
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
