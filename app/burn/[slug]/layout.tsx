@@ -16,6 +16,7 @@ import {
   PlusOutlined,
   BarChartOutlined,
   MailOutlined,
+  RocketOutlined,
 } from "@ant-design/icons";
 import { useProject } from "@/app/_components/SessionContext";
 import { redirect } from "next/navigation";
@@ -27,7 +28,7 @@ export default function ProjectLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { project } = useProject();
+  const { project, profile } = useProject();
 
   if (project?.type !== "burn") {
     redirect("/");
@@ -85,6 +86,13 @@ export default function ProjectLayout({
             path: `/burn/${project?.slug}/newsletter`,
             icon: <MailOutlined />,
           },
+          profile?.email === "ml@semi-sentient.com"
+            ? {
+                label: "Realities Employment Agency",
+                path: `/burn/${project?.slug}/rea`,
+                icon: <RocketOutlined />,
+              }
+            : null,
           project.membership
             ? {
                 label: "Have an idea?",

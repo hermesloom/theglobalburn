@@ -6,7 +6,7 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: "/:path*",
+        source: "/((?!burn/[^/]+/rea).*)",
         headers: [
           {
             key: "Cross-Origin-Embedder-Policy",
