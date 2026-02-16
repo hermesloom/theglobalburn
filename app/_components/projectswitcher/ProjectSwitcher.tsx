@@ -123,7 +123,10 @@ export default function ProjectSwitcher() {
             radius="full"
             variant="light"
             className="bg-danger/10 hover:bg-danger/20 text-danger"
-            onPress={() => supabase!.auth.signOut()}
+            onPress={async () => {
+              await fetch("/api/auth/logout", { method: "POST" });
+              window.location.href = "/";
+            }}
           >
             <LogoutOutlined style={{ fontSize: "20px" }} />
           </Button>
