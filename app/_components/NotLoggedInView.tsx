@@ -1,19 +1,57 @@
 "use client";
 
 import React, { useState } from "react";
-import { Modal, ModalContent, ModalBody, Button } from "@nextui-org/react";
-import Auth from "./auth/Auth";
+import { Button } from "@nextui-org/react";
 import { useSession } from "./SessionContext";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+
+type ErrorInfo = { title: string; body: string };
+
+const ERROR_MESSAGES: Record<string, ErrorInfo> = {
+  no_code: {
+    title: "Authentication Failed",
+    body: "No authorization code was received from the authentication server.",
+  },
+  config_error: {
+    title: "Configuration Error",
+    body: "The authentication service is not configured properly. Please contact support.",
+  },
+  auth_failed: {
+    title: "Authentication Failed",
+    body: "Failed to complete authentication. Please try again.",
+  },
+  invalid_state: {
+    title: "Security Error",
+    body: "Security validation failed. This may be a CSRF attack attempt. Please try again.",
+  },
+};
+
+const DEFAULT_ERROR: ErrorInfo = {
+  title: "Error",
+  body: "An unexpected error occurred. Please try again.",
+};
 
 export default function Home() {
   const { session } = useSession();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const searchParams = useSearchParams();
+  const error = searchParams?.get("error");
 
   if (session) {
     return null;
   }
+
+  const handleLogin = () => {
+    setIsRedirecting(true);
+    // Redirect directly to the OAuth login endpoint
+    window.location.href = "/api/auth/login";
+  };
+
+  const errorInfo = error
+    ? (ERROR_MESSAGES[error] ?? DEFAULT_ERROR)
+    : null;
 
   return (
     <div
@@ -26,7 +64,7 @@ export default function Home() {
       }}
     >
       <div
-        className="flex flex-col items-center justify-center min-h-screen z-1"
+        className="flex flex-col items-center justify-center min-h-screen z-1 px-4"
         style={{ backdropFilter: "blur(10px)" }}
       >
         <Image
@@ -48,23 +86,22 @@ export default function Home() {
         >
           Membership platform
         </h2>
-        <Button color="primary" onPress={() => setIsOpen(true)}>
-          Click to sign up or login
-        </Button>
-        <Modal
-          isOpen={isOpen}
-          onOpenChange={setIsOpen}
-          classNames={{
-            base: "m-0",
-            wrapper: "items-center",
-          }}
+        {errorInfo && (
+          <div className="mb-4 p-4 rounded-lg bg-danger-50 border border-danger-200 max-w-md">
+            <p className="text-sm text-danger-700 font-semibold mb-1">
+              {errorInfo.title}
+            </p>
+            <p className="text-sm text-danger-600">{errorInfo.body}</p>
+          </div>
+        )}
+        <Button
+          color="primary"
+          onPress={handleLogin}
+          isLoading={isRedirecting}
+          isDisabled={isRedirecting}
         >
-          <ModalContent className="m-4">
-            <ModalBody>
-              <Auth />
-            </ModalBody>
-          </ModalContent>
-        </Modal>
+          {isRedirecting ? "Redirecting..." : "Click to sign up or login"}
+        </Button>
         <div className="absolute bottom-0 right-0 p-4 text-xs">
           <Link href="/privacy">Privacy policy</Link>
         </div>
