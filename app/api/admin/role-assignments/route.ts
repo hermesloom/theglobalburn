@@ -6,7 +6,7 @@ import {
 import { NextResponse } from "next/server";
 import { s } from "ajv-ts";
 
-export const GET = requestWithAuthAdmin(async (supabase, user) => {
+export const GET = requestWithAuthAdmin(async (supabase, _user) => {
   return {
     data: await query(() =>
       supabase

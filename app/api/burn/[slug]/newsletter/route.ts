@@ -66,7 +66,7 @@ function parseNewsletterHTML(html: string): NewsletterItem[] {
 }
 
 export const GET = requestWithProject(
-  async (supabase, profile, request, body, project) => {
+  async (_supabase, _profile, _request, _body, _project) => {
     // Check cache
     const now = Date.now();
     if (cache && now - cache.timestamp < CACHE_TTL) {

@@ -9,7 +9,7 @@ const SendQrEmailsSchema = s.object({
 });
 
 export const POST = requestWithProject(
-  async (supabase, profile, request, body, project) => {
+  async (supabase, profile, request, body, _project) => {
     const memberships: BurnMembership[] = await query(() =>
       supabase
         .from("burn_memberships")

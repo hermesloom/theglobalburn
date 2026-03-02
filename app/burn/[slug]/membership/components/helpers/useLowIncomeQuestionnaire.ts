@@ -1,4 +1,3 @@
-import toast from "react-hot-toast";
 import { usePrompt } from "@/app/_components/PromptContext";
 
 export type LowIncomeQuestionnaireResult = {

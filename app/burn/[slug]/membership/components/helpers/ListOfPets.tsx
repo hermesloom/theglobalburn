@@ -4,7 +4,7 @@ import { usePrompt } from "@/app/_components/PromptContext";
 import ActionButton from "@/app/_components/ActionButton";
 import BasicTable from "@/app/_components/BasicTable";
 import { v4 as uuidv4 } from "uuid";
-import { apiPatch, apiDelete } from "@/app/_components/api";
+import { apiPatch } from "@/app/_components/api";
 import { useProject } from "@/app/_components/SessionContext";
 import { DeleteOutlined } from "@ant-design/icons";
 

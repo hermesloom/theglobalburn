@@ -1,8 +1,5 @@
 import { requestWithProject, query } from "@/app/api/_common/endpoints";
-import { NextResponse } from "next/server";
 import { BurnRole, BurnMembership } from "@/utils/types";
-
-import * as uuid from "uuid";
 
 type Pet = {
   chip_code: string;
@@ -12,7 +9,7 @@ export const GET = requestWithProject(
   async (supabase, profile, request, body, project) => {
     const chipCode = request.nextUrl.pathname.split("/").pop();
 
-    let all_memberships = await query(() =>
+    const all_memberships = await query(() =>
       supabase
         .from("burn_memberships")
         .select("id, metadata")
@@ -33,7 +30,7 @@ export const GET = requestWithProject(
       )
     ).map((m: BurnMembership) => m.id)
 
-    let foundMemberships = await query(() =>
+    const foundMemberships = await query(() =>
       supabase
         .from("burn_memberships")
         .select("*")

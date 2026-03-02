@@ -1,7 +1,6 @@
 import { requestWithProject, query } from "@/app/api/_common/endpoints";
 import { NextResponse } from "next/server";
-import { BurnRole, BurnMembership } from "@/utils/types";
-import Stripe from "stripe";
+import { BurnRole } from "@/utils/types";
 
 import * as uuid from "uuid";
 
@@ -13,7 +12,7 @@ export const POST = requestWithProject(
       return NextResponse.json({ error: "Invalid id (should be a UUID)" }, { status: 400 });
     }
 
-    let [foundMembership] = await query(() =>
+    const [foundMembership] = await query(() =>
       supabase
         .from("burn_memberships")
         .select("*")

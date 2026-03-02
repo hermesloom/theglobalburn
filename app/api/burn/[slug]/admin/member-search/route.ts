@@ -1,4 +1,4 @@
-import { requestWithProject, query } from "@/app/api/_common/endpoints";
+import { requestWithProject } from "@/app/api/_common/endpoints";
 import { BurnRole } from "@/utils/types";
 import s from "ajv-ts";
 const SearchSchema = s.object({
@@ -7,11 +7,11 @@ const SearchSchema = s.object({
 
 export const POST = requestWithProject(
   async (supabase, profile, request, body, project) => {
-    let searchTerm = body.q.toLowerCase();
+    const searchTerm = body.q.toLowerCase();
 
     const searchTerms = searchTerm.trim().split(/\s+/);
 
-    let { data: membershipResults, error: membershipError } = await supabase
+    const { data: membershipResultsData, error: membershipError } = await supabase
       .from("burn_memberships")
       .select(`
         owner_id,
@@ -40,8 +40,8 @@ export const POST = requestWithProject(
       return [];
     }
 
-    membershipResults =
-      (membershipResults || []).sort((a, b) => {
+    const membershipResults =
+      (membershipResultsData || []).sort((a, b) => {
         return(
           countOfTermsMatched(b) - countOfTermsMatched(a)
         )

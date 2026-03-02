@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { Input, Checkbox } from "@nextui-org/react";
 import { calculateAge } from "@/app/_components/utils";
-import { usePrompt } from "@/app/_components/PromptContext";
 import { MemberDetailsData } from "./MemberDetails";
 import { useLowIncomeQuestionnairePrompt } from "./useLowIncomeQuestionnaire";
 
@@ -20,7 +19,6 @@ export default function MemberDetailsInput({
   withLowIncome?: boolean;
   withLowIncomePrompt?: boolean;
 }) {
-  const prompt = usePrompt();
   const [firstName, setFirstName] = useState(value?.first_name ?? "");
   const [lastName, setLastName] = useState(value?.last_name ?? "");
   const [birthdate, setBirthdate] = useState(value?.birthdate ?? "");

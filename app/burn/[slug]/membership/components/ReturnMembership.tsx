@@ -7,7 +7,6 @@ import ActionButton from "@/app/_components/ActionButton";
 import { useProject } from "@/app/_components/SessionContext";
 import { apiPost } from "@/app/_components/api";
 import toast from "react-hot-toast";
-import { isEmail } from "@/app/_components/utils";
 import { formatMoney } from "@/app/_components/utils";
 import { usePrompt } from "@/app/_components/PromptContext";
 import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
@@ -78,7 +77,7 @@ export default function ReturnMembership() {
                     },
                   ],
                 ),
-              handler: async (_, promptData) => {
+              handler: async (_, _promptData) => {
                 await apiPost(`/burn/${project?.slug}/return-membership`, {});
                 await reloadProfile();
                 toast.success("Membership successfully returned!");

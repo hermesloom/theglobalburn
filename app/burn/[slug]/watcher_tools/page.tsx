@@ -11,12 +11,11 @@ import {
   TableCell
 } from "@nextui-org/react";
 import ActionButton from "@/app/_components/ActionButton";
-import { ReloadOutlined, UndoOutlined } from "@ant-design/icons";
+import { ReloadOutlined } from "@ant-design/icons";
 
 import React, { useState, useEffect, useRef } from "react";
 import { apiGet, apiPost } from "@/app/_components/api";
 import { useProject } from "@/app/_components/SessionContext";
-import { BurnMembership } from "@/utils/types";
 import { formatDOB } from "@/app/burn/[slug]/membership/components/helpers/date";
 
 interface Profile {
@@ -74,11 +73,11 @@ function arrayToCsv(data: string[][]){
 
 function downloadBlob(content: string, filename: string, contentType: string) {
   // Create a blob
-  var blob = new Blob([content], { type: contentType });
-  var url = URL.createObjectURL(blob);
+  const blob = new Blob([content], { type: contentType });
+  const url = URL.createObjectURL(blob);
 
   // Create a link to download it
-  var pom = document.createElement('a');
+  const pom = document.createElement('a');
   pom.href = url;
   pom.setAttribute('download', filename);
   pom.click();
@@ -110,12 +109,12 @@ export default function ScannerManagerPage() {
   const [checkInCountSum, setCheckInCountSum] = useState<number>(0);
   const [membershipResults, setMembershipResults] = useState<MemberSearchResult[]>([]);
   const [membershipSearchQuery, setMembershipSearchQuery] = useState<string | null>(null);
-  const [searchError, setSearchError] = useState<string | null>(null);
+  const [_searchError, setSearchError] = useState<string | null>(null);
 
   const memberQueryRef = useRef<HTMLInputElement>(null);
 
   const setOrderedScannerProfiles = (scannerProfiles: Profile[]) => {
-    let profiles =
+    const profiles =
       scannerProfiles.sort((a: Profile, b: Profile) =>
         a.metadata.scanner_id - b.metadata.scanner_id
       )
@@ -138,7 +137,7 @@ export default function ScannerManagerPage() {
     setMembershipResults([]);
     setSearchError(null);
 
-    let inputValue = memberQueryRef.current?.value;
+    const inputValue = memberQueryRef.current?.value;
     setMembershipSearchQuery(inputValue || null);
 
     apiPost(
@@ -170,7 +169,7 @@ export default function ScannerManagerPage() {
   }, []); // Empty dependency array means this runs once on mount
 
   const resetAll = async () => {
-    let ids = (scannerProfiles || []).map((scannerProfile) => scannerProfile.id);
+    const ids = (scannerProfiles || []).map((scannerProfile) => scannerProfile.id);
 
     if (confirm("Are you sure?")) {
       await resetCheckInCounts(project!.slug, ids).then(() => {
@@ -266,7 +265,7 @@ export default function ScannerManagerPage() {
               <Button
                 color="primary"
                 onPress={() => {
-                    let data = [[
+                    const data = [[
                       "First Name",
                       "Last Name",
                       "Birth Date",
@@ -276,12 +275,12 @@ export default function ScannerManagerPage() {
                     ]]
 
                     membershipResults.forEach((membership) => {
-                      let children =
+                      const children =
                         (membership.metadata.children || []).map((child) =>
                           `${child.first_name} ${child.last_name} - DOB: ${formatDOB(child.dob)}`
                         ).join("\n")
 
-                      let pets =
+                      const pets =
                         (membership.metadata.pets || []).map((pet) =>
                           `${pet.name} / ${pet.type} / Chip: ${pet.chip_code}`
                         ).join("\n")

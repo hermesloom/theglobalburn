@@ -3,12 +3,12 @@ import { BurnRole } from "@/utils/types";
 
 // TODO: `profiles` aren't linked to a burn, so how to deal with scanners?  Maybe they're global?
 export const POST = requestWithProject(
-  async (supabase, profile, request, body, project) => {
-    let parts = request.nextUrl.pathname.split("/");
+  async (supabase, profile, request, _body, _project) => {
+    const parts = request.nextUrl.pathname.split("/");
     parts.pop()
     const id = parts.pop()
 
-    let [foundProfile] = await query(() =>
+    const [foundProfile] = await query(() =>
       supabase
         .from("profiles")
         .select("*")

@@ -1,7 +1,7 @@
 // Designed as a replacement for member-search/route.ts
 // Focused on returning memberships rather than memberships + profiles
 
-import { requestWithProject, query } from "@/app/api/_common/endpoints";
+import { requestWithProject } from "@/app/api/_common/endpoints";
 import { BurnRole } from "@/utils/types";
 import s from "ajv-ts";
 const SearchSchema = s.object({
@@ -12,13 +12,13 @@ const pageSize = 500;
 
 export const POST = requestWithProject(
   async (supabase, profile, request, body, project) => {
-    let searchTerm = body.q.toLowerCase();
-    let page = (body.page || 0);
+    const searchTerm = body.q.toLowerCase();
+    const page = (body.page || 0);
 
     const searchTerms = searchTerm.trim().split(/\s+/);
 
     // Query profiles for email matches
-    let profileResult = await supabase
+    const profileResult = await supabase
       .from("profiles")
       .select(`id`)
       .ilike("email", `%${searchTerm}%`);
@@ -29,7 +29,7 @@ export const POST = requestWithProject(
       return {error: profileResult.error};
     }
 
-    let profileIds = profileResult.data.map((result) => result.id)
+    const profileIds = profileResult.data.map((result) => result.id)
 
     let membershipQuery =
       supabase
@@ -62,7 +62,7 @@ export const POST = requestWithProject(
         ].join(','))
     }
 
-    let membershipResult = await membershipQuery;
+    const membershipResult = await membershipQuery;
 
     const countOfTermsMatched = (result: {first_name: string, last_name: string}) => {
       return(
@@ -78,7 +78,7 @@ export const POST = requestWithProject(
       return {error: membershipResult.error};
     }
 
-    let profileResult2 = await supabase
+    const profileResult2 = await supabase
       .from("profiles")
       .select(`id,email`)
       .in('id', membershipResult.data.map((r) => r.owner_id));
@@ -89,7 +89,7 @@ export const POST = requestWithProject(
       return {error: profileResult2.error};
     }
 
-    let profileEmailsById =
+    const profileEmailsById =
       Object.fromEntries(
         profileResult2.data.map(profile => [profile.id, profile.email])
       );

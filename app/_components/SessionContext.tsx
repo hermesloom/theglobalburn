@@ -94,7 +94,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         setSession(session);
         setProfile(profile);
         isSignedInRef.current = true;
-      } catch (e) {
+      } catch {
       } finally {
         setIsLoading(false);
       }

@@ -3,16 +3,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import Heading from "@/app/_components/Heading";
 import { Input, Button, Card, CardBody } from "@nextui-org/react";
-import { apiGet, ApiError } from "@/app/_components/api";
+import { apiGet } from "@/app/_components/api";
 import { useSession, useProject } from "@/app/_components/SessionContext";
 import { BurnMembership } from "@/utils/types";
-
-import QrScanner from 'qr-scanner';
-
-let videoEl;
-
-let qrScanner: QrScanner,
-  qrScannerEngine: any; // Using any since QrEngine type is not exported
 
 interface Child {
   dob: string;
@@ -26,18 +19,6 @@ interface Pet {
   name: string;
   type: string;
   chip_code: string;
-}
-
-interface ScannedMember {
-  id: string;
-  first_name: string;
-  last_name: string;
-  birthdate: string;
-  checked_in_at: string | null;
-  metadata: {
-    children: Child[];
-    pets: Pet[];
-  };
 }
 
 const formatRelativeDateTime = (date: Date) => {
@@ -57,7 +38,7 @@ const formatRelativeDateTime = (date: Date) => {
     relativeDay = `${diffDays === 1 ? "1 day" : `${diffDays} days`} ago`;
   }
 
-  let weekday = date.toLocaleDateString('en-US', { weekday: 'long' });
+  const weekday = date.toLocaleDateString('en-US', { weekday: 'long' });
 
   return `${weekday} at ${timeString} (${relativeDay})`;
 }
@@ -70,11 +51,7 @@ const formatDOB = (dob: string) => {
   });
 }
 
-const clickAudio = new Audio('/sounds/click.mp3');
-const dingAudio = new Audio('/sounds/ding.mp3');
-const deniedAudio = new Audio('/sounds/denied.mp3');
-// TODO: For banned members
-const buzzAudio = new Audio('/sounds/buzz.mp3');
+// TODO: Wire up audio feedback - click.mp3, ding.mp3, denied.mp3, buzz.mp3
 
 export default function ScannerPage() {
   const { profile } = useSession();
@@ -90,7 +67,7 @@ export default function ScannerPage() {
     setMembershipResults([]);
     setSearchError(null);
 
-    let inputValue = chipCodeRef.current?.value;
+    const inputValue = chipCodeRef.current?.value;
 
     apiGet(`/burn/${project!.slug}/admin/pet_search/${inputValue}`)
       .then((memberships) => {

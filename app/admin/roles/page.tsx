@@ -2,7 +2,6 @@
 
 import React from "react";
 import DataTable from "@/app/_components/DataTable";
-import { useSession } from "@/app/_components/SessionContext";
 import { usePrompt } from "@/app/_components/PromptContext";
 import { apiPost } from "@/app/_components/api";
 

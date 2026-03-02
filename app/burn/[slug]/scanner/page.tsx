@@ -1,17 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import Heading from "@/app/_components/Heading";
 import { Button, Card, CardBody } from "@nextui-org/react";
-import { apiPost, ApiError } from "@/app/_components/api";
+import { apiPost } from "@/app/_components/api";
 import { useSession, useProject } from "@/app/_components/SessionContext";
 import { formatRelativeDateTime, calculateAge, isSameDay } from "@/app/burn/[slug]/membership/components/helpers/date";
 
 import {
   CloseOutlined,
-  CheckOutlined,
   QrcodeOutlined,
-  ReloadOutlined,
   BulbOutlined,
 } from "@ant-design/icons";
 
@@ -49,19 +46,19 @@ const dingAudio = new Audio('/sounds/ding.mp3');
 const deniedAudio = new Audio('/sounds/denied.mp3');
 
 function formatDOBJSX(dobString: string, highlightUnderage: boolean = false): JSX.Element {
-  let dob = new Date(dobString);
+  const dob = new Date(dobString);
 
-  let description = dob.toLocaleDateString('en-US', {
+  const description = dob.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
 
-  let age = calculateAge(dob)
+  const age = calculateAge(dob)
 
-  let colorClass = (highlightUnderage && age < 18 ? "text-red-500 font-bold" : "")
+  const colorClass = (highlightUnderage && age < 18 ? "text-red-500 font-bold" : "")
 
-  let birthdayString = (
+  const birthdayString = (
     isSameDay(dob, new Date()) ?
       " 🎉 HAPPY BIRTHDAY! 🎉  - " :
       ""
@@ -88,7 +85,7 @@ export default function ScannerPage() {
   const fetchQRData = () => {
     return new Promise<string>((resolve, reject) => {
       if (videoRef.current) {
-        let scanner =
+        const scanner =
           new QrScanner(
             videoRef.current,
             async ({ data }) => {
@@ -177,7 +174,7 @@ export default function ScannerPage() {
           setResultMessage({type: 'error', text: "There was a problem undoing the check-in of the member!"});
         }
       })
-      .catch((error) => {
+      .catch(() => {
         setResultMessage({type: 'error', text: "There was a error undoing check-in of the member!"});
       })
     }

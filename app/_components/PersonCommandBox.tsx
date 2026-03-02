@@ -11,7 +11,7 @@ export default function PersonCommandBox() {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const { project, reloadProfile } = useProject();
+  const { project } = useProject();
   const prompt = usePrompt();
 
   useEffect(() => {

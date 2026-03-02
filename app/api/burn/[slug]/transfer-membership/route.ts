@@ -1,12 +1,11 @@
 import { requestWithProject, query } from "@/app/api/_common/endpoints";
 import { s } from "ajv-ts";
-import { BurnRole, BurnStage } from "@/utils/types";
+import { BurnRole } from "@/utils/types";
 import {
   getProfileByEmail,
   validateNewMembershipEligibility,
   getAvailableMemberships,
 } from "@/app/api/_common/profile";
-import Stripe from "stripe";
 
 const TransferMembershipRequestSchema = s.object({
   email: s.string(),
@@ -73,7 +72,7 @@ export const POST = requestWithProject<
             +new Date() +
               recipientProject.burn_config.transfer_reservation_duration * 1000,
           ).toISOString(),
-          is_low_income: recipientProject.lottery_ticket?.is_low_income,
+          is_low_income: isLowIncome,
           details_modifiable: true,
         })
         .select()

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { Spinner, Alert } from "@nextui-org/react";
+import { Spinner } from "@nextui-org/react";
 import { useProject } from "@/app/_components/SessionContext";
 import { apiGet } from "@/app/_components/api";
 import ActionButton from "@/app/_components/ActionButton";

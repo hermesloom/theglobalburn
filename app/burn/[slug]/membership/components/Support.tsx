@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "@nextui-org/link";
 import Heading from "@/app/_components/Heading";
 import { useSession } from "@/app/_components/SessionContext";

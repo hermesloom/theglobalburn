@@ -8,7 +8,7 @@ const CreateWelcomeRequestSchema = s.object({
 });
 
 // GET - Get a random welcome from the project (BL2026) - accessible to anyone
-export const GET = requestWithAuth(async (supabase, profile, request, body) => {
+export const GET = requestWithAuth(async (supabase, profile, request, _body) => {
   const projectSlug = request.nextUrl.pathname.split("/")[3];
   const project = await getProjectBySlug(supabase, projectSlug);
   
@@ -41,7 +41,7 @@ export const POST = requestWithAuth<
 >(
   async (supabase, profile, request, body) => {
     const projectSlug = request.nextUrl.pathname.split("/")[3];
-    let project = await getProjectBySlug(supabase, projectSlug);
+    const project = await getProjectBySlug(supabase, projectSlug);
     
     if (!project) {
       return { error: "Project not found" };

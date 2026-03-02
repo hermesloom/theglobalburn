@@ -3,7 +3,7 @@
 import React from "react";
 import { useProject } from "@/app/_components/SessionContext";
 import Heading from "@/app/_components/Heading";
-import { Card, CardBody, Alert, Link } from "@nextui-org/react";
+import { Card, CardBody, Link } from "@nextui-org/react";
 import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
 
 export default function ProjectPage() {

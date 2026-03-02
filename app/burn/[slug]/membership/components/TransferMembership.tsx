@@ -72,7 +72,7 @@ export default function TransferMembership() {
                     },
                   ],
                 ),
-              handler: async (_, promptData) => {
+              handler: async (_, _promptData) => {
                 await apiPost(`/burn/${project?.slug}/transfer-membership`, {
                   email,
                 });

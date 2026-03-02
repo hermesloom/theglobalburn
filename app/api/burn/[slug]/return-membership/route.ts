@@ -1,6 +1,6 @@
 import { requestWithProject, query } from "@/app/api/_common/endpoints";
 import { s } from "ajv-ts";
-import { BurnRole, BurnStage } from "@/utils/types";
+import { BurnRole } from "@/utils/types";
 import Stripe from "stripe";
 
 const ReturnMembershipRequestSchema = s.object({});

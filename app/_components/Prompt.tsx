@@ -71,7 +71,7 @@ export default function Prompt({ config }: { config: PromptConfig }) {
   });
 
   const setInput = (key: string, value: string) => {
-    let newInputs = { ...inputs, [key]: value };
+    const newInputs = { ...inputs, [key]: value };
 
     const field = config.fields?.find((f) => f.key === key);
     if (field?.propagateChanges) {
@@ -244,7 +244,7 @@ export default function Prompt({ config }: { config: PromptConfig }) {
       isDismissable={config.closeOnBackdropClick !== false}
     >
       <ModalContent>
-        {(onClose) => (
+        {() => (
           <>
             {config.message ? (
               <ModalHeader className="px-10 pt-10">

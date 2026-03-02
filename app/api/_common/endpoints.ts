@@ -359,7 +359,7 @@ async function logRequest(
               setTimeout(() => resolve(null), 2000),
             ), // 2 second timeout
           ]);
-        } catch (error) {
+        } catch {
           // Silently fail location lookup
         }
       }

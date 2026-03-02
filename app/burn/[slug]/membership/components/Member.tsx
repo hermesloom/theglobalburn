@@ -8,7 +8,6 @@ import InvitePlusOne from "./InvitePlusOne";
 import { QRCodeSVG } from "qrcode.react";
 import { useSearchParams, useRouter } from "next/navigation";
 import TransferMembership from "./TransferMembership";
-import ReturnMembership from "./ReturnMembership";
 import ListOfChildren from "./helpers/ListOfChildren";
 import ListOfPets from "./helpers/ListOfPets";
 

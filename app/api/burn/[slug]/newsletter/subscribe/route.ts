@@ -18,7 +18,7 @@ function getSubscriberHash(email: string): string {
 }
 
 export const POST = requestWithProject(
-  async (supabase, profile, request, body, project) => {
+  async (supabase, profile, _request, _body, _project) => {
     if (!MAILCHIMP_LIST_ID || !MAILCHIMP_DATACENTER) {
       return NextResponse.json(
         { error: "Mailchimp configuration is missing" },

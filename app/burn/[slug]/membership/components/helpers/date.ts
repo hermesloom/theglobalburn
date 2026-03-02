@@ -50,16 +50,16 @@ const formatRelativeDateTime = (date: Date) => {
     relativeDay = `${diffDays === 1 ? "1 day" : `${diffDays} days`} ago`;
   }
 
-  let weekday = date.toLocaleDateString("en-US", { weekday: "long" });
+  const weekday = date.toLocaleDateString("en-US", { weekday: "long" });
 
   return `${weekday} at ${timeString} (${relativeDay})`;
 };
 
 function formatDOB(
   dobString: string,
-  highlightUnderage: boolean = false,
+  _highlightUnderage: boolean = false,
 ): string {
-  let dob = new Date(dobString);
+  const dob = new Date(dobString);
 
   return dob.toLocaleDateString("en-US", {
     year: "numeric",
@@ -69,7 +69,7 @@ function formatDOB(
 }
 
 const calculateAge = (birthDate: Date) => {
-  let currentDate = new Date();
+  const currentDate = new Date();
 
   let age = currentDate.getFullYear() - birthDate.getFullYear();
 

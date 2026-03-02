@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
       const decoded = Buffer.from(credentials, "base64").toString("utf-8");
       const [username, password] = decoded.split(":");
       isAuthenticated = username === "user" && password === grafanaApiKey;
-    } catch (error) {
+    } catch {
       // Invalid base64 encoding
       isAuthenticated = false;
     }
