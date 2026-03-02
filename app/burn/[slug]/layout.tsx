@@ -17,6 +17,7 @@ import {
   BarChartOutlined,
   MailOutlined,
   RocketOutlined,
+  HeartOutlined,
 } from "@ant-design/icons";
 import { useProject } from "@/app/_components/SessionContext";
 import { redirect } from "next/navigation";
@@ -69,6 +70,17 @@ export default function ProjectLayout({
                 path: `/burn/${project?.slug}/spring-membership-info`,
                 icon: <IdcardOutlined />,
               },
+          project.burn_config.current_stage ===
+            BurnStage.OpenSaleLotteryEntrantsOnly ||
+          (project.burn_config.current_stage === BurnStage.OpenSaleGeneral &&
+            +new Date() <
+              +new Date(project.burn_config.open_sale_general_starting_at!))
+            ? {
+                label: "Low Income Support",
+                path: `/burn/${project?.slug}/low-income-support`,
+                icon: <HeartOutlined />,
+              }
+            : null,
           {
             label: "Links",
             path: `/burn/${project?.slug}/links`,
@@ -168,7 +180,6 @@ export default function ProjectLayout({
                 },
               ] as any)
             : []),
-          ,
         ].filter((x) => !!x)}
       />
       <ContentContainer>{children}</ContentContainer>
