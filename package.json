@@ -21,7 +21,8 @@
     "supabase:generate-migration": "npx supabase db diff | npx supabase migration new",
     "supabase:generate-seed": "npx supabase db dump --data-only -f supabase/seed.sql",
     "supabase:push": "npx supabase db push",
-    "supabase:pull": "npx supabase db pull"
+    "supabase:pull": "npx supabase db pull",
+    "vercel:logs": "vercel list --no-color 2>&1 | grep -oE 'https://[a-zA-Z0-9.-]+\\.vercel\\.app' | head -1 | xargs -I {} vercel inspect {} --logs --no-color 2>&1 | tee misc/vercel-deployment-log.txt"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.1",
