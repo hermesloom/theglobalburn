@@ -15,7 +15,7 @@ export default function OpenSaleUpcoming() {
       </p>
       <p>
         The Spring Membership Sale will operate on a{" "}
-        <i>first-come, first-served</i> basis on this platform. It begins{" "}
+        <i>first-come, first-served</i> basis on this platform. It begins on{" "}
         <b>{formatDate(project!.burn_config.open_sale_general_starting_at!)}</b>{" "}
         right here and runs for one week.
       </p>
