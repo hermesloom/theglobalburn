@@ -6,7 +6,11 @@ import { Button, Input } from "@nextui-org/react";
 import { useProject } from "@/app/_components/SessionContext";
 import { BurnStage, BurnMembershipPricing } from "@/utils/types";
 import toast from "react-hot-toast";
-import { useBurnerQuestionnairePrompt } from "@/app/burn/[slug]/membership/components/helpers/useBurnerQuestionnairePrompt";
+import {
+  useBurnerQuestionnairePrompt,
+  BURNER_QUESTIONNAIRE_QUESTIONS,
+  formatQuestionsAsMarkdown,
+} from "@/app/burn/[slug]/membership/components/helpers/useBurnerQuestionnairePrompt";
 import TestSendEmailButton from "./TestSendEmailButton";
 
 function isJson(value: string) {
@@ -175,6 +179,19 @@ export default function ConfigPage() {
     }
   };
 
+  const handleDownloadQuestionsMarkdown = () => {
+    const markdown = formatQuestionsAsMarkdown(BURNER_QUESTIONNAIRE_QUESTIONS);
+    const blob = new Blob([markdown], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "burner-questionnaire-questions.md";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <>
       <Heading>Configuration</Heading>
@@ -311,6 +328,9 @@ export default function ConfigPage() {
 
         <Button color="secondary" onPress={handleTestQuestionnaire}>
           Test Burner Questionnaire
+        </Button>
+        <Button color="secondary" onPress={handleDownloadQuestionsMarkdown}>
+          Download Questions as Markdown
         </Button>
         <TestSendEmailButton />
       </div>
