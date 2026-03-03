@@ -48,8 +48,6 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvP...
 -----END PUBLIC KEY-----"
 ```
 
-**Important**: `NEXT_PUBLIC_REA_URL` must exactly match REA's `REA_URL` environment variable, as it's used for the JWT audience claim.
-
 **Important**: Keep `jwt_private_key.pem` secure and never commit it to version control. The public key can be shared safely.
 
 ### 3. Environment Template
@@ -89,27 +87,33 @@ JWT_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
 ## API Endpoints
 
 ### `GET /api/auth/jwks`
+
 Returns the public key in JWKS (JSON Web Key Set) format for REA to verify tokens.
 
 **Response:**
+
 ```json
 {
-  "keys": [{
-    "kty": "RSA",
-    "use": "sig",
-    "kid": "theglobalburn-jwt-key",
-    "n": "...",
-    "e": "AQAB"
-  }]
+  "keys": [
+    {
+      "kty": "RSA",
+      "use": "sig",
+      "kid": "theglobalburn-jwt-key",
+      "n": "...",
+      "e": "AQAB"
+    }
+  ]
 }
 ```
 
 ### `GET /api/auth/rea-token`
+
 Generates a JWT for the currently authenticated user.
 
 **Requires:** Valid Supabase session
 
 **Response:**
+
 ```json
 {
   "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -117,6 +121,7 @@ Generates a JWT for the currently authenticated user.
 ```
 
 **JWT Claims:**
+
 - `email`: User's email address
 - `iss`: "theglobalburn"
 - `iat`: Issued at timestamp
@@ -133,11 +138,13 @@ Generates a JWT for the currently authenticated user.
 ## Troubleshooting
 
 ### Token verification fails
+
 - Check that JWT_PRIVATE_KEY and JWT_PUBLIC_KEY match the generated key pair
 - Ensure keys include the BEGIN/END markers
 - Verify REA is fetching from the correct JWKS URL
 
 ### User not logged in
+
 - Check that user has a valid Supabase session before requesting token
 - Verify email exists in user profile
 - Check JWT expiration hasn't passed
