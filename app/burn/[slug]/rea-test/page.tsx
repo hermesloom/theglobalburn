@@ -51,8 +51,8 @@ export default function REAPage() {
     );
   }
 
-  // Construct iframe URL with JWT token
-  const iframeUrl = `${reaBaseUrl}?token=${encodeURIComponent(token || "")}`;
+  // Construct iframe URL with JWT token - go directly to sign-up to avoid redirect
+  const iframeUrl = `${reaBaseUrl}/sign-up?token=${encodeURIComponent(token || "")}`;
 
   return (
     <div className="-m-14 w-[calc(100%+7rem)] h-[calc(100vh)]">

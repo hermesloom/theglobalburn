@@ -3,11 +3,11 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: "/((?!burn/[^/]+/rea).*)",
+        source: "/:path*",
         headers: [
           {
             key: "Cross-Origin-Embedder-Policy",
-            value: "require-corp",
+            value: "credentialless",
           },
           {
             key: "Cross-Origin-Opener-Policy",
