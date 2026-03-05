@@ -27,13 +27,13 @@ function parseNewsletterHTML(html: string): NewsletterItem[] {
   while ((match = liRegex.exec(html)) !== null) {
     const content = match[1];
 
-    // Extract date (format: MM/DD/YYYY -)
+    // Extract date (format: DD/MM/YYYY -)
     const dateMatch = content.match(/^(\d{2}\/\d{2}\/\d{4})\s*-\s*/);
     if (!dateMatch) continue;
 
-    // Parse MM/DD/YYYY and convert to ISO format (YYYY-MM-DD)
+    // Parse DD/MM/YYYY and convert to ISO format (YYYY-MM-DD)
     const dateStr = dateMatch[1];
-    const [month, day, year] = dateStr.split("/");
+    const [day, month, year] = dateStr.split("/");
     const date = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
 
     // Extract link and title from <a> tag
