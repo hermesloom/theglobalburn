@@ -43,22 +43,21 @@ export const POST = requestWithProject<
     );
 
     // Determine if the transferred membership should be low income:
-    // - If the original membership was low income, the recipient must also have a low income lottery ticket
-    // - If the original membership was not low income, but the recipient has a low income lottery ticket,
-    //   check if there are still low income spots available that they can use
+    // - If the original membership was low income, the recipient must also have an entry in burn_low_income_applications
+    // - If the original membership was not low income, but the recipient has an entry in burn_low_income_applications,
+    //   check if there are still low income spots available that they can use (done by getAvailableMemberships)
     let isLowIncome = false;
     if (project!.membership?.is_low_income) {
       if (recipientProject.lottery_ticket?.is_low_income) {
         isLowIncome = true;
       }
     } else {
-      if (recipientProject.lottery_ticket?.is_low_income) {
-        const { lowIncomeAvailable } = await getAvailableMemberships(
-          supabase,
-          recipientProject,
-        );
-        isLowIncome = lowIncomeAvailable;
-      }
+      const { lowIncomeAvailable } = await getAvailableMemberships(
+        supabase,
+        recipientProject,
+        recipientProfile.id,
+      );
+      isLowIncome = lowIncomeAvailable;
     }
 
     // create a membership purchase right for the recipient
@@ -70,7 +69,7 @@ export const POST = requestWithProject<
           owner_id: recipientProfile.id,
           expires_at: new Date(
             +new Date() +
-              recipientProject.burn_config.transfer_reservation_duration * 1000,
+            recipientProject.burn_config.transfer_reservation_duration * 1000,
           ).toISOString(),
           is_low_income: isLowIncome,
           details_modifiable: true,
