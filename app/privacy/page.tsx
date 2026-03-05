@@ -8,17 +8,17 @@ const PrivacyPolicy: React.FC = () => {
       </h1>
 
       <p className="mb-2">
-        <strong>Last updated:</strong> 2025-01-14
+        <strong>Last updated:</strong> 2026-03-05
       </p>
       <p className="mb-2">
-        <strong>Last approved date:</strong> 2025-01-14
+        <strong>Last approved date:</strong> 2026-03-05
       </p>
 
       <p className="mb-2">
-        <strong>Approver names:</strong> Liselotte Norman, Julian Nalenz
+        <strong>Approver names:</strong> Fabian Unghanse Macklin, Julian Nalenz
       </p>
       <p className="mb-4">
-        <strong>Approver designations:</strong> Head of the Board, Treasurer
+        <strong>Approver designations:</strong> Board Chair, Treasurer
       </p>
 
       <p className="mb-6">
@@ -370,6 +370,34 @@ const PrivacyPolicy: React.FC = () => {
                 className="text-blue-600 hover:underline"
               >
                 https://vercel.com/legal/privacy-policy
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li>
+          <strong>Fly.io</strong>
+          <ul className="list-disc pl-6">
+            <li>
+              <strong>Purpose:</strong> Application hosting and serverless
+              infrastructure.
+            </li>
+            <li>
+              <strong>Data Processed:</strong> Application data, usage data, IP
+              addresses, and technical information related to service requests.
+            </li>
+            <li>
+              <strong>Location:</strong> Data is processed globally with
+              appropriate safeguards for EU data transfers.
+            </li>
+            <li>
+              <strong>Further details:</strong>{" "}
+              <a
+                href="https://fly.io/legal/privacy-policy/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                https://fly.io/legal/privacy-policy/
               </a>
             </li>
           </ul>
