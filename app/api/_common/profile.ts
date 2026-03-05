@@ -181,15 +181,20 @@ export async function checkNoSuchMembershipOrPurchaseRightExists(
 export function getTotalLowIncomeAllowed(burnConfig: BurnConfig): number {
   return Math.floor(
     (burnConfig.max_memberships * burnConfig.share_memberships_low_income) /
-      100,
+    100,
   );
 }
 
 export async function getAvailableMemberships(
   supabase: SupabaseClient,
   project: Project,
+  userId: string,
 ): Promise<{ availableMemberships: number; lowIncomeAvailable: boolean }> {
   const debug = false;
+
+  if (!userId) {
+    throw new Error("user ID must be provided to getAvailableMemberships");
+  }
 
   const memberships = await supabase
     .from("burn_memberships")
@@ -282,6 +287,30 @@ export async function getAvailableMemberships(
     );
   }
 
+  let isUserLowIncomeEligible: boolean;
+  if (project.burn_config.current_stage === BurnStage.OpenSaleNonTransferable) {
+    isUserLowIncomeEligible = true;
+  } else if (
+    project.burn_config.current_stage === BurnStage.OpenSaleGeneral &&
+    userId
+  ) {
+    const lowIncomeApplication = await query(() =>
+      supabase
+        .from("burn_low_income_applications")
+        .select("id")
+        .eq("project_id", project.id)
+        .eq("owner_id", userId)
+        .maybeSingle(),
+    );
+    if (debug) {
+      console.log(`[DEBUG] user has entry in burn_low_income_applications: ${!!lowIncomeApplication}`);
+    }
+    isUserLowIncomeEligible =
+      (project.lottery_ticket?.is_low_income ?? false) || !!lowIncomeApplication;
+  } else {
+    isUserLowIncomeEligible = project.lottery_ticket?.is_low_income ?? false;
+  }
+
   const ret = {
     availableMemberships:
       project?.burn_config.max_memberships! -
@@ -291,8 +320,7 @@ export async function getAvailableMemberships(
     lowIncomeAvailable:
       project.burn_config.current_stage === BurnStage.OpenSaleNonTransferable
         ? lowIncomeSpotsAvailable > 0
-        : (project.lottery_ticket?.is_low_income ?? false) &&
-          lowIncomeSpotsAvailable > 0,
+        : isUserLowIncomeEligible && lowIncomeSpotsAvailable > 0,
   };
 
   if (debug) {
