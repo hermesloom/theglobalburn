@@ -54,7 +54,7 @@ export const POST = requestWithProject(
             MAILCHIMP_LIST_ID,
             subscriberHash,
             {
-              tags: [{ name: MEMBERS_PLATFORM_TAG }],
+              tags: [{ name: MEMBERS_PLATFORM_TAG, status: "active" }],
             },
           );
           return {
@@ -78,7 +78,7 @@ export const POST = requestWithProject(
           subscriberHash,
           {
             tags: [
-              { name: MEMBERS_PLATFORM_TAG },
+              { name: MEMBERS_PLATFORM_TAG, status: "active" },
             ],
           },
         );
@@ -103,7 +103,7 @@ export const POST = requestWithProject(
             MAILCHIMP_LIST_ID,
             subscriberHash,
             {
-              tags: [{ name: MEMBERS_PLATFORM_TAG }],
+              tags: [{ name: MEMBERS_PLATFORM_TAG, status: "active" }],
             },
           );
 
