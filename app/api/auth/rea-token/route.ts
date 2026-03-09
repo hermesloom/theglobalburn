@@ -46,6 +46,7 @@ export const GET = requestWithAuth(async (supabase, profile, req) => {
     // email in and setting it's own cookies to preserve the session
     const token = await new jose.SignJWT({
       email: profile.email,
+      hasMembership: !!project.membership,
       firstName,
       lastName,
     })
