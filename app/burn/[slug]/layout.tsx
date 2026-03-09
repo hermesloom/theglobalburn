@@ -107,17 +107,10 @@ export default function ProjectLayout({
             path: `/burn/${project?.slug}/newsletter`,
             icon: <MailOutlined />,
           },
-          project.membership
+          project.membership || (profile?.email === "ml@semi-sentient.com")
             ? {
               label: "Volunteer",
               path: `/burn/${project?.slug}/rea`,
-              icon: <RocketOutlined />,
-            }
-            : null,
-          profile?.email === "ml@semi-sentient.com"
-            ? {
-              label: "Volunteer - TEST",
-              path: `/burn/${project?.slug}/rea-test`,
               icon: <RocketOutlined />,
             }
             : null,
