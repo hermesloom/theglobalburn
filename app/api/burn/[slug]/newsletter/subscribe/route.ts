@@ -17,8 +17,10 @@ function getSubscriberHash(email: string): string {
   return crypto.createHash("md5").update(email.toLowerCase()).digest("hex");
 }
 
+const MEMBERS_PLATFORM_TAG = "Via members platform";
+
 export const POST = requestWithProject(
-  async (supabase, profile, _request, _body, _project) => {
+  async (supabase, profile, _request, _body, project) => {
     if (!MAILCHIMP_LIST_ID || !MAILCHIMP_DATACENTER) {
       return NextResponse.json(
         { error: "Mailchimp configuration is missing" },
@@ -29,6 +31,10 @@ export const POST = requestWithProject(
     try {
       const email = profile.email;
       const subscriberHash = getSubscriberHash(email);
+      const mergeFields = {
+        FNAME: project?.membership?.first_name ?? "",
+        LNAME: project?.membership?.last_name ?? "",
+      };
 
       try {
         // Try to get existing member first
@@ -37,8 +43,20 @@ export const POST = requestWithProject(
           subscriberHash,
         );
 
-        // If already subscribed, return success
+        // If already subscribed, update merge fields and tags, then return success
         if (existingMember.status === "subscribed") {
+          await mailchimp.lists.updateListMember(
+            MAILCHIMP_LIST_ID,
+            subscriberHash,
+            { merge_fields: mergeFields },
+          );
+          await mailchimp.lists.updateListMemberTags(
+            MAILCHIMP_LIST_ID,
+            subscriberHash,
+            {
+              tags: [{ name: MEMBERS_PLATFORM_TAG, status: "active" }],
+            },
+          );
           return {
             success: true,
             message: "Already subscribed",
@@ -46,13 +64,22 @@ export const POST = requestWithProject(
           };
         }
 
-        // Update existing member to subscribed
+        // Update existing member to subscribed with merge fields
         const updatedMember = await mailchimp.lists.updateListMember(
           MAILCHIMP_LIST_ID,
           subscriberHash,
           {
             status: "subscribed",
-            // Do not send FNAME or LNAME as per requirements
+            merge_fields: mergeFields,
+          },
+        );
+        await mailchimp.lists.updateListMemberTags(
+          MAILCHIMP_LIST_ID,
+          subscriberHash,
+          {
+            tags: [
+              { name: MEMBERS_PLATFORM_TAG, status: "active" },
+            ],
           },
         );
 
@@ -69,7 +96,14 @@ export const POST = requestWithProject(
             {
               email_address: email,
               status: "subscribed",
-              // Do not send FNAME or LNAME as per requirements
+              merge_fields: mergeFields,
+            },
+          );
+          await mailchimp.lists.updateListMemberTags(
+            MAILCHIMP_LIST_ID,
+            subscriberHash,
+            {
+              tags: [{ name: MEMBERS_PLATFORM_TAG, status: "active" }],
             },
           );
 

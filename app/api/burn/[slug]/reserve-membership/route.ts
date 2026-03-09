@@ -5,7 +5,7 @@ import { getAvailableMemberships } from "@/app/api/_common/profile";
 export const POST = requestWithProject(
   async (supabase, profile, request, body, project) => {
     const { availableMemberships, lowIncomeAvailable } =
-      await getAvailableMemberships(supabase, project!);
+      await getAvailableMemberships(supabase, project!, profile.id);
 
     if (availableMemberships === 0) {
       throw new Error("No more memberships available");

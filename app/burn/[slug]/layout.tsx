@@ -12,6 +12,7 @@ import {
   TeamOutlined,
   WalletOutlined,
   FileDoneOutlined,
+  FileTextOutlined,
   LinkOutlined,
   PlusOutlined,
   BarChartOutlined,
@@ -92,6 +93,13 @@ export default function ProjectLayout({
               label: "Statistics",
               path: `/burn/${project?.slug}/statistics`,
               icon: <BarChartOutlined />,
+            }
+            : null,
+          project.membership
+            ? {
+              label: "Board Meeting Notes",
+              path: `/burn/${project?.slug}/board-meeting-notes`,
+              icon: <FileTextOutlined />,
             }
             : null,
           {
