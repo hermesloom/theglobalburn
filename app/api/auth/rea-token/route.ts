@@ -26,6 +26,7 @@ export const GET = requestWithAuth(async (supabase, profile, req) => {
     const burnSlug = req.nextUrl.searchParams.get("burn");
     let firstName: string | undefined;
     let lastName: string | undefined;
+    let hasMembership: boolean | undefined;
 
     if (burnSlug) {
       // Find the project for this burn
@@ -34,6 +35,7 @@ export const GET = requestWithAuth(async (supabase, profile, req) => {
       if (project?.membership) {
         firstName = project.membership.first_name;
         lastName = project.membership.last_name;
+        hasMembership = !!project.membership;
       }
     }
 
@@ -46,7 +48,7 @@ export const GET = requestWithAuth(async (supabase, profile, req) => {
     // email in and setting it's own cookies to preserve the session
     const token = await new jose.SignJWT({
       email: profile.email,
-      hasMembership: !!project.membership,
+      hasMembership,
       firstName,
       lastName,
     })
