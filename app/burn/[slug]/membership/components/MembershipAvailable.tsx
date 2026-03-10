@@ -234,7 +234,7 @@ export default function MembershipAvailable() {
                 label: `Purchase ${project.membership_purchase_right?.is_non_transferable ? "non-transferable " : ""}high-income membership\n(${formatMoney(
                   project?.burn_config.membership_price_tier_3,
                   project?.burn_config.membership_price_currency,
-                )}) ${enabledAddonsSuffix}`,
+                )})${enabledAddonsSuffix}`,
                 allowLineBreaks: true,
                 onClick: {
                   prompt: burnerQuestionnaire,

@@ -6,6 +6,7 @@ import Heading from "@/app/_components/Heading";
 import { useProject } from "@/app/_components/SessionContext";
 import { apiGet, apiPost, apiDelete } from "@/app/_components/api";
 import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
+import MembershipPrices from "@/app/burn/[slug]/membership/components/helpers/MembershipPrices";
 import toast from "react-hot-toast";
 
 type State = "loading" | "intro" | "maze" | "applied";
@@ -82,6 +83,7 @@ export default function LowIncomeSupportPage() {
             directly—increased by high income memberships from the previous
             sale.
           </p>
+          <MembershipPrices />
           <p>
             The membership team believes that supported low income memberships
             are not a cost to The Borderland. Instead, they make The Borderland
