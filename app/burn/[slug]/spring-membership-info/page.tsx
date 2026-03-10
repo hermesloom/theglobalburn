@@ -4,6 +4,7 @@ import React from "react";
 import Heading from "@/app/_components/Heading";
 import { useProject } from "@/app/_components/SessionContext";
 import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
+import MembershipPrices from "@/app/burn/[slug]/membership/components/helpers/MembershipPrices";
 
 export default function SpringMembershipInfoPage() {
   const { project } = useProject();
@@ -24,6 +25,7 @@ export default function SpringMembershipInfoPage() {
       <p className="mb-4">
         The Spring Membership is transferable, should your plans change.
       </p>
+      <MembershipPrices />
     </>
   );
 }

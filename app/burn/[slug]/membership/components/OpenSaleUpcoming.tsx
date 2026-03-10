@@ -3,6 +3,7 @@
 import React from "react";
 import { useProject } from "@/app/_components/SessionContext";
 import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
+import MembershipPrices from "@/app/burn/[slug]/membership/components/helpers/MembershipPrices";
 
 export default function OpenSaleUpcoming() {
   const { project } = useProject();
@@ -20,6 +21,7 @@ export default function OpenSaleUpcoming() {
         right here and runs for one week.
       </p>
       <p>The Spring Membership is transferable, should your plans change.</p>
+      <MembershipPrices />
     </div>
   );
 }
