@@ -37,12 +37,6 @@ export const POST = requestWithProject(
       };
     }
 
-    if (+new Date() >= +new Date(project!.burn_config.open_sale_general_starting_at!)) {
-      throw new Error(
-        "Applications for low income support have closed. The Spring Membership Sale has already started.",
-      );
-    }
-
     const application = await query(() =>
       supabase
         .from("burn_low_income_applications")

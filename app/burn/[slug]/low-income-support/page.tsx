@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { Spinner, Button, Alert } from "@nextui-org/react";
 import Heading from "@/app/_components/Heading";
 import { useProject } from "@/app/_components/SessionContext";
 import { apiGet, apiPost, apiDelete } from "@/app/_components/api";
-import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
 import MembershipPrices from "@/app/burn/[slug]/membership/components/helpers/MembershipPrices";
+import { BurnStage } from "@/utils/types";
 import toast from "react-hot-toast";
 
 type State = "loading" | "intro" | "maze" | "applied";
@@ -18,9 +19,6 @@ export default function LowIncomeSupportPage() {
 
   const config = project?.burn_config;
   const sharePct = config?.share_memberships_low_income ?? 10;
-  const deadline = config?.open_sale_general_starting_at
-    ? formatDate(config.open_sale_general_starting_at)
-    : "a date to be announced";
 
   useEffect(() => {
     if (!project?.slug) return;
@@ -72,6 +70,29 @@ export default function LowIncomeSupportPage() {
     );
   }
 
+  const hasPurchaseRight = !!project?.membership_purchase_right;
+
+  if (hasPurchaseRight) {
+    return (
+      <>
+        <Heading>Low Income Support</Heading>
+        <div className="flex flex-col gap-4">
+          <p>
+            If you want to change your low income status, you need to cancel
+            your membership reservation first. You can do that on{" "}
+            <Link
+              href={`/burn/${project?.slug}/membership`}
+              className="underline"
+            >
+              Your Membership
+            </Link>
+            .
+          </p>
+        </div>
+      </>
+    );
+  }
+
   if (state === "intro") {
     return (
       <>
@@ -102,10 +123,6 @@ export default function LowIncomeSupportPage() {
           <Button color="primary" onPress={handleApplyClick} size="lg">
             Apply here
           </Button>
-          <p>
-            The deadline is <b>{deadline}</b>, and approved applicants will buy
-            the membership first come, first serve like every other member.
-          </p>
         </div>
       </>
     );
@@ -167,6 +184,41 @@ export default function LowIncomeSupportPage() {
   }
 
   // applied
+  const stage = config?.current_stage;
+  const saleName =
+    stage === BurnStage.OpenSaleNonTransferable
+      ? "Fall Membership Sale"
+      : "Spring Membership Sale";
+  const saleIsOpen =
+    (stage === BurnStage.OpenSaleGeneral &&
+      !!config?.open_sale_general_starting_at &&
+      +new Date() >= +new Date(config.open_sale_general_starting_at)) ||
+    (stage === BurnStage.OpenSaleNonTransferable &&
+      !!config?.open_sale_non_transferable_starting_at &&
+      +new Date() >= +new Date(config.open_sale_non_transferable_starting_at));
+
+  let nextStepParagraph: React.ReactNode;
+  if (saleIsOpen) {
+    nextStepParagraph = (
+      <p>
+        The {saleName} is now open. You can purchase a membership at the lowered
+        price on the{" "}
+        <Link href={`/burn/${project?.slug}/membership`} className="underline">
+          membership page
+        </Link>
+        —on a first-come, first-served basis among approved applicants.
+      </p>
+    );
+  } else {
+    nextStepParagraph = (
+      <p>
+        When the {saleName} opens, you will be able to purchase a membership at
+        the lowered price—on a first-come, first-served basis among approved
+        applicants.
+      </p>
+    );
+  }
+
   return (
     <>
       <Heading>Low Income Support</Heading>
@@ -176,17 +228,10 @@ export default function LowIncomeSupportPage() {
           membership team has found that you believe yourself to be the right
           candidate for a low income membership.
         </p>
-        <p>
-          When the Spring Membership Sale opens, you will be able to purchase a
-          membership at the lowered price—on a first-come, first-served basis
-          among approved applicants.
-        </p>
+        {nextStepParagraph}
         <Alert color="warning">
-          <span>
-            Be ready when the gates open on <b>{deadline}</b>; once all low
-            income memberships have been claimed, the option will no longer be
-            available, even if you applied here.
-          </span>
+          Once all low income memberships have been claimed, the option will no
+          longer be available, even if you applied here.
         </Alert>
         <p>
           <b>This process is trust-based.</b> Remember the golden rule:

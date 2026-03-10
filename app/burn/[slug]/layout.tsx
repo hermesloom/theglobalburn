@@ -74,9 +74,7 @@ export default function ProjectLayout({
           !project.membership &&
             (project.burn_config.current_stage ===
               BurnStage.OpenSaleLotteryEntrantsOnly ||
-              (project.burn_config.current_stage === BurnStage.OpenSaleGeneral &&
-                +new Date() <
-                +new Date(project.burn_config.open_sale_general_starting_at!)))
+              project.burn_config.current_stage === BurnStage.OpenSaleGeneral)
             ? {
               label: "Low Income Support",
               path: `/burn/${project?.slug}/low-income-support`,
