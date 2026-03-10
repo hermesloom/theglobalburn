@@ -8,7 +8,7 @@ import { BurnStage, BurnMembershipPricing } from "@/utils/types";
 import toast from "react-hot-toast";
 import {
   useBurnerQuestionnairePrompt,
-  BURNER_QUESTIONNAIRE_QUESTIONS,
+  BURNER_QUESTIONNAIRE_SPEC,
   formatQuestionsAsMarkdown,
 } from "@/app/burn/[slug]/membership/components/helpers/useBurnerQuestionnairePrompt";
 import TestSendEmailButton from "./TestSendEmailButton";
@@ -175,12 +175,13 @@ export default function ConfigPage() {
   const handleTestQuestionnaire = async () => {
     const result = await burnerQuestionnaire();
     if (result) {
-      alert(JSON.stringify(result, null, 2));
+      console.log("Burner questionnaire result:", result);
+      alert("Results have been logged to the console.");
     }
   };
 
   const handleDownloadQuestionsMarkdown = () => {
-    const markdown = formatQuestionsAsMarkdown(BURNER_QUESTIONNAIRE_QUESTIONS);
+    const markdown = formatQuestionsAsMarkdown(BURNER_QUESTIONNAIRE_SPEC);
     const blob = new Blob([markdown], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

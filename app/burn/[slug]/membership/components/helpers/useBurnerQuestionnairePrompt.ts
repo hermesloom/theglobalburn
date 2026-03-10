@@ -1,28 +1,10 @@
 import { usePrompt } from "@/app/_components/PromptContext";
+import type { PromptField } from "@/app/_components/Prompt";
 
-export type BurnerQuestionnaireQuestionOption = {
-  id: string;
-  label: string;
-};
-
-export type BurnerQuestionnaireQuestion = {
-  key: string;
-  label: string;
-  type?:
-    | "text"
-    | "textWithTopLabel"
-    | "checkbox"
-    | "checkboxGroup"
-    | "radio"
-    | "dropdown"
-    | "quote";
-  options?: BurnerQuestionnaireQuestionOption[];
-  multiLine?: boolean;
-  canBeEmpty?: boolean;
-};
-
-export const BURNER_QUESTIONNAIRE_QUESTIONS: BurnerQuestionnaireQuestion[] = [
-  {
+export const BURNER_QUESTIONNAIRE_SPEC = {
+  intro: "First, please answer the following questions.",
+  questions: [
+    {
     key: "dreams_hopes_plans",
     label:
       "1. Anything you want to share about your dreams, hopes or plans for your Borderland participation this year?",
@@ -474,20 +456,17 @@ export const BURNER_QUESTIONNAIRE_QUESTIONS: BurnerQuestionnaireQuestion[] = [
       },
     ],
   },
-];
+  ] as PromptField[],
+};
 
-export function formatQuestionsAsMarkdown(
-  questions: BurnerQuestionnaireQuestion[],
-): string {
-  const lines: string[] = [
-    "# Burner Questionnaire",
-    "",
-    "Questions for the Borderland membership questionnaire.",
-    "",
-  ];
+export function formatQuestionsAsMarkdown(spec: {
+  intro: string;
+  questions: PromptField[];
+}): string {
+  const lines: string[] = ["# " + spec.intro, ""];
 
-  for (const q of questions) {
-    lines.push("## " + q.label);
+  for (const q of spec.questions) {
+    lines.push("## " + (q.label ?? ""));
     lines.push("");
     if (q.options) {
       const optionType =
@@ -537,8 +516,8 @@ export const useBurnerQuestionnairePrompt = () => {
 
   return () =>
     prompt(
-      "First, please answer the following questions.",
-      BURNER_QUESTIONNAIRE_QUESTIONS,
+      BURNER_QUESTIONNAIRE_SPEC.intro,
+      BURNER_QUESTIONNAIRE_SPEC.questions,
       ({ unfinishedFieldIndices }) => {
         if (unfinishedFieldIndices.length === 0) return "Submit";
 
