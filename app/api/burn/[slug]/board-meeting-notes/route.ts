@@ -32,7 +32,7 @@ export const GET = requestWithMembership(
       orderBy: "name",
     });
 
-    const files = (data.files || []).map((f) => ({
+    const files = (data.files || []).filter(f => f.mimeType === "application/pdf").map((f) => ({
       id: f.id,
       name: f.name,
       mimeType: f.mimeType,
