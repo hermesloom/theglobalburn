@@ -25,6 +25,7 @@ export type PromptField = {
   type?:
     | "text"
     | "textWithTopLabel"
+    | "number"
     | "checkbox"
     | "checkboxGroup"
     | "radio"
@@ -129,6 +130,19 @@ export default function Prompt({ config }: { config: PromptConfig }) {
                 isReadOnly={field.readOnly}
               />
             )}
+          </div>
+        );
+
+      case "number":
+        return (
+          <div key={field.key}>
+            {renderLabel(field.label)}
+            <Input
+              type="number"
+              value={inputs[field.key] || ""}
+              onChange={(e) => setInput(field.key, e.target.value)}
+              isReadOnly={field.readOnly}
+            />
           </div>
         );
 
