@@ -89,18 +89,44 @@ export const BURNER_QUESTIONNAIRE_SPEC = {
       key: "previous_events",
       label:
         "7. How many events based on the 10 (11) principles have you (approximately) been to before? (e.g. Burning Man, Nowhere, The Borderland, ...)",
-      type: "textWithTopLabel",
+      type: "radio",
+      options: [
+        { id: "first_one", label: "This will be my first one" },
+        { id: "1", label: "1" },
+        { id: "2_4", label: "2–4" },
+        { id: "5_plus", label: "5+" },
+      ],
     },
     {
       key: "borderland_visits",
       label:
         "8. How many times have you (approximately) been to The Borderland before?",
-      type: "textWithTopLabel",
+      type: "number",
+    },
+    {
+      key: "onboarding_calls",
+      label:
+        "9. Would you like to join one or more Borderling onboarding calls?",
+      type: "radio",
+      options: [
+        {
+          id: "yes_learn_more",
+          label:
+            "Yes, I'd love to learn more about Borderland, connect with awesome people, and find ways to contribute!",
+        },
+        {
+          id: "yes_share_tips",
+          label:
+            "Yes, I know Borderland well and happy to share my tips",
+        },
+        { id: "maybe", label: "Maybe — send me more info" },
+        { id: "no", label: "No, not this time" },
+      ],
     },
     {
       key: "experiment_awareness",
       label:
-        "9. Are you aware of the fact that you're heading straight into a radical experiment in community, co-creation and creativity?",
+        "10. Are you aware of the fact that you're heading straight into a radical experiment in community, co-creation and creativity?",
       type: "checkboxGroup",
       options: [
         { id: "yes_no_spectators", label: "Yes, there are no spectators" },
@@ -117,7 +143,7 @@ export const BURNER_QUESTIONNAIRE_SPEC = {
     },
     {
       key: "responsibility",
-      label: "10. Who is responsible for the Borderland to happen?",
+      label: "11. Who is responsible for the Borderland to happen?",
       type: "radio",
       options: [
         {
@@ -139,7 +165,7 @@ export const BURNER_QUESTIONNAIRE_SPEC = {
     {
       key: "volunteer_interests",
       label:
-        "11. Would you like to be part of any of these teams of heroes?",
+        "12. Borderland only happens because participants take shifts and help run the city. Would you like to join one of these teams of heroes?",
       type: "checkboxGroup",
       options: [
         { id: "clown_police", label: "Clown police" },
@@ -154,11 +180,12 @@ export const BURNER_QUESTIONNAIRE_SPEC = {
         },
         { id: "electricity", label: "Electricity" },
         { id: "conflict_resolution", label: "Conflict resolution team" },
+        { id: "help_choosing", label: "I'd like help choosing a team" },
       ],
     },
     {
       key: "clown_police_duties",
-      label: "12. What does the clown police do?",
+      label: "13. What does the clown police do?",
       type: "checkboxGroup",
       options: [
         { id: "keep_everyone_safe", label: "Help to keep everyone safe" },
@@ -182,7 +209,7 @@ export const BURNER_QUESTIONNAIRE_SPEC = {
     },
     {
       key: "clown_police_eligibility",
-      label: "13. Can anyone with a membership become a clown police?",
+      label: "14. Can anyone with a membership become a clown police?",
       type: "radio",
       options: [
         { id: "veterans", label: "No, only veterans." },
@@ -199,7 +226,7 @@ export const BURNER_QUESTIONNAIRE_SPEC = {
     },
     {
       key: "dream_status",
-      label: "14. Do you have a dream for this year's Borderland?",
+      label: "15. Do you have a dream for this year's Borderland?",
       type: "radio",
       options: [
         {
@@ -229,7 +256,7 @@ export const BURNER_QUESTIONNAIRE_SPEC = {
     },
     {
       key: "camp_status",
-      label: "15. Are you part of a camp?",
+      label: "16. Are you part of a camp?",
       type: "radio",
       options: [
         { id: "free", label: "No, I'm free-camping" },
@@ -254,7 +281,7 @@ export const BURNER_QUESTIONNAIRE_SPEC = {
     },
     {
       key: "sound_camp_approach",
-      label: "16. What do you do if you want to start a sound camp?",
+      label: "17. What do you do if you want to start a sound camp?",
       type: "radio",
       options: [
         {
@@ -284,7 +311,7 @@ export const BURNER_QUESTIONNAIRE_SPEC = {
     {
       key: "food_awareness",
       label:
-        "17. Did you know you have to bring all your own food and drinks to the Borderland?",
+        "18. Did you know you have to bring all your own food and drinks to the Borderland?",
       type: "radio",
       options: [
         {
@@ -300,8 +327,58 @@ export const BURNER_QUESTIONNAIRE_SPEC = {
       ],
     },
     {
+      key: "contribution_type",
+      label:
+        "19. What kind of contribution feels most fun, meaningful, or attractive to you?",
+      type: "checkboxGroup",
+      options: [
+        {
+          id: "volunteer_shifts",
+          label: "Taking one or more volunteer shifts",
+        },
+        {
+          id: "realities",
+          label: "Joining one of the realities",
+        },
+        {
+          id: "organize_before",
+          label: "Helping organize things before Borderland",
+        },
+        {
+          id: "build_strike",
+          label: "Helping with build or strike beyond my camp or dream",
+        },
+        {
+          id: "camp_offering",
+          label: "Working on my camp's public offering",
+        },
+        {
+          id: "art_workshop",
+          label:
+            "Bringing an art project, workshop, performance, ritual, or other gifts",
+        },
+        {
+          id: "help_spontaneously",
+          label: "Helping another camp or project spontaneously on site",
+        },
+        {
+          id: "fluffing",
+          label: "Fluffing people who work hard and emotionally support others",
+        },
+        {
+          id: "self_family",
+          label: "I'll likely only have capacity to take care for myself/my family/kids/pets",
+        },
+        {
+          id: "dont_know",
+          label:
+            "I don't know yet, let me read more on Discord, Facebook, and join Onboarding calls to get inspired!",
+        },
+      ],
+    },
+    {
       key: "favorite_principle",
-      label: "18. Which of the 10 (11) principles is your favorite?",
+      label: "20. Which of the 10 (11) principles is your favorite?",
       type: "checkboxGroup",
       options: [
         { id: "reliance", label: "Radical self-reliance" },
@@ -324,7 +401,7 @@ export const BURNER_QUESTIONNAIRE_SPEC = {
     },
     {
       key: "lnt_understanding",
-      label: "19. What does 'Leave No Trace' mean?",
+      label: "21. What does 'Leave No Trace' mean?",
       type: "checkboxGroup",
       options: [
         {
@@ -353,7 +430,7 @@ export const BURNER_QUESTIONNAIRE_SPEC = {
     },
     {
       key: "nature_reserve_awareness",
-      label: "20. Are you aware of the nature reserve rules in Alversjö?",
+      label: "22. Are you aware of the nature reserve rules in Alversjö?",
       type: "radio",
       options: [
         {
@@ -375,7 +452,7 @@ export const BURNER_QUESTIONNAIRE_SPEC = {
     },
     {
       key: "consent_understanding",
-      label: "21. What does consent mean at the Borderland?",
+      label: "23. What does consent mean at the Borderland?",
       type: "checkboxGroup",
       options: [
         {
@@ -415,7 +492,7 @@ export const BURNER_QUESTIONNAIRE_SPEC = {
     {
       key: "entry_requirements",
       label:
-        "22. What do you need to bring to be let in by the Threshold gate crew?",
+        "24. What do you need to bring to be let in by the Threshold gate crew?",
       type: "radio",
       options: [
         {
@@ -437,7 +514,7 @@ export const BURNER_QUESTIONNAIRE_SPEC = {
     {
       key: "questionnaire_understanding",
       label:
-        "23. Are you aware that this questionnaire is just an attempt at describing the Borderland?",
+        "25. Are you aware that this questionnaire is just an attempt at describing the Borderland?",
       type: "checkboxGroup",
       options: [
         {
@@ -496,6 +573,7 @@ export type BurnerQuestionnaireResult = {
   departure_time: string;
   previous_events: string;
   borderland_visits: string;
+  onboarding_calls: string;
   experiment_awareness: string;
   responsibility: string;
   volunteer_interests: string;
@@ -505,6 +583,7 @@ export type BurnerQuestionnaireResult = {
   camp_status: string;
   sound_camp_approach: string;
   food_awareness: string;
+  contribution_type: string;
   favorite_principle: string;
   lnt_understanding: string;
   nature_reserve_awareness: string;
