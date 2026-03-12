@@ -104,6 +104,10 @@ export default function ConfigPage() {
 
   const isISODate = (date: string | null) => date && !isNaN(Date.parse(date));
   const isNumber = (value: string) => !isNaN(parseInt(value));
+  const isPercent = (value: string) => {
+    const n = parseFloat(value);
+    return !isNaN(n) && n >= 0 && n <= 100;
+  };
   const isAllValid =
     Object.values(BurnStage).includes(currentStage) &&
     isISODate(lotteryOpensAt) &&
@@ -119,12 +123,8 @@ export default function ConfigPage() {
     isNumber(membershipPriceTier1) &&
     isNumber(membershipPriceTier2) &&
     isNumber(membershipPriceTier3) &&
-    isNumber(shareMembershipsLottery) &&
-    parseInt(shareMembershipsLottery) >= 0 &&
-    parseInt(shareMembershipsLottery) <= 100 &&
-    isNumber(shareMembershipsLowIncome) &&
-    parseInt(shareMembershipsLowIncome) >= 0 &&
-    parseInt(shareMembershipsLowIncome) <= 100 &&
+    isPercent(shareMembershipsLottery) &&
+    isPercent(shareMembershipsLowIncome) &&
     isJson(membershipAddons);
 
   const handleSave = async () => {
@@ -156,8 +156,8 @@ export default function ConfigPage() {
       membership_price_tier_1: parseFloat(membershipPriceTier1),
       membership_price_tier_2: parseFloat(membershipPriceTier2),
       membership_price_tier_3: parseFloat(membershipPriceTier3),
-      share_memberships_lottery: parseInt(shareMembershipsLottery),
-      share_memberships_low_income: parseInt(shareMembershipsLowIncome),
+      share_memberships_lottery: parseFloat(shareMembershipsLottery),
+      share_memberships_low_income: parseFloat(shareMembershipsLowIncome),
       membership_addons: JSON.parse(membershipAddons),
       stripe_secret_api_key: stripeSecretApiKey,
       stripe_webhook_secret: stripeWebhookSecret,
@@ -291,11 +291,19 @@ export default function ConfigPage() {
         />
         <Input
           label="share_memberships_lottery"
+          type="number"
+          min={0}
+          max={100}
+          step="0.1"
           value={shareMembershipsLottery}
           onValueChange={setShareMembershipsLottery}
         />
         <Input
           label="share_memberships_low_income"
+          type="number"
+          min={0}
+          max={100}
+          step="0.1"
           value={shareMembershipsLowIncome}
           onValueChange={setShareMembershipsLowIncome}
         />

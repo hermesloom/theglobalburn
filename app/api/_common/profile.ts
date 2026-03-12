@@ -269,7 +269,9 @@ export async function getAvailableMemberships(
   }
 
   // Calculate how many low income spots are still available
+  console.log(`[DEBUG] low income percentage: ${project.burn_config.share_memberships_low_income}`);
   const totalLowIncomeAllowed = getTotalLowIncomeAllowed(project.burn_config);
+  console.log(`[DEBUG] check that low income percentage was correctly applied: difference due to rounding is ${Math.abs(project.burn_config.share_memberships_low_income / 100 - totalLowIncomeAllowed / project.burn_config.max_memberships) * 100}%-points (should be less than 1, as close to zero as possible)`)
   if (debug) {
     console.log(`[DEBUG] total low income allowed: ${totalLowIncomeAllowed}`);
   }
