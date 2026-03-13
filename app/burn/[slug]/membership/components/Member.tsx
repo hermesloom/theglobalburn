@@ -7,6 +7,7 @@ import MemberDetailsWithHeading from "./helpers/MemberDetailsWithHeading";
 import InvitePlusOne from "./InvitePlusOne";
 import { QRCodeSVG } from "qrcode.react";
 import { useSearchParams, useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import TransferMembership from "./TransferMembership";
 import ListOfChildren from "./helpers/ListOfChildren";
 import ListOfPets from "./helpers/ListOfPets";
@@ -23,6 +24,17 @@ export default function Member() {
       router.replace(url.pathname + url.search);
     }
   }, [searchParams, router]);
+
+  const handleCopyMembershipId = async () => {
+    const id = project?.membership?.id;
+    if (!id) return;
+    try {
+      await navigator.clipboard.writeText(id);
+      toast.success("Membership ID copied to clipboard");
+    } catch {
+      toast.error("Failed to copy to clipboard");
+    }
+  };
 
   return (
     <>
@@ -41,7 +53,15 @@ export default function Member() {
           Check the <Link href={`/burn/${project?.slug}/links`}>links</Link> in
           the left pane to see how to get involved!
         </p>
-        <div className="border border-gray-200 rounded-lg p-4 w-fit">
+        <div
+          className="border border-gray-200 rounded-lg p-4 w-fit"
+          onClick={(e) => {
+            e.preventDefault();
+            handleCopyMembershipId();
+          }}
+          tabIndex={0}
+          title="Click to copy membership ID"
+        >
           <QRCodeSVG value={project?.membership!.id!} />
         </div>
       </div>
