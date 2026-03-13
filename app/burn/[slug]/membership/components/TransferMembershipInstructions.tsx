@@ -34,8 +34,8 @@ export default function TransferMembershipInstructions({
       )}
       {alreadyInitiated ? (
         <li>
-          The buyer has NOT receive an email — they just reload their membership
-          page, and the purchase option will appear.
+          The buyer has NOT received an email — they just reload their
+          membership page, and the purchase option will appear.
         </li>
       ) : (
         <li>
