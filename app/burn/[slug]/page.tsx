@@ -96,7 +96,7 @@ export default function ProjectPage() {
         },
         {
           date: new Date("2026-03-16T18:00:00Z"),
-          title: "Community Gathering Call",
+          title: "📞 Community Gathering Call",
           body: (
             <>
               <p>
@@ -131,7 +131,7 @@ export default function ProjectPage() {
         },
         {
           date: new Date("2026-04-07T17:00:00Z"),
-          title: "Pre-placement kick-off meeting",
+          title: "🗺️ Pre-placement kick-off meeting",
           body: (
             <>
               <p>
@@ -165,6 +165,10 @@ export default function ProjectPage() {
           ),
         },
         {
+          date: new Date("2026-06-15T12:00:00Z"),
+          title: "🔌 Deadline for members to have their power-need figured out."
+        },
+        {
           date: new Date("2026-06-22T21:59:59Z"),
           title: "Spring Membership transfers close (full refund)",
         },
@@ -173,6 +177,10 @@ export default function ProjectPage() {
             ? new Date(project.burn_config.last_possible_transfer_at)
             : null,
           title: "Spring Membership transfers close (partial refund)",
+        },
+        {
+          date: new Date("2026-07-01T12:00:00Z"),
+          title: "🔌 Last call for camp power setup changes"
         },
         {
           date: new Date("2026-07-20"),
