@@ -10,7 +10,7 @@ interface TimelineEvent {
   date: Date | null;
   dateEnd?: Date | null;
   title: string;
-  link?: string;
+  body?: React.ReactNode;
 }
 
 export default function ProjectPage() {
@@ -79,7 +79,14 @@ export default function ProjectPage() {
           {
             date: new Date("2025-11-24T19:00:00Z"),
             title: "Annual General Meeting",
-            link: "https://talk.theborderland.se/d/Xh7k8Lov/annual-general-meeting-november-24-2025-at-20-00-8pm-",
+            body: (
+              <Link
+                isExternal
+                href="https://talk.theborderland.se/d/Xh7k8Lov/annual-general-meeting-november-24-2025-at-20-00-8pm-"
+              >
+                See here for more info
+              </Link>
+            ),
           },
           {
             date: project?.burn_config.open_sale_general_starting_at
@@ -109,16 +116,11 @@ export default function ProjectPage() {
         ];
 
   // Sort events by date (chronological order)
-  // Events with null dates (TBD) will be placed at the end
+  // Events with null dates (TBD) are treated as UNIX epoch (timestamp 0)
   timelineEvents.sort((a, b) => {
-    // If both dates are null, maintain current order
-    if (a.date === null && b.date === null) return 0;
-    // If a is null, put it after b
-    if (a.date === null) return 1;
-    // If b is null, put it after a
-    if (b.date === null) return -1;
-    // Otherwise sort by date
-    return a.date.getTime() - b.date.getTime();
+    const aTime = a.date?.getTime() ?? 0;
+    const bTime = b.date?.getTime() ?? 0;
+    return aTime - bTime;
   });
 
   // Find the index where we should insert the separator (between past and future)
@@ -128,18 +130,11 @@ export default function ProjectPage() {
   for (let i = 0; i < timelineEvents.length; i++) {
     const event = timelineEvents[i];
     // For date ranges, use the end date; otherwise use the start date
-    const eventDate = event.dateEnd || event.date;
-
-    // If date is null (TBD), treat as future event
-    if (eventDate === null) {
-      if (separatorIndex === -1) {
-        separatorIndex = i;
-      }
-      break;
-    }
+    // Null dates are treated as timestamp 0 (UNIX epoch)
+    const eventTime = (event.dateEnd || event.date)?.getTime() ?? 0;
 
     // If this event is in the future and we haven't set separator yet
-    if (eventDate > now && separatorIndex === -1) {
+    if (eventTime > now.getTime() && separatorIndex === -1) {
       separatorIndex = i;
       break;
     }
@@ -225,14 +220,7 @@ export default function ProjectPage() {
                         : formatDate(event.date)}
                   </p>
                   <h3 className="text-lg font-semibold mt-1">{event.title}</h3>
-                  {event.link ? (
-                    <Link
-                      isExternal
-                      href="https://talk.theborderland.se/d/Xh7k8Lov/annual-general-meeting-november-24-2025-at-20-00-8pm-"
-                    >
-                      See here for more info
-                    </Link>
-                  ) : null}
+                  {event.body && <div className="mt-2">{event.body}</div>}
                 </div>
               </CardBody>
             </Card>
