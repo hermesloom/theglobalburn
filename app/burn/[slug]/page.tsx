@@ -165,7 +165,11 @@ export default function ProjectPage() {
           ),
         },
         {
-          date: new Date("2026-06-15T12:00:00Z"),
+          date: new Date("2026-05-22"),
+          title: "🗺️ General placement opens",
+        },
+        {
+          date: new Date("2026-06-15"),
           title: "🔌 Deadline for members to have their power-need figured out."
         },
         {
@@ -179,7 +183,7 @@ export default function ProjectPage() {
           title: "Spring Membership transfers close (partial refund)",
         },
         {
-          date: new Date("2026-07-01T12:00:00Z"),
+          date: new Date("2026-07-01"),
           title: "🔌 Last call for camp power setup changes"
         },
         {
