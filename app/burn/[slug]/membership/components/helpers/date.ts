@@ -2,9 +2,9 @@
  * Formats a date to YYYY-MM-DD HH:MM:SS format in the local timezone.
  *
  * @param date The date to format (string, number, or Date object)
- * @returns Formatted date string
+ * @returns Formatted date string with time
  */
-function formatDate(date: string | number | Date): string {
+function formatDateWithTime(date: string | number | Date): string {
   if (!date) return "";
 
   const dateObj = new Date(date);
@@ -26,6 +26,36 @@ function formatDate(date: string | number | Date): string {
       .find((part) => part.type === "timeZoneName")?.value || "";
 
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} ${timeZoneAbbr}`;
+}
+
+/**
+ * Formats a date, showing time only if it's not midnight (00:00:00).
+ *
+ * @param date The date to format (string, number, or Date object)
+ * @returns Formatted date string with or without time
+ */
+function formatDate(date: string | number | Date): string {
+  if (!date) return "";
+
+  const dateObj = new Date(date);
+
+  // Check if time is midnight UTC (00:00:00)
+  // We check UTC because dates like "2026-06-15" are parsed as midnight UTC
+  const isMidnightUTC =
+    dateObj.getUTCHours() === 0 &&
+    dateObj.getUTCMinutes() === 0 &&
+    dateObj.getUTCSeconds() === 0;
+
+  if (isMidnightUTC) {
+    // Only show date part
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const day = String(dateObj.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  } else {
+    // Show full date and time
+    return formatDateWithTime(dateObj);
+  }
 }
 
 const formatRelativeDateTime = (date: Date) => {
@@ -123,6 +153,7 @@ function formatDateRange(startDate: Date, endDate: Date): string {
 
 export {
   formatDate,
+  formatDateWithTime,
   formatRelativeDateTime,
   formatDOB,
   calculateAge,
