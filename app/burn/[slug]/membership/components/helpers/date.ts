@@ -92,10 +92,40 @@ function isSameDay(date1: Date, date2: Date) {
   );
 }
 
+/**
+ * Formats a date range like "July 21 – July 27, 2025"
+ *
+ * @param startDate The start date
+ * @param endDate The end date
+ * @returns Formatted date range string
+ */
+function formatDateRange(startDate: Date, endDate: Date): string {
+  const startMonth = startDate.toLocaleDateString("en-US", { month: "long" });
+  const startDay = startDate.getDate();
+  const endMonth = endDate.toLocaleDateString("en-US", { month: "long" });
+  const endDay = endDate.getDate();
+  const year = endDate.getFullYear();
+
+  // If same month, format as "Month Day1 – Day2, Year"
+  if (startDate.getMonth() === endDate.getMonth() && startDate.getFullYear() === endDate.getFullYear()) {
+    return `${startMonth} ${startDay} – ${endDay}, ${year}`;
+  }
+
+  // If different months but same year, format as "Month1 Day1 – Month2 Day2, Year"
+  if (startDate.getFullYear() === endDate.getFullYear()) {
+    return `${startMonth} ${startDay} – ${endMonth} ${endDay}, ${year}`;
+  }
+
+  // If different years, format as "Month1 Day1, Year1 – Month2 Day2, Year2"
+  const startYear = startDate.getFullYear();
+  return `${startMonth} ${startDay}, ${startYear} – ${endMonth} ${endDay}, ${year}`;
+}
+
 export {
   formatDate,
   formatRelativeDateTime,
   formatDOB,
   calculateAge,
   isSameDay,
+  formatDateRange,
 };
