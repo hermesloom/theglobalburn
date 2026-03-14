@@ -5,12 +5,21 @@ import { useProject } from "@/app/_components/SessionContext";
 import { formatMoney } from "@/app/_components/utils";
 import { formatDate } from "@/app/burn/[slug]/membership/components/helpers/date";
 
+/** Set to true when the main transfer window has closed and the refund is much lower than before. */
+const AFTER_MAIN_TRANSFER_WINDOW = false;
+/** When the main transfer window closes; after this the refund is much reduced. (ISO 8601) */
+const MAIN_TRANSFER_WINDOW_CLOSES_AT = "2025-06-25T21:59:00Z";
+
 export default function TransferMembershipInstructions({
   alreadyInitiated,
 }: {
   alreadyInitiated?: boolean;
 }) {
   const { project } = useProject();
+
+  const refundAmount =
+    project!.membership!.price *
+    (1 - project!.burn_config.transfer_fee_percentage / 100);
 
   return (
     <ol className="list-decimal ml-8">
@@ -25,8 +34,8 @@ export default function TransferMembershipInstructions({
       )}
       {alreadyInitiated ? (
         <li>
-          The buyer has NOT receive an email — they just reload their membership
-          page, and the purchase option will appear.
+          The buyer has NOT received an email — they just reload their
+          membership page, and the purchase option will appear.
         </li>
       ) : (
         <li>
@@ -39,28 +48,17 @@ export default function TransferMembershipInstructions({
         automatically to your original payment card.
       </li>
       <li>
-        As the main transfer window has already closed on{" "}
-        <b>2025-06-25 23:59 (Swedish time)</b>, you'll only receive 50% of the
-        membership price back, which is{" "}
-        {/*amount minus fees (
-        {formatMoney(
-          project!.membership!.price,
-          project!.membership!.price_currency,
-        )}{" "}
-        -{" "}
-        {formatMoney(
-          project!.membership!.price *
-            (project!.burn_config.transfer_fee_percentage / 100),
-          project!.membership!.price_currency,
-        )}{" "}
-        ={" "}*/}
-        {formatMoney(
-          project!.membership!.price -
-            project!.membership!.price *
-              (project!.burn_config.transfer_fee_percentage / 100),
-          project!.membership!.price_currency,
-        )}{" "}
-        in your case.
+        {AFTER_MAIN_TRANSFER_WINDOW && (
+          <>
+            As the main transfer window has already closed on{" "}
+            <b>{formatDate(MAIN_TRANSFER_WINDOW_CLOSES_AT)}</b>, the refund is
+            now much lower.{" "}
+          </>
+        )}
+        You will receive{" "}
+        {formatMoney(refundAmount, project!.membership!.price_currency)} back
+        (membership price minus {project!.burn_config.transfer_fee_percentage}%
+        transfer fee).
       </li>
       <li>
         After{" "}

@@ -109,19 +109,39 @@ export async function POST(req: Request) {
           membershipsBeingTransferred[0];
         // refund the current membership via Stripe, minus the transfer fee
         if (revokedMembership.stripe_payment_intent_id) {
-          await stripe.refunds.create({
-            payment_intent: revokedMembership.stripe_payment_intent_id,
-            amount: Math.round(
-              revokedMembership.price *
+          try {
+            await stripe.refunds.create({
+              payment_intent: revokedMembership.stripe_payment_intent_id,
+              amount: Math.round(
+                revokedMembership.price *
                 (1 - (burnConfig.transfer_fee_percentage ?? 0) / 100) *
                 (stripeCurrenciesWithoutDecimals.includes(
                   revokedMembership.price_currency.toUpperCase(),
                 )
                   ? 1
                   : 100),
-            ),
-          });
+              ),
+            });
+          } catch (e) {
+            console.error("[WARNING] refund could not be created, see the following stack trace for details")
+            console.error(e);
+          }
         }
+
+        // Log the transfer before deleting the membership
+        const refundAmount =
+          revokedMembership.price *
+          (1 - (burnConfig.transfer_fee_percentage ?? 0) / 100);
+        await query(() =>
+          supabase.from("burn_membership_transfers").insert({
+            project_id: projectId,
+            from_owner_id: revokedMembership.owner_id,
+            to_owner_id: membershipPurchaseRight.owner_id,
+            refund_amount: refundAmount,
+            price_currency: revokedMembership.price_currency,
+            original_membership_json: revokedMembership,
+          }),
+        );
 
         // Delete the original membership since it's been transferred
         await query(() =>

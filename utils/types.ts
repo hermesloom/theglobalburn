@@ -66,6 +66,8 @@ export type BurnLotteryTicket = {
 export type BurnMembershipPurchaseRight = {
   id: string;
   created_at: string;
+  project_id: string;
+  owner_id: string;
   expires_at: string;
   first_name: string;
   last_name: string;
