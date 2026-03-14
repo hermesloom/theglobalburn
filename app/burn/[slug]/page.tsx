@@ -130,6 +130,41 @@ export default function ProjectPage() {
           title: "Spring Membership Sale closes",
         },
         {
+          date: new Date("2026-04-07T17:00:00Z"),
+          title: "Pre-placement kick-off meeting",
+          body: (
+            <>
+              <p>
+                Pre placement is meant for large camps with special placement
+                needs, sound camps, artworks and infrastructure realities.
+              </p>
+              <p className="mt-2">
+                <strong>BUT:</strong> Pre-placement allows regular camps ONLY
+                IF you actively contribute during these four weeks to forming
+                a neighborhood, with extra emphasis on being active. (Regular
+                camps ~ 25 members)
+              </p>
+              <p className="mt-2">
+                Pre-placement is not meant as a shortcut to find a camp spot
+                prior to the General placement phase, but as an option for
+                camp placement leads to collaborate around creating a
+                neighborhood.
+              </p>
+              <p className="mt-2">
+                If you&apos;re a regular camp and you&apos;re not active, we
+                will remove you from pre-placement.
+              </p>
+              <Link
+                isExternal
+                href="https://forms.gle/mvjHz99bbNgHTzcL6"
+                className="mt-2"
+              >
+                Sign up for Pre-Placement (BL 2026)
+              </Link>
+            </>
+          ),
+        },
+        {
           date: new Date("2026-06-22T21:59:59Z"),
           title: "Spring Membership transfers close (full refund)",
         },
