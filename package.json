@@ -11,6 +11,7 @@
     "stripe:login": "stripe login",
     "stripe:listen": "stripe listen --forward-to=localhost:3000/api/webhooks/stripe",
     "stripe:fixtures": "stripe fixtures utils/stripe/fixtures/stripe-fixtures.json",
+    "stripe:webhook-failures": "bash scripts/stripe-webhook-failures.sh",
     "supabase:start": "npx supabase start",
     "supabase:stop": "npx supabase stop",
     "supabase:status": "npx supabase status",
@@ -22,7 +23,9 @@
     "supabase:generate-seed": "npx supabase db dump --data-only -f supabase/seed.sql",
     "supabase:push": "npx supabase db push",
     "supabase:pull": "npx supabase db pull",
-    "vercel:logs": "vercel list --no-color 2>&1 | grep -oE 'https://[a-zA-Z0-9.-]+\\.vercel\\.app' | head -1 | xargs -I {} vercel inspect {} --logs --no-color 2>&1 | tee misc/vercel-deployment-log.txt"
+    "vercel:deployment-logs": "vercel list --no-color 2>&1 | grep -oE 'https://[a-zA-Z0-9.-]+\\.vercel\\.app' | head -1 | xargs -I {} vercel inspect {} --logs --no-color 2>&1 | tee misc/vercel-deployment-log.txt",
+    "vercel:logs": "bash scripts/vercel-logs.sh",
+    "webhook:investigate": "bash -c 'DAYS=\"${1:-7}\"; npm run stripe:webhook-failures -- \"$DAYS\" && npm run vercel:logs -- \"$DAYS\"' _"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.1",

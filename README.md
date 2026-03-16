@@ -64,6 +64,10 @@ For next year my dream is to have something like self-hosted Vercel, but instead
 22. Run `npm run stripe:listen` in a separate console. Follow the instructions on activating the keys. Once done run the command again, copy out the webhook signing secret (starting with `whsec_`) and copy it into the `stripe_webhook_secret` of the burn config
 23. Click on "Save configuration"
 
+## Operations
+
+To investigate Stripe webhook delivery failures (e.g. after seeing failed events in the Stripe Dashboard), run `npm run webhook:investigate` (optionally with `-- 14` for the last 14 days). This fetches both Stripe’s failed deliveries and Vercel runtime logs into `misc/`.
+
 ## Supabase
 
 When you want to change the database schema, first create new migration file using:
