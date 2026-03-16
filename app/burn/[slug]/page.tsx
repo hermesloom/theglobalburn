@@ -95,6 +95,22 @@ export default function ProjectPage() {
           title: "Spring Membership Sale opens",
         },
         {
+          date: new Date("2026-03-12"),
+          title: "💭 Dreams platform opens",
+          body: (
+            <p>
+              Submit your dreams to the{" "}
+              <Link
+                isExternal
+                href="https://dreams.theborderland.se/borderland/dreams-2026"
+              >
+                Dreams Platform
+              </Link>
+              .
+            </p>
+          ),
+        },
+        {
           date: new Date("2026-03-16T18:00:00Z"),
           title: "📞 Community Gathering Call",
           body: (
@@ -165,6 +181,71 @@ export default function ProjectPage() {
           ),
         },
         {
+          date: new Date("2026-04-12"),
+          title: "💭 Deadline for uploading dreams to the platform",
+          body: (
+            <p>
+              Before the deadline, submit your dreams to the{" "}
+              <Link
+                isExternal
+                href="https://dreams.theborderland.se/borderland/dreams-2026"
+              >
+                Dreams Platform
+              </Link>
+              .
+            </p>
+          ),
+        },
+        {
+          date: new Date("2026-04-13"),
+          dateEnd: new Date("2026-04-14"),
+          title: "💭 Dreamers can edit their dreams",
+          body: (
+            <>
+              <p>
+                Dreamers can edit their dreams themselves, merge dreams, adjust
+                budgets etc:{" "}
+                <Link
+                  isExternal
+                  href="https://dreams.theborderland.se/borderland/dreams-2026"
+                >
+                  Dreams Platform
+                </Link>
+              </p>
+            </>
+          ),
+        },
+        {
+          date: new Date("2026-04-19"),
+          dateEnd: new Date("2026-04-23"),
+          title: "💭 Dreams Committee work",
+        },
+        {
+          date: new Date("2026-04-23"),
+          dateEnd: new Date("2026-04-26"),
+          title: "💭 First round of funding",
+        },
+        {
+          date: new Date("2026-04-29"),
+          dateEnd: new Date("2026-05-02"),
+          title: "💭 Second round of funding",
+        },
+        {
+          date: new Date("2026-05-05"),
+          dateEnd: new Date("2026-05-07"),
+          title: "💭 Third round of funding",
+        },
+        {
+          date: new Date("2026-05-07"),
+          dateEnd: new Date("2026-05-14"),
+          title: "💭 Dreams Committee work",
+        },
+        {
+          date: new Date("2026-05-15"),
+          dateEnd: new Date("2026-07-05"),
+          title: "💭 First round of uploads for reimbursements",
+        },
+        {
           date: new Date("2026-05-22"),
           title: "🗺️ General placement opens",
         },
@@ -190,6 +271,26 @@ export default function ProjectPage() {
           date: new Date("2026-07-20"),
           dateEnd: new Date("2026-07-26"),
           title: "Burn",
+        },
+        {
+          date: new Date("2026-08-03"),
+          dateEnd: new Date("2026-08-23"),
+          title: "💭 Second round of uploads for reimbursements",
+        },
+        {
+          date: new Date("2026-08-23"),
+          dateEnd: new Date("2026-09-11"),
+          title: "💭 Final expense approvals and payouts",
+        },
+        {
+          date: new Date("2026-09-11"),
+          dateEnd: new Date("2026-09-15"),
+          title: "💭 Committee work for unforeseen expenses",
+          body: (
+            <p>
+              Committee work for unforeseen expenses IF there is a surplus.
+            </p>
+          ),
         },
       ];
 
