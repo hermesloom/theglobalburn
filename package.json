@@ -12,6 +12,7 @@
     "stripe:listen": "stripe listen --forward-to=localhost:3000/api/webhooks/stripe",
     "stripe:fixtures": "stripe fixtures utils/stripe/fixtures/stripe-fixtures.json",
     "stripe:webhook-failures": "bash scripts/stripe-webhook-failures.sh",
+    "stripe:resend-failed-webhooks": "bash scripts/stripe-resend-failed-webhooks.sh",
     "supabase:start": "npx supabase start",
     "supabase:stop": "npx supabase stop",
     "supabase:status": "npx supabase status",
