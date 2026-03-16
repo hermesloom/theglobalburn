@@ -69,16 +69,50 @@ export async function POST(req: Request) {
       }
 
       // make sure the membership purchase right exists and is not expired
-      const membershipPurchaseRight: BurnMembershipPurchaseRight = await query(
-        () =>
+      const membershipPurchaseRight: BurnMembershipPurchaseRight | null =
+        await query(
+          () =>
+            supabase
+              .from("burn_membership_purchase_rights")
+              .select("*")
+              .eq("id", membershipPurchaseRightId)
+              .eq("project_id", projectId)
+              .gt("expires_at", new Date().toISOString())
+              .maybeSingle(),
+        );
+
+      // Idempotency: 0 rows may mean Stripe retry after we already processed
+      if (!membershipPurchaseRight) {
+        const session = event.data.object;
+        const paymentIntentId =
+          typeof session.payment_intent === "string"
+            ? session.payment_intent
+            : (session.payment_intent as { id?: string })?.id;
+        if (!paymentIntentId) {
+          return NextResponse.json(
+            {
+              error: "Membership purchase right not found or expired",
+            },
+            { status: 400 },
+          );
+        }
+        const existingMembership = await query(() =>
           supabase
-            .from("burn_membership_purchase_rights")
-            .select("*")
-            .eq("id", membershipPurchaseRightId)
-            .eq("project_id", projectId)
-            .gt("expires_at", new Date().toISOString())
-            .single(),
-      );
+            .from("burn_memberships")
+            .select("id")
+            .eq("stripe_payment_intent_id", paymentIntentId)
+            .maybeSingle(),
+        );
+        if (existingMembership) {
+          return NextResponse.json({ received: true }, { status: 200 });
+        }
+        return NextResponse.json(
+          {
+            error: "Membership purchase right not found or expired",
+          },
+          { status: 400 },
+        );
+      }
 
       if (membershipPurchaseRight.details_modifiable) {
         throw new Error("Membership purchase right must not modifiable");
