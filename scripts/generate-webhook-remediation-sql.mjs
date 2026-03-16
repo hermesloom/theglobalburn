@@ -28,7 +28,9 @@ if (excludeArg) {
 excludeIds.add("pi_3T9SiOEuBjGnolU20yNvCQGx");
 
 const data = JSON.parse(readFileSync(dataPath, "utf8"));
-const events = data.failed_events.filter((e) => !excludeIds.has(e.payment_intent));
+const events = data.failed_events.filter(
+  (e) => !excludeIds.has(e.payment_intent),
+);
 
 const inserts = events.map((e) => {
   const pi = e.payment_intent;
