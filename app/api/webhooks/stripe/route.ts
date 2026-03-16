@@ -81,7 +81,9 @@ export async function POST(req: Request) {
               .maybeSingle(),
         );
 
-      // Idempotency: 0 rows may mean Stripe retry after we already processed
+      // Idempotency: 0 rows may mean (a) Stripe retry after we already processed,
+      // or (b) duplicate payment (e.g. two checkout tabs) - another payment already
+      // created the membership for this person.
       if (!membershipPurchaseRight) {
         const session = event.data.object;
         const paymentIntentId =
@@ -96,15 +98,46 @@ export async function POST(req: Request) {
             { status: 400 },
           );
         }
-        const existingMembership = await query(() =>
+        // Check 1: membership already exists for this payment intent (retry case)
+        const existingByPaymentIntent = await query(() =>
           supabase
             .from("burn_memberships")
             .select("id")
             .eq("stripe_payment_intent_id", paymentIntentId)
             .maybeSingle(),
         );
-        if (existingMembership) {
+        if (existingByPaymentIntent) {
           return NextResponse.json({ received: true }, { status: 200 });
+        }
+        // Check 2: membership exists for this person (duplicate payment case -
+        // e.g. user paid twice in two checkout tabs; first payment created membership)
+        const purchaseRightForIdentity = await query(
+          () =>
+            supabase
+              .from("burn_membership_purchase_rights")
+              .select("first_name, last_name, birthdate")
+              .eq("id", membershipPurchaseRightId)
+              .eq("project_id", projectId)
+              .maybeSingle(),
+        );
+        if (
+          purchaseRightForIdentity?.first_name &&
+          purchaseRightForIdentity?.last_name &&
+          purchaseRightForIdentity?.birthdate
+        ) {
+          const existingByPerson = await query(() =>
+            supabase
+              .from("burn_memberships")
+              .select("id")
+              .eq("project_id", projectId)
+              .eq("first_name", purchaseRightForIdentity.first_name)
+              .eq("last_name", purchaseRightForIdentity.last_name)
+              .eq("birthdate", purchaseRightForIdentity.birthdate)
+              .maybeSingle(),
+          );
+          if (existingByPerson) {
+            return NextResponse.json({ received: true }, { status: 200 });
+          }
         }
         return NextResponse.json(
           {
