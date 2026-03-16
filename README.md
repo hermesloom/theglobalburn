@@ -70,6 +70,17 @@ To investigate Stripe webhook delivery failures (e.g. after seeing failed events
 
 ## Supabase
 
+### Running SQL against production
+
+`npm run supabase:sql` runs arbitrary SQL against the production database. Requires `SUPABASE_DB_URL` in `.env` (from Supabase Dashboard > Project Settings > Database > Connection string).
+
+- Run an SQL file: `npm run supabase:sql -- -f path/to/file.sql`
+- Run inline SQL: `npm run supabase:sql -- "SELECT 1"`
+
+For example, to verify which webhook-affected users already have memberships: `npm run supabase:sql -- -f misc/verify-webhook-affected-users.sql`.
+
+### Database schema changes
+
 When you want to change the database schema, first create new migration file using:
 
 ```

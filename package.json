@@ -23,9 +23,12 @@
     "supabase:generate-seed": "npx supabase db dump --data-only -f supabase/seed.sql",
     "supabase:push": "npx supabase db push",
     "supabase:pull": "npx supabase db pull",
+    "supabase:sql": "node scripts/supabase-sql.mjs",
     "vercel:deployment-logs": "vercel list --no-color 2>&1 | grep -oE 'https://[a-zA-Z0-9.-]+\\.vercel\\.app' | head -1 | xargs -I {} vercel inspect {} --logs --no-color 2>&1 | tee misc/vercel-deployment-log.txt",
     "vercel:logs": "bash scripts/vercel-logs.sh",
-    "webhook:investigate": "bash -c 'DAYS=\"${1:-7}\"; npm run stripe:webhook-failures -- \"$DAYS\" && npm run vercel:logs -- \"$DAYS\"' _"
+    "webhook:investigate": "bash -c 'DAYS=\"${1:-7}\"; npm run stripe:webhook-failures -- \"$DAYS\" && npm run vercel:logs -- \"$DAYS\"' _",
+    "webhook:extract-remediation-data": "node scripts/extract-webhook-remediation-data.mjs",
+    "webhook:remediation-data": "node scripts/extract-webhook-remediation-data.mjs"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.1",
@@ -92,6 +95,7 @@
     "eslint": "^9.16.0",
     "eslint-config-next": "^15.5.12",
     "globals": "^15.13.0",
+    "pg": "^8.20.0",
     "postcss": "^8.4.47",
     "prettier": "^3.4.2",
     "supabase": "^2.76.15",
