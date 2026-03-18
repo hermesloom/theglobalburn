@@ -4,6 +4,7 @@ import { s } from "ajv-ts";
 const CreateLinkRequestSchema = s.object({
   label: s.string(),
   url: s.string(),
+  description: s.string().optional(),
   emoji: s.string().optional(),
   display_order: s.number().optional(),
 });
@@ -47,6 +48,7 @@ export const POST = requestWithMembership<
           project_id: project!.id,
           label: body.label,
           url: body.url,
+          description: body.description || null,
           emoji: body.emoji || null,
           display_order: body.display_order ?? maxOrder + 1,
         })

@@ -4,6 +4,7 @@ import { s } from "ajv-ts";
 const UpdateLinkRequestSchema = s.object({
   label: s.string().optional(),
   url: s.string().optional(),
+  description: s.string().optional().nullable(),
   emoji: s.string().optional().nullable(),
   display_order: s.number().optional(),
 });
@@ -34,6 +35,7 @@ export const PATCH = requestWithMembership<
     const updateData: any = {};
     if (body.label !== undefined) updateData.label = body.label;
     if (body.url !== undefined) updateData.url = body.url;
+    if (body.description !== undefined) updateData.description = body.description;
     if (body.emoji !== undefined) updateData.emoji = body.emoji;
     if (body.display_order !== undefined) updateData.display_order = body.display_order;
 
