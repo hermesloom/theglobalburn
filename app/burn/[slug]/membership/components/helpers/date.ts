@@ -98,8 +98,8 @@ function formatDOB(
   });
 }
 
-const calculateAge = (birthDate: Date) => {
-  const currentDate = new Date();
+const calculateAge = (birthDate: Date, referenceDate?: Date) => {
+  const currentDate = referenceDate || new Date();
 
   let age = currentDate.getFullYear() - birthDate.getFullYear();
 
