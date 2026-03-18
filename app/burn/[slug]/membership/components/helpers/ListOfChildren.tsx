@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { apiPatch } from "@/app/_components/api";
 import { useProject } from "@/app/_components/SessionContext";
 import { DeleteOutlined } from "@ant-design/icons";
+import { calculateAge } from "./date";
 
 export interface Child {
   key: string;
@@ -91,11 +92,33 @@ export default function ListOfChildren({ data }: { data: Child[] }) {
                 {
                   key: "dob",
                   label: "Date of birth (YYYY-MM-DD)",
-                  validate: (value: string) =>
-                    !isNaN(new Date(value).getTime()),
+                  validate: (value: string) => {
+                    // Just validate the date format and that it's a valid date
+                    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+                    if (!dateRegex.test(value)) {
+                      return false;
+                    }
+
+                    const dob = new Date(value);
+                    return !isNaN(dob.getTime());
+                  },
                 },
               ]),
             handler: async (_, promptData) => {
+              // Check age validation before saving
+              const dob = new Date((promptData as any).dob);
+              const eventEndDate = project?.burn_config?.event_end_date
+                ? new Date(project.burn_config.event_end_date)
+                : null;
+
+              if (eventEndDate) {
+                const ageAtEventEnd = calculateAge(dob, eventEndDate);
+                if (ageAtEventEnd >= 14) {
+                  alert(`This child will be ${ageAtEventEnd} years old by the event. Children who are 14 or older need their own membership.`);
+                  return;
+                }
+              }
+
               await updateChildren([
                 ...children,
                 {

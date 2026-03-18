@@ -65,6 +65,9 @@ export default function ConfigPage() {
   const [lastPossibleTransferAt, setLastPossibleTransferAt] = useState(
     project!.burn_config.last_possible_transfer_at ?? "",
   );
+  const [eventEndDate, setEventEndDate] = useState(
+    project!.burn_config.event_end_date ?? "",
+  );
   const [transferFeePercentage, setTransferFeePercentage] = useState(
     (project!.burn_config.transfer_fee_percentage ?? 0).toString(),
   );
@@ -117,6 +120,7 @@ export default function ConfigPage() {
     isNumber(openSaleReservationDuration) &&
     isNumber(transferReservationDuration) &&
     isNumber(plusOneReservationDuration) &&
+    isISODate(eventEndDate) &&
     isNumber(maxMemberships) &&
     /^[A-Z]{3}$/.test(membershipPriceCurrency) &&
     ["tiered-3"].includes(membershipPricingType) &&
@@ -149,6 +153,7 @@ export default function ConfigPage() {
       transfer_reservation_duration: parseInt(transferReservationDuration),
       plus_one_reservation_duration: parseInt(plusOneReservationDuration),
       last_possible_transfer_at: new Date(lastPossibleTransferAt).toISOString(),
+      event_end_date: new Date(eventEndDate).toISOString(),
       transfer_fee_percentage: parseFloat(transferFeePercentage),
       max_memberships: parseInt(maxMemberships),
       membership_price_currency: membershipPriceCurrency,
@@ -251,6 +256,11 @@ export default function ConfigPage() {
           label="last_possible_transfer_at"
           value={lastPossibleTransferAt}
           onValueChange={setLastPossibleTransferAt}
+        />
+        <Input
+          label="event_end_date"
+          value={eventEndDate}
+          onValueChange={setEventEndDate}
         />
         <Input
           label="transfer_fee_percentage"

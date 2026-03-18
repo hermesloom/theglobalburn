@@ -26,6 +26,7 @@ const UpdateBurnConfigRequestSchema = s.object({
   membership_addons: s.array(s.object()),
   stripe_secret_api_key: s.string(),
   stripe_webhook_secret: s.string(),
+  event_end_date: s.string(),
 });
 
 export const PATCH = requestWithProject<
