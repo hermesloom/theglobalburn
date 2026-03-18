@@ -85,13 +85,6 @@ export default function ProjectLayout({
             path: `/burn/${project?.slug}/links`,
             icon: <LinkOutlined />,
           },
-          project.membership
-            ? {
-              label: "Statistics",
-              path: `/burn/${project?.slug}/statistics`,
-              icon: <BarChartOutlined />,
-            }
-            : null,
           /*project.membership
             ? {
               label: "Board Meeting Notes",
@@ -99,16 +92,23 @@ export default function ProjectLayout({
               icon: <FileTextOutlined />,
             }
             : null,*/
-          {
-            label: "Newsletter",
-            path: `/burn/${project?.slug}/newsletter`,
-            icon: <MailOutlined />,
-          },
           project.membership || profile?.email === "ml@semi-sentient.com"
             ? {
               label: "Co-Create",
               path: `/burn/${project?.slug}/rea`,
               icon: <RocketOutlined />,
+            }
+            : null,
+          {
+            label: "Newsletter",
+            path: `/burn/${project?.slug}/newsletter`,
+            icon: <MailOutlined />,
+          },
+          project.membership
+            ? {
+              label: "Statistics",
+              path: `/burn/${project?.slug}/statistics`,
+              icon: <BarChartOutlined />,
             }
             : null,
           project.membership
