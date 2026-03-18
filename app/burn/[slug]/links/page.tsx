@@ -162,52 +162,96 @@ export default function LinksPage() {
         <p className="text-gray-500">No links available yet.</p>
       )}
 
-      <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {links.map((link) => (
-          <div key={link.id} className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <Button
-                as="a"
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={
-                  editMode ? "flex-1 justify-start" : "justify-start w-auto"
-                }
-                variant={editMode ? "bordered" : "flat"}
-                isDisabled={editMode}
-              >
-                {link.emoji && <span className="mr-2">{link.emoji}</span>}
+          <div
+            key={link.id}
+            className="relative bg-white border border-gray-200 rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow"
+          >
+            {editMode && hasMembership && (
+              <div className="absolute top-2 right-2 flex gap-1 z-10">
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="light"
+                  onPress={() => handleEditLink(link)}
+                  isDisabled={deletingLinkId !== null}
+                >
+                  <EditOutlined />
+                </Button>
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="light"
+                  color="danger"
+                  onPress={() => handleDeleteLink(link.id)}
+                  isLoading={deletingLinkId === link.id}
+                  isDisabled={deletingLinkId !== null}
+                >
+                  <DeleteOutlined />
+                </Button>
+              </div>
+            )}
+
+            <a
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`block ${editMode ? "pointer-events-none" : ""}`}
+            >
+              {link.emoji ? (
+                <div className="text-2xl mb-2">{link.emoji}</div>
+              ) : (
+                <svg
+                  className="w-6 h-6 mb-2 text-gray-700"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M18 14v4.833A1.166 1.166 0 0 1 16.833 20H5.167A1.167 1.167 0 0 1 4 18.833V7.167A1.166 1.166 0 0 1 5.167 6h4.618m4.447-2H20v5.768m-7.889 2.121 7.778-7.778"
+                  />
+                </svg>
+              )}
+
+              <h5 className="mb-1 text-lg font-semibold tracking-tight text-gray-900">
                 {link.label}
-              </Button>
-              {editMode && hasMembership && (
-                <div className="flex gap-1">
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    variant="light"
-                    onPress={() => handleEditLink(link)}
-                    isDisabled={deletingLinkId !== null}
+              </h5>
+
+              {link.description && (
+                <p className="mb-2 text-sm text-gray-700">{link.description}</p>
+              )}
+
+              {!editMode && (
+                <div className="inline-flex text-sm font-medium items-center text-blue-600 hover:underline">
+                  Visit link
+                  <svg
+                    className="w-3 h-3 ms-2"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    fill="none"
+                    viewBox="0 0 24 24"
                   >
-                    <EditOutlined />
-                  </Button>
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    variant="light"
-                    color="danger"
-                    onPress={() => handleDeleteLink(link.id)}
-                    isLoading={deletingLinkId === link.id}
-                    isDisabled={deletingLinkId !== null}
-                  >
-                    <DeleteOutlined />
-                  </Button>
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M18 14v4.833A1.166 1.166 0 0 1 16.833 20H5.167A1.167 1.167 0 0 1 4 18.833V7.167A1.166 1.166 0 0 1 5.167 6h4.618m4.447-2H20v5.768m-7.889 2.121 7.778-7.778"
+                    />
+                  </svg>
                 </div>
               )}
-            </div>
-            {link.description && (
-              <p className="text-sm text-gray-600 ml-1">{link.description}</p>
-            )}
+            </a>
           </div>
         ))}
       </div>
