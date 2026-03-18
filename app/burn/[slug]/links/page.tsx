@@ -5,6 +5,7 @@ import Heading from "@/app/_components/Heading";
 import {
   Button,
   Input,
+  Textarea,
   Modal,
   ModalContent,
   ModalHeader,
@@ -22,6 +23,7 @@ interface BurnLink {
   id: string;
   label: string;
   url: string;
+  description: string | null;
   emoji: string | null;
   display_order: number;
   created_at: string;
@@ -90,6 +92,7 @@ export default function LinksPage() {
   const handleSaveLink = async (formData: {
     label: string;
     url: string;
+    description: string | null;
     emoji: string | null;
     display_order: number;
   }) => {
@@ -159,46 +162,51 @@ export default function LinksPage() {
         <p className="text-gray-500">No links available yet.</p>
       )}
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-4">
         {links.map((link) => (
-          <div key={link.id} className="flex items-center gap-2">
-            <Button
-              as="a"
-              href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={
-                editMode ? "flex-1 justify-start" : "justify-start w-auto"
-              }
-              variant={editMode ? "bordered" : "flat"}
-              isDisabled={editMode}
-            >
-              {link.emoji && <span className="mr-2">{link.emoji}</span>}
-              {link.label}
-            </Button>
-            {editMode && hasMembership && (
-              <div className="flex gap-1">
-                <Button
-                  isIconOnly
-                  size="sm"
-                  variant="light"
-                  onPress={() => handleEditLink(link)}
-                  isDisabled={deletingLinkId !== null}
-                >
-                  <EditOutlined />
-                </Button>
-                <Button
-                  isIconOnly
-                  size="sm"
-                  variant="light"
-                  color="danger"
-                  onPress={() => handleDeleteLink(link.id)}
-                  isLoading={deletingLinkId === link.id}
-                  isDisabled={deletingLinkId !== null}
-                >
-                  <DeleteOutlined />
-                </Button>
-              </div>
+          <div key={link.id} className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <Button
+                as="a"
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={
+                  editMode ? "flex-1 justify-start" : "justify-start w-auto"
+                }
+                variant={editMode ? "bordered" : "flat"}
+                isDisabled={editMode}
+              >
+                {link.emoji && <span className="mr-2">{link.emoji}</span>}
+                {link.label}
+              </Button>
+              {editMode && hasMembership && (
+                <div className="flex gap-1">
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant="light"
+                    onPress={() => handleEditLink(link)}
+                    isDisabled={deletingLinkId !== null}
+                  >
+                    <EditOutlined />
+                  </Button>
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant="light"
+                    color="danger"
+                    onPress={() => handleDeleteLink(link.id)}
+                    isLoading={deletingLinkId === link.id}
+                    isDisabled={deletingLinkId !== null}
+                  >
+                    <DeleteOutlined />
+                  </Button>
+                </div>
+              )}
+            </div>
+            {link.description && (
+              <p className="text-sm text-gray-600 ml-1">{link.description}</p>
             )}
           </div>
         ))}
@@ -245,6 +253,7 @@ function LinkModal({
   onSave: (data: {
     label: string;
     url: string;
+    description: string | null;
     emoji: string | null;
     display_order: number;
   }) => void;
@@ -254,6 +263,7 @@ function LinkModal({
 }) {
   const [label, setLabel] = useState("");
   const [url, setUrl] = useState("");
+  const [description, setDescription] = useState("");
   const [emoji, setEmoji] = useState("");
   const [displayOrder, setDisplayOrder] = useState(0);
 
@@ -261,11 +271,13 @@ function LinkModal({
     if (link) {
       setLabel(link.label);
       setUrl(link.url);
+      setDescription(link.description || "");
       setEmoji(link.emoji || "");
       setDisplayOrder(link.display_order);
     } else {
       setLabel("");
       setUrl("");
+      setDescription("");
       setEmoji("");
       setDisplayOrder(existingLinksCount);
     }
@@ -288,6 +300,7 @@ function LinkModal({
     onSave({
       label: label.trim(),
       url: url.trim(),
+      description: description.trim() || null,
       emoji: emoji.trim() || null,
       display_order: displayOrder,
     });
@@ -319,6 +332,15 @@ function LinkModal({
             onValueChange={setUrl}
             isRequired
             type="url"
+            isDisabled={isSaving}
+          />
+          <Textarea
+            label="Description (optional)"
+            placeholder="Describe what this link is about..."
+            value={description}
+            onValueChange={setDescription}
+            minRows={2}
+            maxRows={4}
             isDisabled={isSaving}
           />
           <Input
