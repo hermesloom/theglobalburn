@@ -66,6 +66,12 @@ export default function ListOfChildren({ data }: { data: Child[] }) {
           ]}
         />
       ) : null}
+      <p className="text-sm text-default-500 mt-2 mb-4">
+        Children under 14 at the time of {project?.name} don&apos;t need their
+        own membership but do have to be registered in advance using the
+        following button. Children 14 and above need their own membership to
+        participate.
+      </p>
       <ActionButton
         style={children?.length > 0 ? { marginTop: "0.5rem" } : {}}
         action={{
