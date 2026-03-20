@@ -51,6 +51,7 @@ export type BurnConfig = {
   membership_addons: BurnMembershipAddon[];
   stripe_secret_api_key: string;
   stripe_webhook_secret: string;
+  event_end_date?: string;
 };
 
 export type BurnLotteryTicket = {
