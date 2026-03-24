@@ -8,16 +8,13 @@ import { BurnStage } from "@/utils/types";
 import { apiPost } from "@/app/_components/api";
 import { usePrompt } from "@/app/_components/PromptContext";
 import { isEmail } from "@/app/_components/utils";
-import PersonCommandBox from "@/app/_components/PersonCommandBox";
 
 export default function MembershipsPage() {
   const { project, reloadProfile } = useProject();
   const prompt = usePrompt();
 
   return (
-    <>
-      <PersonCommandBox />
-      <DataTable
+    <DataTable
         title="Memberships"
         endpoint={`/burn/${project?.slug}/admin/memberships`}
         columns={[
@@ -113,6 +110,5 @@ export default function MembershipsPage() {
           delete: true,
         }}
       />
-    </>
   );
 }
