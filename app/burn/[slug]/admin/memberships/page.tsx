@@ -17,6 +17,33 @@ export default function MembershipsPage() {
     <DataTable
         title="Memberships"
         endpoint={`/burn/${project?.slug}/admin/memberships`}
+        sortRows={(a, b) =>
+          String(a.profiles?.email ?? "").localeCompare(
+            String(b.profiles?.email ?? ""),
+            undefined,
+            { sensitivity: "base" },
+          )
+        }
+        searchBar={{
+          placeholder: "Type to filter…",
+          fields: [
+            {
+              id: "email",
+              label: "Email",
+              getValue: (row) => String(row.profiles?.email ?? ""),
+            },
+            {
+              id: "first_name",
+              label: "First name",
+              getValue: (row) => String(row.first_name ?? ""),
+            },
+            {
+              id: "last_name",
+              label: "Last name",
+              getValue: (row) => String(row.last_name ?? ""),
+            },
+          ],
+        }}
         columns={[
           {
             key: "email",

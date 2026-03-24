@@ -12,18 +12,25 @@ export default function Dropdown({
   value,
   onChange,
   isDisabled,
+  buttonPrefix,
 }: {
   options: { id: string; label: string }[];
   value: string;
   onChange: (value: string) => void;
   isDisabled?: boolean;
+  /** Prepended to the selected option label on the trigger button only (menu items unchanged). */
+  buttonPrefix?: string;
 }) {
+  const selectedLabel = options.find((o) => o.id === value)?.label ?? "";
+  const triggerLabel =
+    buttonPrefix != null && buttonPrefix !== ""
+      ? `${buttonPrefix}${selectedLabel}`
+      : selectedLabel;
+
   return (
     <NextUIDropdown>
       <DropdownTrigger>
-        <Button isDisabled={isDisabled}>
-          {options.find((o) => o.id === value)?.label}
-        </Button>
+        <Button isDisabled={isDisabled}>{triggerLabel}</Button>
       </DropdownTrigger>
       <DropdownMenu
         selectedKeys={[value]}
