@@ -10,6 +10,7 @@ import Dropdown from "@/app/_components/Dropdown";
 import { DeleteOutlined, EyeOutlined } from "@ant-design/icons";
 import { apiDelete } from "@/app/_components/api";
 import { usePrompt } from "@/app/_components/PromptContext";
+import toast from "react-hot-toast";
 
 export type DataItem = {
   id: string;
@@ -45,6 +46,8 @@ interface DataTableProps {
   rowActionsCrud?: {
     viewMetadata?: boolean;
     delete?: boolean;
+    /** Shown via react-hot-toast after a successful row delete. */
+    deleteSuccessMessage?: string;
   };
   /** Applied client-side after load (e.g. sort by email). */
   sortRows?: (a: DataItem, b: DataItem) => number;
@@ -114,12 +117,16 @@ export default function DataTable({
     });
   }
   if (rowActionsCrud?.delete) {
+    const deleteToast = rowActionsCrud.deleteSuccessMessage;
     rowActionsFull.push({
       key: "delete",
       tooltip: "Delete",
       icon: <DeleteOutlined />,
       onClick: async (data) => {
         await apiDelete(endpoint + "/" + data!.id);
+        if (deleteToast) {
+          toast.success(deleteToast);
+        }
         return true;
       },
       successCallback: loadData,

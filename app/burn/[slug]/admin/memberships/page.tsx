@@ -7,6 +7,7 @@ import { formatMoney } from "@/app/_components/utils";
 import { BurnStage } from "@/utils/types";
 import { apiPost } from "@/app/_components/api";
 import { usePrompt } from "@/app/_components/PromptContext";
+import toast from "react-hot-toast";
 import { isEmail } from "@/app/_components/utils";
 
 export default function MembershipsPage() {
@@ -102,6 +103,9 @@ export default function MembershipsPage() {
                   `/burn/${project?.slug}/admin/memberships`,
                   promptResult,
                 );
+                toast.success(
+                  `Membership issued for ${promptResult?.email ?? "member"}.`,
+                );
                 return true;
               },
             },
@@ -135,6 +139,7 @@ export default function MembershipsPage() {
         rowActionsCrud={{
           viewMetadata: true,
           delete: true,
+          deleteSuccessMessage: "Membership removed.",
         }}
       />
   );
