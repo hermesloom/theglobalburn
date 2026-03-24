@@ -2,7 +2,7 @@ import { requestWithProject, query } from "@/app/api/_common/endpoints";
 import { BurnRole } from "@/utils/types";
 import { s } from "ajv-ts";
 import {
-  getProfileByEmail,
+  ensureProfileAndProjectParticipation,
   validateNewMembershipEligibility,
   checkNoSuchMembershipOrPurchaseRightExists,
 } from "@/app/api/_common/profile";
@@ -33,7 +33,11 @@ export const POST = requestWithProject<
   s.infer<typeof IssueMembershipRequestSchema>
 >(
   async (supabase, profile, request, body, project) => {
-    const recipientProfile = await getProfileByEmail(supabase, body.email);
+    const recipientProfile = await ensureProfileAndProjectParticipation(
+      supabase,
+      body.email,
+      project!,
+    );
     validateNewMembershipEligibility(recipientProfile, project!);
 
     await checkNoSuchMembershipOrPurchaseRightExists(
@@ -53,6 +57,7 @@ export const POST = requestWithProject<
         birthdate: body.birthdate,
         price: 0,
         price_currency: project?.burn_config.membership_price_currency,
+        is_non_transferable: true,
       })
     );
   },

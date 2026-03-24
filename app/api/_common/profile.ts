@@ -7,6 +7,7 @@ import {
   BurnConfig,
   ProjectWithMemberships,
   BurnStage,
+  BurnRole,
 } from "@/utils/types";
 
 export async function getProjectBySlug(
@@ -111,6 +112,168 @@ export async function getProfileByEmail(
   }
 
   return getProfile(supabase, profile[0].id);
+}
+
+function normalizeIssueMembershipEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+/** Escape `%`, `_`, and `\` so `ilike` matches the literal address. */
+function escapeForExactIlike(email: string): string {
+  return email
+    .replace(/\\/g, "\\\\")
+    .replace(/%/g, "\\%")
+    .replace(/_/g, "\\_");
+}
+
+async function findProfileIdByEmailCaseInsensitive(
+  supabase: SupabaseClient,
+  normalizedEmail: string,
+): Promise<string | null> {
+  const pattern = escapeForExactIlike(normalizedEmail);
+  const rows = await query(() =>
+    supabase.from("profiles").select("id").ilike("email", pattern),
+  );
+  if (rows.length === 0) {
+    return null;
+  }
+  if (rows.length > 1) {
+    throw new Error("Multiple profiles match this email");
+  }
+  return rows[0].id as string;
+}
+
+function isAuthUserAlreadyExistsError(message: string): boolean {
+  const m = message.toLowerCase();
+  return (
+    m.includes("already registered") ||
+    m.includes("already been registered") ||
+    m.includes("duplicate") ||
+    (m.includes("user") && m.includes("already"))
+  );
+}
+
+async function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForProfileIdByEmail(
+  supabase: SupabaseClient,
+  normalizedEmail: string,
+  attempts = 8,
+): Promise<string | null> {
+  for (let i = 0; i < attempts; i++) {
+    const id = await findProfileIdByEmailCaseInsensitive(
+      supabase,
+      normalizedEmail,
+    );
+    if (id) {
+      return id;
+    }
+    await sleep(50 * (i + 1));
+  }
+  return null;
+}
+
+async function assignParticipantRoleIfMissing(
+  supabase: SupabaseClient,
+  userId: string,
+  project: Project,
+) {
+  const participantRole = await query(() =>
+    supabase
+      .from("roles")
+      .select("*")
+      .eq("project_id", project.id)
+      .eq("name", BurnRole.Participant)
+      .single(),
+  );
+
+  const existing = await query(() =>
+    supabase
+      .from("role_assignments")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("role_id", participantRole.id)
+      .maybeSingle(),
+  );
+
+  if (!existing) {
+    await query(() =>
+      supabase.from("role_assignments").insert({
+        user_id: userId,
+        role_id: participantRole.id,
+      }),
+    );
+  }
+}
+
+/**
+ * Ensures an auth user + profile exist (via admin createUser + DB trigger),
+ * and that the user has at least Participant access to the project when they had none.
+ */
+export async function ensureProfileAndProjectParticipation(
+  supabase: SupabaseClient,
+  email: string,
+  project: Project,
+): Promise<Profile> {
+  const normalizedEmail = normalizeIssueMembershipEmail(email);
+  if (!normalizedEmail) {
+    throw new Error("Email is required");
+  }
+
+  let userId = await findProfileIdByEmailCaseInsensitive(
+    supabase,
+    normalizedEmail,
+  );
+
+  if (!userId) {
+    const { data, error } = await supabase.auth.admin.createUser({
+      email: normalizedEmail,
+      email_confirm: true,
+    });
+
+    if (error) {
+      if (isAuthUserAlreadyExistsError(error.message)) {
+        userId = await waitForProfileIdByEmail(supabase, normalizedEmail);
+        if (!userId) {
+          throw new Error(
+            "A user with this email already exists, but no profile row was found. Check the database.",
+          );
+        }
+      } else {
+        throw new Error(error.message);
+      }
+    } else if (data.user?.id) {
+      userId = data.user.id;
+      let foundProfile = false;
+      for (let i = 0; i < 8; i++) {
+        const row = await query(() =>
+          supabase.from("profiles").select("id").eq("id", userId).maybeSingle(),
+        );
+        if (row) {
+          foundProfile = true;
+          break;
+        }
+        await sleep(50 * (i + 1));
+      }
+      if (!foundProfile) {
+        throw new Error(
+          "Auth user was created but profile row is missing (trigger may have failed).",
+        );
+      }
+    } else {
+      throw new Error("Auth user creation returned no user id");
+    }
+  }
+
+  let profile = await getProfile(supabase, userId);
+  if (!profile.projects.some((p) => p.id === project.id)) {
+    await assignParticipantRoleIfMissing(supabase, userId, project);
+    profile = await getProfile(supabase, userId);
+  }
+
+  return profile;
 }
 
 // make sure that the given profile:

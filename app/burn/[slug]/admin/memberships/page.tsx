@@ -7,19 +7,44 @@ import { formatMoney } from "@/app/_components/utils";
 import { BurnStage } from "@/utils/types";
 import { apiPost } from "@/app/_components/api";
 import { usePrompt } from "@/app/_components/PromptContext";
+import toast from "react-hot-toast";
 import { isEmail } from "@/app/_components/utils";
-import PersonCommandBox from "@/app/_components/PersonCommandBox";
 
 export default function MembershipsPage() {
   const { project, reloadProfile } = useProject();
   const prompt = usePrompt();
 
   return (
-    <>
-      <PersonCommandBox />
-      <DataTable
+    <DataTable
         title="Memberships"
         endpoint={`/burn/${project?.slug}/admin/memberships`}
+        sortRows={(a, b) =>
+          String(a.profiles?.email ?? "").localeCompare(
+            String(b.profiles?.email ?? ""),
+            undefined,
+            { sensitivity: "base" },
+          )
+        }
+        searchBar={{
+          placeholder: "Type to filter…",
+          fields: [
+            {
+              id: "email",
+              label: "Email",
+              getValue: (row) => String(row.profiles?.email ?? ""),
+            },
+            {
+              id: "first_name",
+              label: "First name",
+              getValue: (row) => String(row.first_name ?? ""),
+            },
+            {
+              id: "last_name",
+              label: "Last name",
+              getValue: (row) => String(row.last_name ?? ""),
+            },
+          ],
+        }}
         columns={[
           {
             key: "email",
@@ -78,6 +103,9 @@ export default function MembershipsPage() {
                   `/burn/${project?.slug}/admin/memberships`,
                   promptResult,
                 );
+                toast.success(
+                  `Membership issued for ${promptResult?.email ?? "member"}.`,
+                );
                 return true;
               },
             },
@@ -111,8 +139,8 @@ export default function MembershipsPage() {
         rowActionsCrud={{
           viewMetadata: true,
           delete: true,
+          deleteSuccessMessage: "Membership removed.",
         }}
       />
-    </>
   );
 }
