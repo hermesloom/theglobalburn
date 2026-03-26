@@ -38,6 +38,10 @@ export default function LinksPage() {
   const [editingLink, setEditingLink] = useState<BurnLink | null>(null);
   const [deletingLinkId, setDeletingLinkId] = useState<string | null>(null);
   const [savingLink, setSavingLink] = useState(false);
+  const [draggedLinkId, setDraggedLinkId] = useState<string | null>(null);
+  const [dragOverLinkId, setDragOverLinkId] = useState<string | null>(null);
+  const [insertPosition, setInsertPosition] = useState<"before" | "after">("after");
+  const [isReordering, setIsReordering] = useState(false);
   const {
     isOpen: isModalOpen,
     onOpen: onModalOpen,
@@ -94,7 +98,6 @@ export default function LinksPage() {
     url: string;
     description: string | null;
     emoji: string | null;
-    display_order: number;
   }) => {
     try {
       setSavingLink(true);
@@ -114,6 +117,101 @@ export default function LinksPage() {
     } finally {
       setSavingLink(false);
     }
+  };
+
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, linkId: string) => {
+    if (!editMode || !hasMembership) return;
+
+    setDraggedLinkId(linkId);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/html", e.currentTarget.innerHTML);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, linkId: string) => {
+    if (!editMode || !hasMembership) return;
+
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+
+    // Calculate which side of the element we're hovering over
+    const rect = e.currentTarget.getBoundingClientRect();
+    const midX = rect.left + rect.width / 2;
+    const mouseX = e.clientX;
+
+    // In a grid layout, check if we're on the left or right side
+    const position = mouseX < midX ? "before" : "after";
+
+    setDragOverLinkId(linkId);
+    setInsertPosition(position);
+  };
+
+  const handleDragLeave = () => {
+    if (!editMode || !hasMembership) return;
+
+    setDragOverLinkId(null);
+    setInsertPosition("after");
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>, dropTargetId: string) => {
+    if (!editMode || !hasMembership) return;
+
+    e.preventDefault();
+    setDragOverLinkId(null);
+    setInsertPosition("after");
+
+    if (!draggedLinkId || draggedLinkId === dropTargetId) {
+      return;
+    }
+
+    // Reorder links locally
+    const draggedIndex = links.findIndex((link) => link.id === draggedLinkId);
+    const targetIndex = links.findIndex((link) => link.id === dropTargetId);
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      return;
+    }
+
+    const newLinks = [...links];
+    const [draggedLink] = newLinks.splice(draggedIndex, 1);
+
+    // Calculate insertion index based on position
+    // If we removed an item before the target, the target index shifts down by 1
+    let insertIndex = targetIndex;
+    if (draggedIndex < targetIndex) {
+      insertIndex = targetIndex - 1;
+    }
+
+    // Adjust for before/after
+    if (insertPosition === "after") {
+      insertIndex += 1;
+    }
+
+    newLinks.splice(insertIndex, 0, draggedLink);
+
+    // Update state optimistically
+    setLinks(newLinks);
+
+    // Send reorder request to backend
+    try {
+      setIsReordering(true);
+      await apiPost(`/burn/${project?.slug}/links/reorder`, {
+        linkIds: newLinks.map((link) => link.id),
+      });
+    } catch (error) {
+      console.error("Failed to reorder links:", error);
+      // Reload links on error to restore correct order
+      await loadLinks();
+    } finally {
+      setIsReordering(false);
+    }
+  };
+
+  const handleDragEnd = () => {
+    if (!editMode || !hasMembership) return;
+
+    setDraggedLinkId(null);
+    setDragOverLinkId(null);
+    setInsertPosition("after");
   };
 
   if (loading) {
@@ -151,9 +249,13 @@ export default function LinksPage() {
       </div>
 
       {editMode && hasMembership && (
-        <div className="mb-4">
+        <div className="mb-4 space-y-2">
           <Alert color="warning">
             All changes made here are public and visible to everyone.
+          </Alert>
+          <Alert color="primary">
+            Drag and drop links to reorder them.
+            {isReordering && <Spinner size="sm" className="ml-2" />}
           </Alert>
         </div>
       )}
@@ -166,7 +268,23 @@ export default function LinksPage() {
         {links.map((link) => (
           <div
             key={link.id}
-            className="relative bg-white border border-gray-200 rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow"
+            draggable={editMode && hasMembership}
+            onDragStart={(e) => handleDragStart(e, link.id)}
+            onDragOver={(e) => handleDragOver(e, link.id)}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, link.id)}
+            onDragEnd={handleDragEnd}
+            className={`relative bg-white border rounded-lg shadow-sm p-4 transition-all ${
+              editMode && hasMembership ? "cursor-move" : ""
+            } ${
+              draggedLinkId === link.id
+                ? "opacity-50 border-gray-400"
+                : dragOverLinkId === link.id
+                  ? insertPosition === "before"
+                    ? "border-l-4 border-l-blue-500 border-gray-200"
+                    : "border-r-4 border-r-blue-500 border-gray-200"
+                  : "border-gray-200 hover:shadow-md"
+            }`}
           >
             {editMode && hasMembership && (
               <div className="absolute top-2 right-2 flex gap-1 z-10">
@@ -299,7 +417,6 @@ function LinkModal({
     url: string;
     description: string | null;
     emoji: string | null;
-    display_order: number;
   }) => void;
   link: BurnLink | null;
   existingLinksCount: number;
@@ -309,7 +426,6 @@ function LinkModal({
   const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
   const [emoji, setEmoji] = useState("");
-  const [displayOrder, setDisplayOrder] = useState(0);
 
   useEffect(() => {
     if (link) {
@@ -317,15 +433,13 @@ function LinkModal({
       setUrl(link.url);
       setDescription(link.description || "");
       setEmoji(link.emoji || "");
-      setDisplayOrder(link.display_order);
     } else {
       setLabel("");
       setUrl("");
       setDescription("");
       setEmoji("");
-      setDisplayOrder(existingLinksCount);
     }
-  }, [link, existingLinksCount, isOpen]);
+  }, [link, isOpen]);
 
   const handleSave = () => {
     if (!label.trim() || !url.trim()) {
@@ -346,7 +460,6 @@ function LinkModal({
       url: url.trim(),
       description: description.trim() || null,
       emoji: emoji.trim() || null,
-      display_order: displayOrder,
     });
   };
 
@@ -393,14 +506,6 @@ function LinkModal({
             value={emoji}
             onValueChange={setEmoji}
             description="A single emoji to display before the label"
-            isDisabled={isSaving}
-          />
-          <Input
-            label="Display Order"
-            type="number"
-            value={displayOrder.toString()}
-            onValueChange={(value) => setDisplayOrder(parseInt(value) || 0)}
-            description="Lower numbers appear first"
             isDisabled={isSaving}
           />
         </ModalBody>
