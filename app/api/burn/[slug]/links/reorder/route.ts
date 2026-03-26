@@ -20,7 +20,7 @@ export const POST = requestWithMembership<
         .eq("project_id", project!.id)
     );
 
-    const existingLinkIds = new Set(existingLinks.map(link => link.id));
+    const existingLinkIds = new Set(existingLinks.map((link: { id: string }) => link.id));
     const invalidLinkIds = linkIds.filter(id => !existingLinkIds.has(id));
 
     if (invalidLinkIds.length > 0) {

@@ -395,7 +395,6 @@ export default function LinksPage() {
         }}
         onSave={handleSaveLink}
         link={editingLink}
-        existingLinksCount={links.length}
         isSaving={savingLink}
       />
     </>
@@ -407,7 +406,6 @@ function LinkModal({
   onClose,
   onSave,
   link,
-  existingLinksCount,
   isSaving,
 }: {
   isOpen: boolean;
@@ -419,7 +417,6 @@ function LinkModal({
     emoji: string | null;
   }) => void;
   link: BurnLink | null;
-  existingLinksCount: number;
   isSaving: boolean;
 }) {
   const [label, setLabel] = useState("");
