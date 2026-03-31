@@ -1,14 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 
 export default function REAPage() {
   const [token, setToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const params = useParams();
+  const searchParams = useSearchParams();
+
   const slug = params.slug as string;
+  const realityId = searchParams.get('reality_id');
 
   // Get REA URL from environment variable with fallback
   const reaBaseUrl =
@@ -52,7 +55,7 @@ export default function REAPage() {
   }
 
   // Construct iframe URL with JWT token - go directly to sign-up to avoid redirect
-  const iframeUrl = `${reaBaseUrl}/sign-up?token=${encodeURIComponent(token || "")}`;
+  const iframeUrl = `${reaBaseUrl}/sign-up?reality_id=${realityId}&token=${encodeURIComponent(token || "")}`;
 
   return (
     <div className="-m-14 w-[calc(100%+7rem)] h-[calc(100vh)]">
