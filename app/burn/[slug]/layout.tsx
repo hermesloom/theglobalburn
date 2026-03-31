@@ -99,6 +99,13 @@ export default function ProjectLayout({
               icon: <RocketOutlined />,
             }
             : null,
+          // profile?.email === "ml@semi-sentient.com"
+          //   ? {
+          //     label: "Gate Scanner",
+          //     path: `/burn/${project?.slug}/scanner`,
+          //     icon: <RocketOutlined />,
+          //   }
+          //   : null,
           {
             label: "Newsletter",
             path: `/burn/${project?.slug}/newsletter`,
@@ -124,23 +131,40 @@ export default function ProjectLayout({
             ? ([{ separator: true }, { sectionTitle: "On-site" }] as any)
             : []),
 
-          ...(project.roles.includes(BurnRole.MembershipScanner)
-            ? ([
-              {
-                label: "Membership scanner",
-                path: `/burn/${project?.slug}/scanner`,
-                icon: <QrcodeOutlined />,
-              },
-            ] as any)
-            : []),
+          project.roles.includes(BurnRole.MembershipScanner) ||
+            project.roles.includes(BurnRole.ThresholdWatcher)
+            ? {
+              label: "Membership Scanner",
+              path: `/burn/${project?.slug}/threshold?path=/scanner`,
+              icon: <RocketOutlined />,
+            }
+            : null,
+
+          project.roles.includes(BurnRole.ThresholdWatcher)
+            ? {
+              label: "Watcher Tools",
+              path: `/burn/${project?.slug}/threshold?path=/watcher-tools`,
+              icon: <RocketOutlined />,
+            }
+            : null,
+
+          // ...(project.roles.includes(BurnRole.MembershipScanner)
+          //   ? ([
+          //     {
+          //       label: "Membership scanner",
+          //       path: `/burn/${project?.slug}/scanner`,
+          //       icon: <QrcodeOutlined />,
+          //     },
+          //   ] as any)
+          //   : []),
 
           ...(project.roles.includes(BurnRole.ThresholdWatcher)
             ? ([
-              {
-                label: "Watcher Tools",
-                path: `/burn/${project?.slug}/watcher_tools`,
-                icon: <MonitorOutlined />,
-              },
+              // {
+              //   label: "Watcher Tools",
+              //   path: `/burn/${project?.slug}/watcher_tools`,
+              //   icon: <MonitorOutlined />,
+              // },
               {
                 label: "Pet search",
                 path: `/burn/${project?.slug}/pet_search`,
