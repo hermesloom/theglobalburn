@@ -11,7 +11,7 @@ export default function REAPage() {
   const searchParams = useSearchParams();
 
   const slug = params.slug as string;
-  const realityId = searchParams.get('reality_id');
+  const realityId = searchParams.get('reality_id') || '';
 
   // Get REA URL from environment variable with fallback
   const reaBaseUrl =
