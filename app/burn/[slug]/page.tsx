@@ -398,9 +398,28 @@ export default function ProjectPage() {
                       <p className="text-small text-default-500">
                         {event.date === null
                           ? "TBD"
-                          : event.dateEnd
-                            ? formatDateRange(event.date, event.dateEnd)
-                            : formatDate(event.date)}
+                          : (() => {
+                              const formattedDate = event.dateEnd
+                                ? formatDateRange(event.date, event.dateEnd)
+                                : formatDate(event.date);
+
+                              // Check if event is in the future and within next month
+                              const isFutureEvent = index >= separatorIndex && separatorIndex !== -1;
+                              const oneMonthFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+                              const eventStartTime = event.date?.getTime() ?? 0;
+                              const isWithinNextMonth = eventStartTime <= oneMonthFromNow.getTime();
+
+                              if (isFutureEvent && isWithinNextMonth && event.date) {
+                                const daysUntil = Math.ceil((eventStartTime - now.getTime()) / (24 * 60 * 60 * 1000));
+                                return (
+                                  <>
+                                    {formattedDate} <strong>({daysUntil} {daysUntil === 1 ? 'day' : 'days'} from now)</strong>
+                                  </>
+                                );
+                              }
+
+                              return formattedDate;
+                            })()}
                       </p>
                       <h3 className="text-lg font-semibold mt-1">{event.title}</h3>
                       {event.body && <div className="mt-2">{event.body}</div>}
