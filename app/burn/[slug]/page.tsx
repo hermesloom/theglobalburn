@@ -304,6 +304,7 @@ export default function ProjectPage() {
 
   // Find the index where we should insert the separator (between past and future)
   const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   let separatorIndex = -1;
 
   for (let i = 0; i < timelineEvents.length; i++) {
@@ -320,10 +321,12 @@ export default function ProjectPage() {
   }
 
   // Determine which events to hide by default
-  // We want to show the most recent past event (separatorIndex - 1)
-  // and hide all events before that (0 to separatorIndex - 2)
-  const mostRecentPastEventIndex = separatorIndex > 0 ? separatorIndex - 1 : -1;
-  const hasEarlierEvents = separatorIndex > 1;
+  // We want to show events from the last 7 days
+  // and hide all events older than that
+  const hasEarlierEvents = timelineEvents.some((event, index) => {
+    const eventTime = (event.dateEnd || event.date)?.getTime() ?? 0;
+    return eventTime < sevenDaysAgo.getTime() && index < separatorIndex;
+  });
 
   return (
     <>
@@ -338,15 +341,18 @@ export default function ProjectPage() {
               color="primary"
               onPress={() => setShowEarlierEvents(!showEarlierEvents)}
             >
-              {showEarlierEvents ? "HIDE EARLIER EVENTS" : "SHOW EARLIER EVENTS"}
+              {showEarlierEvents ? "HIDE EVENTS OLDER THAN 1 WEEK" : "SHOW EVENTS OLDER THAN 1 WEEK"}
             </Button>
           </div>
         )}
 
         {timelineEvents.map((event, index) => {
           // Determine if this event should be hidden
-          const isEarlierEvent = index < mostRecentPastEventIndex;
-          const shouldHideEvent = isEarlierEvent && !showEarlierEvents;
+          // Hide events that are older than 7 days and in the past
+          const eventTime = (event.dateEnd || event.date)?.getTime() ?? 0;
+          const isOlderThanSevenDays = eventTime < sevenDaysAgo.getTime();
+          const isPastEvent = index < separatorIndex;
+          const shouldHideEvent = isOlderThanSevenDays && isPastEvent && !showEarlierEvents;
 
           // Skip rendering if event should be hidden
           if (shouldHideEvent) return null;
