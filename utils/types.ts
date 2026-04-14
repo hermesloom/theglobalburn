@@ -127,3 +127,14 @@ export type Question = {
   question_id: string;
   question_text: string | null;
 };
+
+export type BurnTimelineEvent = {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  project_id: string;
+  title: string;
+  body?: string;
+  date?: string;
+  date_end?: string;
+};
