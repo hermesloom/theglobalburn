@@ -40,7 +40,6 @@ export const PATCH = requestWithProject<
     if (body.body !== undefined) updateData.body = body.body?.trim() || null;
     if (body.date !== undefined) updateData.date = body.date || null;
     if (body.date_end !== undefined) updateData.date_end = body.date_end || null;
-    if (body.display_order !== undefined) updateData.display_order = body.display_order;
 
     const event = await query(() =>
       supabase
