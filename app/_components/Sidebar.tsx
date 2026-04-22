@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@nextui-org/react";
+import { Button, Tooltip } from "@nextui-org/react";
 import { useRouter, usePathname } from "next/navigation";
 import { useSession } from "./SessionContext";
 import { isMobileDevice } from "./isMobileDevice";
@@ -46,24 +46,31 @@ export function Sidebar({ routes }: SidebarProps) {
               {route.sectionTitle}
             </div>
           ) : (
-            <Button
-              key={route.path}
-              variant="light"
-              className={`justify-start ${
-                pathname === route.path ? "bg-content3 font-bold" : ""
-              }`}
-              onPress={() => {
-                router.push(route.path);
-                if (isMobileDevice()) {
-                  setShowSidebar(false);
-                }
-              }}
-              startContent={route.icon}
-            >
-              <span className="overflow-hidden text-ellipsis whitespace-nowrap">
-                {route.label}
-              </span>
-            </Button>
+            <div key={route.path} className="relative">
+              <Tooltip content={route.warning} isDisabled={!route.warning} placement="right">
+                <Button
+                  variant="light"
+                  className={`justify-start w-full ${pathname === route.path ? "bg-content3 font-bold" : ""
+                    }`}
+                  onPress={() => {
+                    router.push(route.path);
+                    if (isMobileDevice()) {
+                      setShowSidebar(false);
+                    }
+                  }}
+                  startContent={route.icon}
+                >
+                  <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+                    {route.label}
+                  </span>
+                  {route.warning && (
+                    <div className="absolute top-1/2 -translate-y-1/2 right-1 bg-danger text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+                      !
+                    </div>
+                  )}
+                </Button>
+              </Tooltip>
+            </div>
           ),
         )}
       </div>
