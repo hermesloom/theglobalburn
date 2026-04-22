@@ -31,7 +31,7 @@ export default function ProjectLayout({
   children: React.ReactNode;
 }) {
   const { project, profile } = useProject();
-  const { userInfo, loading: reaLoading } = useReaUserInfo();
+  const { userInfo, loading: reaLoading } = useReaUserInfo(project?.slug);
 
   if (project?.type !== "burn") {
     redirect("/");
