@@ -23,6 +23,7 @@ import { useProject } from "@/app/_components/SessionContext";
 import { redirect } from "next/navigation";
 import { BurnRole, BurnStage } from "@/utils/types";
 import ContentContainer from "@/app/_components/ContentContainer";
+import { useReaUserInfo } from "@/utils/rea";
 
 export default function ProjectLayout({
   children,
@@ -30,10 +31,13 @@ export default function ProjectLayout({
   children: React.ReactNode;
 }) {
   const { project, profile } = useProject();
+  const { userInfo, loading: reaLoading } = useReaUserInfo();
 
   if (project?.type !== "burn") {
     redirect("/");
   }
+
+  const noREAShifts = !reaLoading && userInfo?.shifts_count === 0;
 
   return (
     <>
@@ -97,6 +101,7 @@ export default function ProjectLayout({
               label: "Co-Create",
               path: `/burn/${project?.slug}/rea`,
               icon: <RocketOutlined />,
+              warning: (noREAShifts ? "You haven't signed up for any shifts" : null),
             }
             : null,
           // profile?.email === "ml@semi-sentient.com"
