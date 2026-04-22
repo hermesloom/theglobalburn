@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
  */
 
 export interface ReaUserInfo {
-  shifts: number | null;
+  shifts_count: number | null;
 }
 
 export interface UseReaUserInfoResult {
@@ -46,7 +46,7 @@ export function buildReaUrl(
 
 /**
  * React hook to fetch current user information from REA
- * Returns null if there is no current user, or an object with shifts count
+ * Returns null if there is no current user, or an object with shifts_count
  */
 export function useReaUserInfo(): UseReaUserInfoResult {
   const [userInfo, setUserInfo] = useState<ReaUserInfo | null>(null);
@@ -67,7 +67,7 @@ export function useReaUserInfo(): UseReaUserInfoResult {
 
         const data = await response.json();
 
-        // Response is either null (no user) or { shifts: number }
+        // Response is either null (no user) or { shifts_count: number }
         setUserInfo(data);
       } catch (err) {
         console.error("Error fetching REA user info:", err);
