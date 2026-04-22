@@ -48,7 +48,7 @@ export function buildReaUrl(
  * React hook to fetch current user information from REA
  * Returns null if there is no current user, or an object with shifts_count
  */
-export function useReaUserInfo(): UseReaUserInfoResult {
+export function useReaUserInfo(burnSlug?: string): UseReaUserInfoResult {
   const [userInfo, setUserInfo] = useState<ReaUserInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -56,9 +56,24 @@ export function useReaUserInfo(): UseReaUserInfoResult {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
+        let token: string | null = null;
+
+        if (burnSlug) {
+          const tokenResponse = await fetch(
+            `/api/auth/rea-token?burn=${encodeURIComponent(burnSlug)}&service=rea`
+          );
+          if (tokenResponse.ok) {
+            const tokenData = await tokenResponse.json();
+            token = tokenData.token;
+          }
+        }
+
         const reaBaseUrl = getReaBaseUrl();
-        const response = await fetch(`${reaBaseUrl}/api/me`, {
-          credentials: "include", // Include cookies for authentication
+        const url = token
+          ? `${reaBaseUrl}/api/me?token=${encodeURIComponent(token)}`
+          : `${reaBaseUrl}/api/me`;
+        const response = await fetch(url, {
+          credentials: "include",
         });
 
         if (!response.ok) {
@@ -78,7 +93,7 @@ export function useReaUserInfo(): UseReaUserInfoResult {
     };
 
     fetchUserInfo();
-  }, []);
+  }, [burnSlug]);
 
   return { userInfo, loading, error };
 }
