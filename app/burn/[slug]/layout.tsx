@@ -23,6 +23,7 @@ import { useProject } from "@/app/_components/SessionContext";
 import { redirect } from "next/navigation";
 import { BurnRole, BurnStage } from "@/utils/types";
 import ContentContainer from "@/app/_components/ContentContainer";
+import { useReaUserInfo } from "@/utils/rea";
 
 export default function ProjectLayout({
   children,
@@ -30,10 +31,13 @@ export default function ProjectLayout({
   children: React.ReactNode;
 }) {
   const { project, profile } = useProject();
+  const { userInfo, loading: reaLoading } = useReaUserInfo();
 
   if (project?.type !== "burn") {
     redirect("/");
   }
+
+  const noREAShifts = !reaLoading && userInfo?.shifts_count === 0;
 
   return (
     <>
@@ -97,8 +101,16 @@ export default function ProjectLayout({
               label: "Co-Create",
               path: `/burn/${project?.slug}/rea`,
               icon: <RocketOutlined />,
+              warning: (noREAShifts ? "You haven't signed up for any shifts" : null),
             }
             : null,
+          // profile?.email === "ml@semi-sentient.com"
+          //   ? {
+          //     label: "Gate Scanner",
+          //     path: `/burn/${project?.slug}/scanner`,
+          //     icon: <RocketOutlined />,
+          //   }
+          //   : null,
           {
             label: "Newsletter",
             path: `/burn/${project?.slug}/newsletter`,
@@ -122,23 +134,40 @@ export default function ProjectLayout({
             ? ([{ separator: true }, { sectionTitle: "On-site" }] as any)
             : []),
 
-          ...(project.roles.includes(BurnRole.MembershipScanner)
-            ? ([
-              {
-                label: "Membership scanner",
-                path: `/burn/${project?.slug}/scanner`,
-                icon: <QrcodeOutlined />,
-              },
-            ] as any)
-            : []),
+          project.roles.includes(BurnRole.MembershipScanner) ||
+            project.roles.includes(BurnRole.ThresholdWatcher)
+            ? {
+              label: "Membership Scanner",
+              path: `/burn/${project?.slug}/threshold?path=/scanner`,
+              icon: <RocketOutlined />,
+            }
+            : null,
+
+          project.roles.includes(BurnRole.ThresholdWatcher)
+            ? {
+              label: "Watcher Tools",
+              path: `/burn/${project?.slug}/threshold?path=/watcher-tools`,
+              icon: <RocketOutlined />,
+            }
+            : null,
+
+          // ...(project.roles.includes(BurnRole.MembershipScanner)
+          //   ? ([
+          //     {
+          //       label: "Membership scanner",
+          //       path: `/burn/${project?.slug}/scanner`,
+          //       icon: <QrcodeOutlined />,
+          //     },
+          //   ] as any)
+          //   : []),
 
           ...(project.roles.includes(BurnRole.ThresholdWatcher)
             ? ([
-              {
-                label: "Watcher Tools",
-                path: `/burn/${project?.slug}/watcher_tools`,
-                icon: <MonitorOutlined />,
-              },
+              // {
+              //   label: "Watcher Tools",
+              //   path: `/burn/${project?.slug}/watcher_tools`,
+              //   icon: <MonitorOutlined />,
+              // },
               {
                 label: "Pet search",
                 path: `/burn/${project?.slug}/pet_search`,

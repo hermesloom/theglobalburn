@@ -2,30 +2,35 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import { buildReaUrl, getReaBaseUrl } from "@/utils/rea";
 
-export default function REAPage() {
+export default function ThresholdPage() {
   const [token, setToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const params = useParams();
+  const slug = params.slug as string;
   const searchParams = useSearchParams();
 
-  const slug = params.slug as string;
-  const realityId = searchParams.get('reality_id') || '';
+  const path = searchParams.get('path') || '/';
+
+  // Get Threshold URL from environment variable with fallback
+  const thresholdBaseUrl =
+    process.env.NEXT_PUBLIC_THRESHOLD_URL || "https://threshold.theborderland.se";
 
   useEffect(() => {
-    // Fetch JWT token for REA authentication
+    // Fetch JWT token for Threshold authentication
     const fetchToken = async () => {
       try {
-        const response = await fetch(`/api/auth/rea-token?burn=${encodeURIComponent(slug)}&service=rea`);
+        const response = await fetch(
+          `/api/auth/rea-token?burn=${encodeURIComponent(slug)}&service=threshold`
+        );
         if (!response.ok) {
           throw new Error("Failed to generate authentication token");
         }
         const data = await response.json();
         setToken(data.token);
       } catch (err: any) {
-        console.error("Error fetching REA token:", err);
+        console.error("Error fetching Threshold token:", err);
         setError("Authentication failed");
       } finally {
         setLoading(false);
@@ -51,8 +56,7 @@ export default function REAPage() {
     );
   }
 
-  // Construct iframe URL with JWT token - go directly to sign-up to avoid redirect
-  const iframeUrl = buildReaUrl("/sign-up", token || "", realityId);
+  const iframeUrl = `${thresholdBaseUrl}${path}?token=${encodeURIComponent(token || "")}`;
 
   return (
     <div className="-m-14 w-[calc(100%+7rem)] h-[calc(100vh)]">
@@ -64,3 +68,4 @@ export default function REAPage() {
     </div>
   );
 }
+

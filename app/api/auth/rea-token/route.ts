@@ -3,14 +3,20 @@ import * as jose from "jose";
 
 /**
  * REA Token Generation API
- * Generates a JWT token for the authenticated user to access REA
+ * Generates a JWT token for the authenticated user to access embedded services
  *
  * @see JWT_AUTH_SETUP.md for setup instructions
  */
+
+// Map of allowed service types to their audience URLs
+const SERVICE_AUDIENCES: Record<string, string> = {
+  rea: process.env.NEXT_PUBLIC_REA_URL || "https://rea.theborderland.se",
+  threshold: process.env.NEXT_PUBLIC_THRESHOLD_URL || "https://threshold.theborderland.se",
+};
+
 export const GET = requestWithAuth(async (supabase, profile, req) => {
   try {
     const privateKeyPEM = process.env.JWT_PRIVATE_KEY;
-    const reaUrl = process.env.NEXT_PUBLIC_REA_URL || "https://rea.theborderland.se";
 
     if (!privateKeyPEM) {
       console.error("JWT_PRIVATE_KEY environment variable not configured");
@@ -20,6 +26,21 @@ export const GET = requestWithAuth(async (supabase, profile, req) => {
     if (!profile.email) {
       console.error("User profile missing email:", profile.id);
       throw new Error("User profile incomplete");
+    }
+
+    // Get service type from query parameter (required)
+    const serviceType = req.nextUrl.searchParams.get("service");
+
+    if (!serviceType) {
+      console.error("Service type parameter is required");
+      throw new Error("Service type is required");
+    }
+
+    // Validate service type and get corresponding audience URL
+    const audienceUrl = SERVICE_AUDIENCES[serviceType];
+    if (!audienceUrl) {
+      console.error("Invalid service type requested:", serviceType);
+      throw new Error("Invalid service type");
     }
 
     // Get burn slug from query parameter
@@ -55,7 +76,7 @@ export const GET = requestWithAuth(async (supabase, profile, req) => {
       .setProtectedHeader({ alg: "RS256", kid: "theglobalburn-jwt-key" })
       .setIssuedAt()
       .setIssuer("theglobalburn")
-      .setAudience(reaUrl) // Add audience claim
+      .setAudience(audienceUrl) // Use the audience URL from query param or default
       .setExpirationTime("2m") // Short-lived token for initial auth
       .sign(privateKey);
 
