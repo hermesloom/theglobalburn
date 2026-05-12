@@ -124,50 +124,50 @@ export default function ScannerPage() {
 
           {membershipResults && membershipResults.length === 0 && <div>No memberships with matching pet chip code found</div>}
           {membershipResults &&
-           (membershipResults.map((membership) => {
-            {
-              return < Card key="membership.id" className={`w-full h-full ${membership.checked_in_at == null ? 'bg-green-100' : 'bg-yellow-100'}`}>
-                <CardBody className="flex flex-col justify-between">
-                  <div className="flex flex-col gap-2">
-                    <p><strong>Name:</strong> {membership.first_name} {membership.last_name}</p>
-                    <p><strong>Birthdate:</strong> {formatDOB(membership.birthdate)}</p>
-                    <p><strong>Checked in:</strong> {membership.checked_in_at == null ? 'No' : formatRelativeDateTime(new Date(membership.checked_in_at))}</p>
+            (membershipResults.map((membership) => {
+              {
+                return < Card key="membership.id" className={`w-full h-full ${membership.checked_in_at == null ? 'bg-green-100' : 'bg-yellow-100'}`}>
+                  <CardBody className="flex flex-col justify-between">
+                    <div className="flex flex-col gap-2">
+                      <p><strong>Name:</strong> {membership.first_name} {membership.last_name}</p>
+                      <p><strong>Birthdate:</strong> {formatDOB(membership.birthdate)}</p>
+                      <p><strong>Checked in:</strong> {membership.checked_in_at == null ? 'No' : formatRelativeDateTime(new Date(membership.checked_in_at))}</p>
 
-                    {membership.metadata?.children?.length > 0 && (
-                      <div className="mt-4">
-                        <h4 className="font-semibold mb-2">Children</h4>
-                        <div className="flex flex-col gap-2">
-                          {membership.metadata.children.map((child: Child) => (
-                            <div key={child.key} className="pl-4 border-l-2 border-gray-200">
-                              <p><strong>Name:</strong> {child.first_name} {child.last_name}</p>
-                              <p><strong>Birthdate:</strong> {formatDOB(child.dob)}</p>
-                            </div>
-                          ))}
+                      {membership.metadata?.children?.length > 0 && (
+                        <div className="mt-4">
+                          <h4 className="font-semibold mb-2">Children</h4>
+                          <div className="flex flex-col gap-2">
+                            {membership.metadata.children.map((child: Child) => (
+                              <div key={child.key} className="pl-4 border-l-2 border-gray-200">
+                                <p><strong>Name:</strong> {child.first_name} {child.last_name}</p>
+                                <p><strong>Birthdate:</strong> {formatDOB(child.dob)}</p>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {membership.metadata?.pets?.length > 0 && (
-                      <div className="mt-4">
-                        <h4 className="font-semibold mb-2">Pets</h4>
-                        <div className="flex flex-col gap-2">
-                          {membership.metadata.pets.map((pet: Pet) => (
-                            <div key={pet.key} className="pl-4 border-l-2 border-gray-200">
-                              <p><strong>Name:</strong> {pet.name}</p>
-                              <p><strong>Type:</strong> {pet.type}</p>
-                              <p><strong>Chip Code:</strong> {pet.chip_code}</p>
-                              {pet.description && <p><strong>Pet Description:</strong> {pet.description}</p>}
-                              {pet.other_information && <p><strong>Other Information:</strong> {pet.other_information}</p>}
-                            </div>
-                          ))}
+                      {membership.metadata?.pets?.length > 0 && (
+                        <div className="mt-4">
+                          <h4 className="font-semibold mb-2">Pets</h4>
+                          <div className="flex flex-col gap-2">
+                            {membership.metadata.pets.map((pet: Pet) => (
+                              <div key={pet.key} className="pl-4 border-l-2 border-gray-200">
+                                <p><strong>Name:</strong> {pet.name}</p>
+                                <p><strong>Type:</strong> {pet.type}</p>
+                                <p><strong>Chip Code:</strong> {pet.chip_code}</p>
+                                <p><strong>Pet Description:</strong> {pet.description}</p>
+                                <p><strong>Other Information:</strong> {pet.other_information}</p>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                </CardBody>
-              </Card>
-            }
-          }))}
+                      )}
+                    </div>
+                  </CardBody>
+                </Card>
+              }
+            }))}
         </div>
 
       </div >
