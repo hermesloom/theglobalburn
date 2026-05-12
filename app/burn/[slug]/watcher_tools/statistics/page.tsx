@@ -20,12 +20,29 @@ interface AgeEntry {
   count: number;
 }
 
+interface YoungMember {
+  id: string;
+  first_name: string;
+  last_name: string;
+  birthdate: string;
+  age: number;
+}
+
+interface OldChild {
+  member: { id: string; first_name: string; last_name: string };
+  child: { first_name: string; last_name: string; dob: string; age: number };
+}
+
 interface WatcherStatistics {
   memberCount: number;
   childrenCount: number;
   memberAgeDistribution: AgeEntry[];
   childrenAgeDistribution: AgeEntry[];
   petCounts: { dogs: number; cats: number; other: number };
+  anomalies: {
+    youngMembers: YoungMember[];
+    oldChildren: OldChild[];
+  };
 }
 
 function StatCard({
@@ -131,7 +148,7 @@ export default function WatcherStatisticsPage() {
         <StatCard label="Other Pets" value={stats.petCounts.other} color="#a4a4a4" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <AgeChart
           data={stats.memberAgeDistribution}
           title="Member Age Distribution"
@@ -140,6 +157,77 @@ export default function WatcherStatisticsPage() {
           data={stats.childrenAgeDistribution}
           title="Children Age Distribution"
         />
+      </div>
+
+      <h2 className="text-xl font-bold mb-4">Anomalies</h2>
+
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-1">
+          Members aged 13 or younger
+        </h3>
+        <p className="text-sm text-gray-500 mb-3">
+          Members must be at least 14 years old.
+        </p>
+        {stats.anomalies.youngMembers.length === 0 ? (
+          <div className="text-gray-500 italic">None</div>
+        ) : (
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="bg-gray-100 text-left">
+                <th className="p-2 border">Name</th>
+                <th className="p-2 border">Date of Birth</th>
+                <th className="p-2 border">Age</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stats.anomalies.youngMembers.map((m) => (
+                <tr key={m.id} className="border-b">
+                  <td className="p-2 border">{m.first_name} {m.last_name}</td>
+                  <td className="p-2 border">{m.birthdate}</td>
+                  <td className="p-2 border">{m.age}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-1">
+          Children aged 14 or older
+        </h3>
+        <p className="text-sm text-gray-500 mb-3">
+          Anyone 14 or older requires their own membership and should not be
+          listed as a child of another member.
+        </p>
+        {stats.anomalies.oldChildren.length === 0 ? (
+          <div className="text-gray-500 italic">None</div>
+        ) : (
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="bg-gray-100 text-left">
+                <th className="p-2 border">Member</th>
+                <th className="p-2 border">Child Name</th>
+                <th className="p-2 border">Child DOB</th>
+                <th className="p-2 border">Child Age</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stats.anomalies.oldChildren.map((entry, i) => (
+                <tr key={i} className="border-b">
+                  <td className="p-2 border">
+                    {entry.member.first_name} {entry.member.last_name}
+                  </td>
+                  <td className="p-2 border">
+                    {entry.child.first_name} {entry.child.last_name}
+                  </td>
+                  <td className="p-2 border">{entry.child.dob}</td>
+                  <td className="p-2 border">{entry.child.age}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </>
   );
