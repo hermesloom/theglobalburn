@@ -17,7 +17,7 @@ export const GET = requestWithProject(
     const memberships = await query(() =>
       supabase
         .from("burn_memberships")
-        .select("birthdate, metadata->children, metadata->pets")
+        .select("id, first_name, last_name, birthdate, metadata->children, metadata->pets")
         .eq("project_id", project!.id)
     );
 
@@ -28,10 +28,22 @@ export const GET = requestWithProject(
     let cats = 0;
     let otherPets = 0;
 
+    const youngMembers: { id: string; first_name: string; last_name: string; birthdate: string; age: number }[] = [];
+    const oldChildren: { member: { id: string; first_name: string; last_name: string }; child: { first_name: string; last_name: string; dob: string; age: number } }[] = [];
+
     for (const m of memberships) {
       const memberAge = calculateAge(m.birthdate);
       if (memberAge !== null) {
         memberAgeMap[memberAge] = (memberAgeMap[memberAge] || 0) + 1;
+        if (memberAge <= 13) {
+          youngMembers.push({
+            id: m.id,
+            first_name: m.first_name,
+            last_name: m.last_name,
+            birthdate: m.birthdate,
+            age: memberAge,
+          });
+        }
       }
 
       const children = (m.children as any[]) || [];
@@ -40,6 +52,12 @@ export const GET = requestWithProject(
         const childAge = calculateAge(child.dob);
         if (childAge !== null) {
           childAgeMap[childAge] = (childAgeMap[childAge] || 0) + 1;
+          if (childAge >= 14) {
+            oldChildren.push({
+              member: { id: m.id, first_name: m.first_name, last_name: m.last_name },
+              child: { first_name: child.first_name, last_name: child.last_name, dob: child.dob, age: childAge },
+            });
+          }
         }
       }
 
@@ -63,6 +81,10 @@ export const GET = requestWithProject(
       memberAgeDistribution: toDistribution(memberAgeMap),
       childrenAgeDistribution: toDistribution(childAgeMap),
       petCounts: { dogs, cats, other: otherPets },
+      anomalies: {
+        youngMembers: youngMembers.sort((a, b) => a.age - b.age),
+        oldChildren: oldChildren.sort((a, b) => a.child.age - b.child.age),
+      },
     };
   },
   undefined,
