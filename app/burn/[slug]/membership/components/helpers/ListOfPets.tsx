@@ -31,6 +31,14 @@ export default function ListOfPets({ data }: { data: Pet[] }) {
       key: "chip_code",
       label: "Chip Code"
     },
+    {
+      key: "description",
+      label: "Pet Description",
+    },
+    {
+      key: "other_information",
+      label: "Other Information",
+    },
   ];
 
   const prompt = usePrompt();
@@ -93,6 +101,14 @@ export default function ListOfPets({ data }: { data: Pet[] }) {
                 {
                   key: "chip_code",
                   label: "Chip Code",
+                },
+                {
+                  key: "description",
+                  label: "Pet Description",
+                },
+                {
+                  key: "other_information",
+                  label: "Other Information",
                 },
               ]),
             handler: async (_, promptData) => {
