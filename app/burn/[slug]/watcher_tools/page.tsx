@@ -14,6 +14,7 @@ import ActionButton from "@/app/_components/ActionButton";
 import { ReloadOutlined } from "@ant-design/icons";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { apiGet, apiPost } from "@/app/_components/api";
 import { useProject } from "@/app/_components/SessionContext";
 import { formatDOB } from "@/app/burn/[slug]/membership/components/helpers/date";
@@ -158,6 +159,7 @@ export default function ScannerManagerPage() {
   }
 
   const { project } = useProject();
+  const router = useRouter();
 
   useEffect(() => {
     updateProfileScanners(project!.slug)
@@ -180,6 +182,16 @@ export default function ScannerManagerPage() {
 
   return (
     <>
+      <div className="flex justify-end mb-2">
+        <Button
+          color="primary"
+          variant="flat"
+          onPress={() => router.push(`/burn/${project?.slug}/watcher_tools/statistics`)}
+        >
+          Statistics
+        </Button>
+      </div>
+
       {scannerProfiles ?
             <div>
               <Button
