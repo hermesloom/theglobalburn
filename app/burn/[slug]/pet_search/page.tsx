@@ -63,13 +63,11 @@ export default function ScannerPage() {
 
   const chipCodeRef = useRef<HTMLInputElement>(null);
 
-  const searchForPet = () => {
+  const doSearch = (chipCode: string) => {
     setMembershipResults([]);
     setSearchError(null);
 
-    const inputValue = chipCodeRef.current?.value;
-
-    apiGet(`/burn/${project!.slug}/admin/pet_search/${inputValue}`)
+    apiGet(`/burn/${project!.slug}/admin/pet_search/${chipCode}`)
       .then((memberships) => {
         setMembershipResults(memberships);
       })
@@ -77,6 +75,14 @@ export default function ScannerPage() {
         console.log({ message: error.message })
         setSearchError(error.message);
       })
+  };
+
+  const searchForPet = () => {
+    doSearch(chipCodeRef.current?.value ?? "");
+  };
+
+  const showAllPets = () => {
+    doSearch("__all__");
   };
 
   useEffect(() => {
@@ -94,16 +100,14 @@ export default function ScannerPage() {
           <Input type="text" ref={chipCodeRef} name="chip_code" className="border border-black rounded-lg mb-4" />
 
           <div className="mb-4">
-            {
-              (<div className="w-full h-full flex items-center justify-center">
-                <Button
-                  color="primary"
-                  onPress={searchForPet}
-                >
-                  Search
-                </Button>
-              </div>)
-            }
+            <div className="w-full h-full flex items-center justify-center gap-4">
+              <Button color="primary" onPress={searchForPet}>
+                Search
+              </Button>
+              <Button color="secondary" onPress={showAllPets}>
+                Show all memberships with pets
+              </Button>
+            </div>
           </div>
 
           {searchError && (
