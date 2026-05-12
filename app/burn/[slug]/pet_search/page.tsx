@@ -19,6 +19,8 @@ interface Pet {
   name: string;
   type: string;
   chip_code: string;
+  description: string;
+  other_information: string;
 }
 
 const formatRelativeDateTime = (date: Date) => {
@@ -154,6 +156,8 @@ export default function ScannerPage() {
                               <p><strong>Name:</strong> {pet.name}</p>
                               <p><strong>Type:</strong> {pet.type}</p>
                               <p><strong>Chip Code:</strong> {pet.chip_code}</p>
+                              {pet.description && <p><strong>Pet Description:</strong> {pet.description}</p>}
+                              {pet.other_information && <p><strong>Other Information:</strong> {pet.other_information}</p>}
                             </div>
                           ))}
                         </div>
