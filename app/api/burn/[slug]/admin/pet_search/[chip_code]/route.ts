@@ -24,7 +24,7 @@ export const GET = requestWithProject(
     const ids = all_memberships.filter((m: BurnMembership) =>
       Array.isArray(m.metadata?.pets) &&
       m.metadata?.pets.length > 0 &&
-      (chipCode == "all%20hail%20the%20jort" ?
+      (chipCode == "__all__" ?
         true :
         m.metadata.pets.some((pet: Pet) => pet.chip_code === chipCode)
       )
