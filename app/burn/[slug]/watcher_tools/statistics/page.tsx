@@ -20,17 +20,18 @@ interface AgeEntry {
   count: number;
 }
 
-interface YoungMember {
+interface MemberEntry {
   id: string;
   first_name: string;
   last_name: string;
   birthdate: string;
-  age: number;
+  currentAge: number;
+  eventAge: number | null;
 }
 
 interface OldChild {
   member: { id: string; first_name: string; last_name: string };
-  child: { first_name: string; last_name: string; dob: string; age: number };
+  child: { first_name: string; last_name: string; dob: string; currentAge: number; eventAge: number | null };
 }
 
 interface WatcherStatistics {
@@ -39,8 +40,10 @@ interface WatcherStatistics {
   memberAgeDistribution: AgeEntry[];
   childrenAgeDistribution: AgeEntry[];
   petCounts: { dogs: number; cats: number; other: number };
+  eventStartDate: string | null;
   anomalies: {
-    youngMembers: YoungMember[];
+    youngMembers: MemberEntry[];
+    teenMembers: MemberEntry[];
     oldChildren: OldChild[];
   };
 }
@@ -151,22 +154,20 @@ export default function WatcherStatisticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <AgeChart
           data={stats.memberAgeDistribution}
-          title="Member Age Distribution"
+          title={`Member Age Distribution at Event Start${stats.eventStartDate ? ` (${stats.eventStartDate})` : ""}`}
         />
         <AgeChart
           data={stats.childrenAgeDistribution}
-          title="Children Age Distribution"
+          title={`Children Age Distribution at Event Start${stats.eventStartDate ? ` (${stats.eventStartDate})` : ""}`}
         />
       </div>
-
-      <h2 className="text-xl font-bold mb-4">Anomalies</h2>
 
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-1">
           Members aged 13 or younger
         </h3>
         <p className="text-sm text-gray-500 mb-3">
-          Members must be at least 14 years old.
+          Members must be at least 14 years old at the start of the event.
         </p>
         {stats.anomalies.youngMembers.length === 0 ? (
           <div className="text-gray-500 italic">None</div>
@@ -176,7 +177,8 @@ export default function WatcherStatisticsPage() {
               <tr className="bg-gray-100 text-left">
                 <th className="p-2 border">Name</th>
                 <th className="p-2 border">Date of Birth</th>
-                <th className="p-2 border">Age</th>
+                <th className="p-2 border">Current Age</th>
+                {stats.eventStartDate && <th className="p-2 border">Age at Event ({stats.eventStartDate})</th>}
               </tr>
             </thead>
             <tbody>
@@ -184,7 +186,8 @@ export default function WatcherStatisticsPage() {
                 <tr key={m.id} className="border-b">
                   <td className="p-2 border">{m.first_name} {m.last_name}</td>
                   <td className="p-2 border">{m.birthdate}</td>
-                  <td className="p-2 border">{m.age}</td>
+                  <td className="p-2 border">{m.currentAge}</td>
+                  {stats.eventStartDate && <td className="p-2 border">{m.eventAge ?? "—"}</td>}
                 </tr>
               ))}
             </tbody>
@@ -194,11 +197,45 @@ export default function WatcherStatisticsPage() {
 
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-1">
-          Children aged 14 or older
+          Members aged 14–17
+        </h3>
+        <p className="text-sm text-gray-500 mb-3">
+          Should be identified because they cannot drink / be in certain places.
+        </p>
+        {stats.anomalies.teenMembers.length === 0 ? (
+          <div className="text-gray-500 italic">None</div>
+        ) : (
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="bg-gray-100 text-left">
+                <th className="p-2 border">Name</th>
+                <th className="p-2 border">Date of Birth</th>
+                <th className="p-2 border">Current Age</th>
+                {stats.eventStartDate && <th className="p-2 border">Age at Event ({stats.eventStartDate})</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {stats.anomalies.teenMembers.map((m) => (
+                <tr key={m.id} className="border-b">
+                  <td className="p-2 border">{m.first_name} {m.last_name}</td>
+                  <td className="p-2 border">{m.birthdate}</td>
+                  <td className="p-2 border">{m.currentAge}</td>
+                  {stats.eventStartDate && <td className="p-2 border">{m.eventAge ?? "—"}</td>}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-1">
+          Children attached to another membership aged 14 or older
         </h3>
         <p className="text-sm text-gray-500 mb-3">
           Anyone 14 or older requires their own membership and should not be
-          listed as a child of another member.
+          listed as a child of another member. These either have incorrect birthdays
+          or they would need their own membership.
         </p>
         {stats.anomalies.oldChildren.length === 0 ? (
           <div className="text-gray-500 italic">None</div>
@@ -209,7 +246,8 @@ export default function WatcherStatisticsPage() {
                 <th className="p-2 border">Member</th>
                 <th className="p-2 border">Child Name</th>
                 <th className="p-2 border">Child DOB</th>
-                <th className="p-2 border">Child Age</th>
+                <th className="p-2 border">Current Age</th>
+                {stats.eventStartDate && <th className="p-2 border">Age at Event ({stats.eventStartDate})</th>}
               </tr>
             </thead>
             <tbody>
@@ -222,7 +260,8 @@ export default function WatcherStatisticsPage() {
                     {entry.child.first_name} {entry.child.last_name}
                   </td>
                   <td className="p-2 border">{entry.child.dob}</td>
-                  <td className="p-2 border">{entry.child.age}</td>
+                  <td className="p-2 border">{entry.child.currentAge}</td>
+                  {stats.eventStartDate && <td className="p-2 border">{entry.child.eventAge ?? "—"}</td>}
                 </tr>
               ))}
             </tbody>
