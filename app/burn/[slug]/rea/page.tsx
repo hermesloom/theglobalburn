@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams, redirect } from "next/navigation";
 import { buildReaUrl, getReaBaseUrl } from "@/utils/rea";
+import { useProject } from "@/app/_components/SessionContext";
 
 export default function REAPage() {
+  const { project } = useProject();
   const [token, setToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -13,6 +15,10 @@ export default function REAPage() {
 
   const slug = params.slug as string;
   const realityId = searchParams.get('reality_id') || '';
+
+  if (project && !project.membership) {
+    redirect(`/burn/${slug}/membership`);
+  }
 
   useEffect(() => {
     // Fetch JWT token for REA authentication
