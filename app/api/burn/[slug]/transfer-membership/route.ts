@@ -32,11 +32,33 @@ export const POST = requestWithProject<
       throw new Error(`Membership is not transferable`);
     }
 
-    // check that the recipient is registered, part of this project and has no membership and no membership purchase right yet
-    const recipientProfile = await getProfileByEmail(
+    // check that the recipient is registered and has no membership or purchase right yet
+    let recipientProfile = await getProfileByEmail(
       supabase,
       body.email.toLowerCase(),
     );
+
+    // auto-join the recipient to the project if they aren't part of it yet
+    if (!recipientProfile.projects.find((p) => p.id === project!.id)) {
+      const role = await query(() =>
+        supabase
+          .from("roles")
+          .select("*")
+          .eq("project_id", project!.id)
+          .eq("name", BurnRole.Participant)
+          .single(),
+      );
+      await query(() =>
+        supabase
+          .from("role_assignments")
+          .insert({ user_id: recipientProfile.id, role_id: role.id }),
+      );
+      recipientProfile = await getProfileByEmail(
+        supabase,
+        body.email.toLowerCase(),
+      );
+    }
+
     const recipientProject = validateNewMembershipEligibility(
       recipientProfile,
       project!,
