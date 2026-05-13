@@ -13,6 +13,14 @@ export const POST = requestWithProject<
       throw new Error(`User has no membership purchase right to remove`);
     }
 
+    // clear is_being_transferred_to on any membership pointing to this purchase right
+    await query(() =>
+      supabase
+        .from("burn_memberships")
+        .update({ is_being_transferred_to: null })
+        .eq("is_being_transferred_to", project!.membership_purchase_right!.id),
+    );
+
     // delete the purchase right
     await query(() =>
       supabase
