@@ -96,7 +96,7 @@ export default function ProjectLayout({
               icon: <FileTextOutlined />,
             }
             : null,*/
-          project.membership || profile?.email === "ml@semi-sentient.com"
+          project.membership
             ? {
               label: "Co-Create",
               path: `/burn/${project?.slug}/rea`,
