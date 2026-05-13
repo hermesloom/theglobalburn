@@ -116,11 +116,13 @@ export default function ProjectLayout({
             path: `/burn/${project?.slug}/newsletter`,
             icon: <MailOutlined />,
           },
-          {
-            label: "Statistics",
-            path: `/burn/${project?.slug}/statistics`,
-            icon: <BarChartOutlined />,
-          },
+          project.membership
+            ? {
+              label: "Statistics",
+              path: `/burn/${project?.slug}/statistics`,
+              icon: <BarChartOutlined />,
+            }
+            : null,
           project.membership
             ? {
               label: "Have an idea?",

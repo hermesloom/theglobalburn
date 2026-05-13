@@ -1,6 +1,6 @@
-import { requestWithProject, query } from "@/app/api/_common/endpoints";
+import { requestWithMembership, query } from "@/app/api/_common/endpoints";
 
-export const GET = requestWithProject(
+export const GET = requestWithMembership(
   async (supabase, profile, request, body, project) => {
 
     // Get all memberships for this project
