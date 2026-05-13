@@ -21,6 +21,7 @@ interface Pet {
   chip_code: string;
   description: string;
   other_information: string;
+  photo_url?: string;
 }
 
 const formatRelativeDateTime = (date: Date) => {
@@ -152,12 +153,21 @@ export default function ScannerPage() {
                           <h4 className="font-semibold mb-2">Pets</h4>
                           <div className="flex flex-col gap-2">
                             {membership.metadata.pets.map((pet: Pet) => (
-                              <div key={pet.key} className="pl-4 border-l-2 border-gray-200">
-                                <p><strong>Name:</strong> {pet.name}</p>
-                                <p><strong>Type:</strong> {pet.type}</p>
-                                <p><strong>Chip Code:</strong> {pet.chip_code}</p>
-                                <p><strong>Pet Description:</strong> {pet.description}</p>
-                                <p><strong>Other Information:</strong> {pet.other_information}</p>
+                              <div key={pet.key} className="pl-4 border-l-2 border-gray-200 flex gap-4">
+                                {pet.photo_url && (
+                                  <img
+                                    src={pet.photo_url}
+                                    alt={pet.name}
+                                    style={{ width: 250, height: 250, objectFit: "cover", borderRadius: 8, flexShrink: 0 }}
+                                  />
+                                )}
+                                <div className="flex flex-col gap-1">
+                                  <p><strong>Name:</strong> {pet.name}</p>
+                                  <p><strong>Type:</strong> {pet.type}</p>
+                                  <p><strong>Chip Code:</strong> {pet.chip_code}</p>
+                                  <p><strong>Pet Description:</strong> {pet.description}</p>
+                                  <p><strong>Other Information:</strong> {pet.other_information}</p>
+                                </div>
                               </div>
                             ))}
                           </div>
