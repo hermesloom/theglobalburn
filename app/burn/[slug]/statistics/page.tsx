@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { redirect } from "next/navigation";
 import { useProject } from "@/app/_components/SessionContext";
 import { apiGet } from "@/app/_components/api";
 import { Spinner } from "@nextui-org/react";
@@ -36,6 +37,11 @@ const COLORS = {
 
 export default function StatisticsPage() {
   const { project } = useProject();
+
+  if (project && !project.membership) {
+    redirect(`/burn/${project.slug}/membership`);
+  }
+
   const [statistics, setStatistics] = useState<Statistics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
