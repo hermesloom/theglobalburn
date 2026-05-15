@@ -30,7 +30,8 @@ export type PromptField = {
     | "checkboxGroup"
     | "radio"
     | "dropdown"
-    | "quote";
+    | "quote"
+    | "header";
   options?: {
     id: string;
     label: string;
@@ -143,6 +144,13 @@ export default function Prompt({ config }: { config: PromptConfig }) {
               onChange={(e) => setInput(field.key, e.target.value)}
               isReadOnly={field.readOnly}
             />
+          </div>
+        );
+
+      case "header":
+        return (
+          <div key={field.key} className="font-semibold text-foreground pt-2">
+            {field.label}
           </div>
         );
 
