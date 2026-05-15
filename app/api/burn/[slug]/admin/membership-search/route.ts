@@ -43,10 +43,10 @@ export const POST = requestWithProject(
           birthdate,
           metadata->children,
           metadata->pets,
-          metadata->camp_name,
-          metadata->phone_number,
-          metadata->emergency_contact_onsite,
-          metadata->emergency_contact_other
+          metadata->emergency_info->camp_name,
+          metadata->emergency_info->phone_number,
+          metadata->emergency_info->emergency_contact_onsite,
+          metadata->emergency_info->emergency_contact_other
         `)
         .eq("project_id", project!.id)
         .range(
@@ -59,7 +59,7 @@ export const POST = requestWithProject(
       membershipQuery
         .or([
           ...searchTerms.map((term: string) =>
-            `first_name.ilike.%${term}%,last_name.ilike.%${term}%,metadata->>camp_name.ilike.%${term}%`
+            `first_name.ilike.%${term}%,last_name.ilike.%${term}%,metadata->emergency_info->>camp_name.ilike.%${term}%`
           ),
           ...profileIds.map(id => `owner_id.eq.${id}`)
         ].join(','))
