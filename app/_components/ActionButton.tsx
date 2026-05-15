@@ -17,11 +17,11 @@ export type ActionButtonDef<T = undefined> = {
   allowLineBreaks?: boolean;
   condition?: (data?: T) => boolean;
   onClick:
-    | ActionButtonOnClickHandler<T>
-    | {
-        prompt: (data?: T) => Promise<PromptResult | undefined>;
-        handler: ActionButtonOnClickHandler<T>;
-      };
+  | ActionButtonOnClickHandler<T>
+  | {
+    prompt: (data?: T) => Promise<PromptResult | undefined>;
+    handler: ActionButtonOnClickHandler<T>;
+  };
   successCallback?: () => void;
 };
 
