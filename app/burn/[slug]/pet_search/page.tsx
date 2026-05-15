@@ -158,7 +158,7 @@ export default function ScannerPage() {
                                   <img
                                     src={pet.photo_url}
                                     alt={pet.name}
-                                    style={{ width: 250, height: 250, objectFit: "cover", borderRadius: 8, flexShrink: 0 }}
+                                    style={{ maxHeight: 250, width: "auto", borderRadius: 8, flexShrink: 1 }}
                                   />
                                 )}
                                 <div className="flex flex-col gap-1">
