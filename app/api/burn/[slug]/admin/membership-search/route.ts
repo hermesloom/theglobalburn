@@ -26,7 +26,7 @@ export const POST = requestWithProject(
     if (profileResult.error) {
       console.error("Error fetching profiles:", profileResult.error);
       // return [];
-      return {error: profileResult.error};
+      return { error: profileResult.error };
     }
 
     const profileIds = profileResult.data.map((result) => result.id)
@@ -42,7 +42,11 @@ export const POST = requestWithProject(
           checked_in_at,
           birthdate,
           metadata->children,
-          metadata->pets
+          metadata->pets,
+          metadata->camp_name,
+          metadata->phone_number,
+          metadata->emergency_contact_onsite,
+          metadata->emergency_contact_other
         `)
         .eq("project_id", project!.id)
         .range(
@@ -51,23 +55,25 @@ export const POST = requestWithProject(
         );
 
 
-    if (searchTerm != 'all hail the jort') {
-      membershipQuery =
-        membershipQuery
+    membershipQuery =
+      membershipQuery
         .or([
           ...searchTerms.map((term: string) =>
-            `first_name.ilike.%${term}%,last_name.ilike.%${term}%`
+            `first_name.ilike.%${term}%,last_name.ilike.%${term}%,metadata->>camp_name.ilike.%${term}%`
           ),
           ...profileIds.map(id => `owner_id.eq.${id}`)
         ].join(','))
-    }
 
     const membershipResult = await membershipQuery;
 
-    const countOfTermsMatched = (result: {first_name: string, last_name: string}) => {
-      return(
+    const countOfTermsMatched = (result: { first_name: string, last_name: string, camp_name?: string }) => {
+      return (
         searchTerms.filter((term: string) => {
-          return(result.first_name.toLowerCase().match(term) || result.last_name.toLowerCase().match(term))
+          return (
+            result.first_name.toLowerCase().match(term) ||
+            result.last_name.toLowerCase().match(term) ||
+            result.camp_name?.toLowerCase().match(term)
+          );
         }).length
       );
     }
@@ -75,7 +81,7 @@ export const POST = requestWithProject(
     if (membershipResult.error) {
       console.error("Error fetching memberships:", membershipResult.error);
       // return [];
-      return {error: membershipResult.error};
+      return { error: membershipResult.error };
     }
 
     const profileResult2 = await supabase
@@ -86,7 +92,7 @@ export const POST = requestWithProject(
     if (profileResult2.error) {
       console.error("Error fetching profiles (second time):", profileResult2.error);
       // return [];
-      return {error: profileResult2.error};
+      return { error: profileResult2.error };
     }
 
     const profileEmailsById =
@@ -96,7 +102,7 @@ export const POST = requestWithProject(
 
     return {
       data: (membershipResult.data || []).sort((a, b) => {
-        return(
+        return (
           countOfTermsMatched(b) - countOfTermsMatched(a)
         )
       }).map((membership) => ({
@@ -104,6 +110,10 @@ export const POST = requestWithProject(
         metadata: {
           children: membership.children,
           pets: membership.pets,
+          camp_name: membership.camp_name,
+          phone_number: membership.phone_number,
+          emergency_contact_onsite: membership.emergency_contact_onsite,
+          emergency_contact_other: membership.emergency_contact_other,
         },
         profile: {
           email: profileEmailsById[membership.owner_id]

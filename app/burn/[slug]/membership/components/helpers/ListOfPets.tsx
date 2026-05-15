@@ -21,9 +21,11 @@ import Dropdown from "@/app/_components/Dropdown";
 
 export interface Pet {
   key: string;
-  firstName: string;
-  lastName: string;
-  dob: string;
+  name: string;
+  type: string;
+  chip_code: string;
+  description: string;
+  other_information: string;
   photo_url?: string;
 }
 
@@ -214,7 +216,7 @@ export default function ListOfPets({ data }: { data: Pet[] }) {
         action={{
           key: "addPet",
           label: "Add pet",
-          onClick: { handler: async () => openAddModal() },
+          onClick: async () => openAddModal(),
         }}
       />
 
