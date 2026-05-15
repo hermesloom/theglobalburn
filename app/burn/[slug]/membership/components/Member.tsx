@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 import TransferMembership from "./TransferMembership";
 import ListOfChildren from "./helpers/ListOfChildren";
 import ListOfPets from "./helpers/ListOfPets";
+import EmergencyInfo from "./helpers/EmergencyInfo";
 
 export default function Member() {
   const { project } = useProject();
@@ -70,6 +71,7 @@ export default function Member() {
 
       <ListOfChildren data={project?.membership!.metadata?.children || []} />
       <ListOfPets data={project?.membership!.metadata?.pets || []} />
+      <EmergencyInfo data={project?.membership!.metadata?.emergency_info || {}} />
 
       {project?.membership?.is_non_transferable ? null : <TransferMembership />}
 

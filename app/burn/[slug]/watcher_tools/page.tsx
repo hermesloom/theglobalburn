@@ -55,6 +55,10 @@ export type MemberSearchResult = {
   metadata: {
     children: Child[];
     pets: Pet[];
+    camp_name?: string;
+    phone_number?: string;
+    emergency_contact_onsite?: string;
+    emergency_contact_other?: string;
   };
 };
 
@@ -385,6 +389,15 @@ export default function ScannerManagerPage() {
                           </div>
                         )}
 
+                        {(membership.metadata.camp_name || membership.metadata.phone_number || membership.metadata.emergency_contact_onsite || membership.metadata.emergency_contact_other) && (
+                          <div key="emergency">
+                            <h3 className="text-lg font-semibold mt-1">Emergency Info</h3>
+                            {membership.metadata.camp_name && <p><strong>Camp:</strong> {membership.metadata.camp_name}</p>}
+                            {membership.metadata.phone_number && <p><strong>Phone:</strong> {membership.metadata.phone_number}</p>}
+                            {membership.metadata.emergency_contact_onsite && <p><strong>On-site contact:</strong> {membership.metadata.emergency_contact_onsite}</p>}
+                            {membership.metadata.emergency_contact_other && <p><strong>Other contact:</strong> {membership.metadata.emergency_contact_other}</p>}
+                          </div>
+                        )}
 
                         </TableCell>
                     </TableRow>
