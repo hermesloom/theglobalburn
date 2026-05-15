@@ -66,7 +66,7 @@ export const POST = requestWithProject(
 
     const membershipResult = await membershipQuery;
 
-    const countOfTermsMatched = (result: { first_name: string, last_name: string, camp_name?: string }) => {
+    const countOfTermsMatched = (result: { first_name: string, last_name: string, camp_name?: string | null }) => {
       return (
         searchTerms.filter((term: string) => {
           return (
@@ -103,7 +103,7 @@ export const POST = requestWithProject(
     return {
       data: (membershipResult.data || []).sort((a, b) => {
         return (
-          countOfTermsMatched(b) - countOfTermsMatched(a)
+          countOfTermsMatched(b as any) - countOfTermsMatched(a as any)
         )
       }).map((membership) => ({
         ...membership,
