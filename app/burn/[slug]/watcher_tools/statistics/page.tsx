@@ -29,9 +29,17 @@ interface MemberEntry {
   eventAge: number | null;
 }
 
+interface OldChildInfo {
+  first_name: string;
+  last_name: string;
+  dob: string;
+  currentAge: number;
+  eventAge: number | null;
+}
+
 interface OldChild {
   member: { id: string; first_name: string; last_name: string };
-  child: { first_name: string; last_name: string; dob: string; currentAge: number; eventAge: number | null };
+  children: OldChildInfo[];
 }
 
 interface WatcherStatistics {
@@ -251,19 +259,21 @@ export default function WatcherStatisticsPage() {
               </tr>
             </thead>
             <tbody>
-              {stats.anomalies.oldChildren.map((entry, i) => (
-                <tr key={i} className="border-b">
-                  <td className="p-2 border">
-                    {entry.member.first_name} {entry.member.last_name}
-                  </td>
-                  <td className="p-2 border">
-                    {entry.child.first_name} {entry.child.last_name}
-                  </td>
-                  <td className="p-2 border">{entry.child.dob}</td>
-                  <td className="p-2 border">{entry.child.currentAge}</td>
-                  {stats.eventStartDate && <td className="p-2 border">{entry.child.eventAge ?? "—"}</td>}
-                </tr>
-              ))}
+              {stats.anomalies.oldChildren.flatMap((entry) =>
+                entry.children.map((child, ci) => (
+                  <tr key={`${entry.member.id}-${ci}`} className="border-b">
+                    {ci === 0 && (
+                      <td className="p-2 border align-top" rowSpan={entry.children.length}>
+                        {entry.member.first_name} {entry.member.last_name}
+                      </td>
+                    )}
+                    <td className="p-2 border">{child.first_name} {child.last_name}</td>
+                    <td className="p-2 border">{child.dob}</td>
+                    <td className="p-2 border">{child.currentAge}</td>
+                    {stats.eventStartDate && <td className="p-2 border">{child.eventAge ?? "—"}</td>}
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         )}
