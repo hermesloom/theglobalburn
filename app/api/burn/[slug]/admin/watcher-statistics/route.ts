@@ -43,11 +43,12 @@ export const GET = requestWithProject(
     let otherPets = 0;
 
     type MemberEntry = { id: string; first_name: string; last_name: string; birthdate: string; currentAge: number; eventAge: number | null };
-    type ChildEntry = { member: { id: string; first_name: string; last_name: string }; child: { first_name: string; last_name: string; dob: string; currentAge: number; eventAge: number | null } };
+    type ChildInfo = { first_name: string; last_name: string; dob: string; currentAge: number; eventAge: number | null };
+    type GroupedOldChild = { member: { id: string; first_name: string; last_name: string }; children: ChildInfo[] };
 
     const youngMembers: MemberEntry[] = [];
     const teenMembers: MemberEntry[] = [];
-    const oldChildren: ChildEntry[] = [];
+    const oldChildrenMap: Record<string, GroupedOldChild> = {};
 
     for (const m of memberships) {
       const currentAge = ageAt(m.birthdate, null);
@@ -79,15 +80,15 @@ export const GET = requestWithProject(
           const distAge = childEventAge ?? currentAge;
           childAgeMap[distAge] = (childAgeMap[distAge] || 0) + 1;
           if (currentAge >= 14) {
-            oldChildren.push({
-              member: { id: m.id, first_name: m.first_name, last_name: m.last_name },
-              child: {
-                first_name: child.first_name,
-                last_name: child.last_name,
-                dob: child.dob,
-                currentAge,
-                eventAge: childEventAge,
-              },
+            if (!oldChildrenMap[m.id]) {
+              oldChildrenMap[m.id] = { member: { id: m.id, first_name: m.first_name, last_name: m.last_name }, children: [] };
+            }
+            oldChildrenMap[m.id].children.push({
+              first_name: child.first_name,
+              last_name: child.last_name,
+              dob: child.dob,
+              currentAge,
+              eventAge: childEventAge,
             });
           }
         }
@@ -117,7 +118,9 @@ export const GET = requestWithProject(
       anomalies: {
         youngMembers: youngMembers.sort((a, b) => a.currentAge - b.currentAge),
         teenMembers: teenMembers.sort((a, b) => a.currentAge - b.currentAge),
-        oldChildren: oldChildren.sort((a, b) => a.child.currentAge - b.child.currentAge),
+        oldChildren: Object.values(oldChildrenMap).sort((a, b) =>
+          Math.min(...a.children.map((c) => c.currentAge)) - Math.min(...b.children.map((c) => c.currentAge))
+        ),
       },
     };
   },
