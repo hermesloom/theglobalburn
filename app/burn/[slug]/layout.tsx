@@ -98,7 +98,7 @@ export default function ProjectLayout({
             : null,*/
           project.membership
             ? {
-              label: "Co-Create",
+              label: "Reality Shifts",
               path: `/burn/${project?.slug}/rea`,
               icon: <RocketOutlined />,
               warning: (noREAShifts ? "You haven't signed up for any shifts" : null),
