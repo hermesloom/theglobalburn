@@ -48,7 +48,7 @@ export default function Member() {
             ""
           )}{" "}
           membership for {project?.name}! 🎉 This is your QR code. Please have
-          this code ready to show at the gate when you enter the event.
+          this code (with a <b>physical ID</b>) ready to show at the gate when you enter the event.
         </p>
         <p>
           Check the <Link href={`/burn/${project?.slug}/links`}>links</Link> in
