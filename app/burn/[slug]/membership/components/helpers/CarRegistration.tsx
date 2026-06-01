@@ -125,7 +125,7 @@ export default function CarRegistration({
 
   return (
     <>
-      <Heading className="mt-12">Car registration</Heading>
+      <Heading className="mt-12">Sleeper Vehicle Application</Heading>
 
       <p className="text-sm text-default-500 mb-4">
         Reducing the number of cars inside of event area helps preserve the vibe and increase safety. For Borderlings who are <strong>sleeping in their car, caravan, or camper van</strong>, the following is <strong>MANDATORY</strong>.
@@ -143,7 +143,7 @@ export default function CarRegistration({
 
       <p className="text-sm text-default-500 mb-4">
         <strong>Step 3:</strong>
-        {" "}Pimp your vehicle. <strong>All vehicles parked inside the event area must be decorated</strong> - no default-world cars, vans, or caravans. If it's not pimped, you'll be asked to remove it. Plan ahead.
+        {" "}Pimp your vehicle. <strong>All vehicles parked inside the event area must be decorated</strong> - no default-world cars, vans, or caravans. Plan ahead.
       </p>
 
       <p className="text-sm text-default-500 mb-4">
