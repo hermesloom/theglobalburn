@@ -67,7 +67,7 @@ async function printPermit(
     <ul>
       <li>Gate closed 22:00–09:00, July 20–25: no entry or exit.</li>
       <li>Once you leave, you cannot re-enter. No grocery runs.</li>
-      <li>Gate opens for exodus on Sunday, July 27, at 06:00</li>
+      <li>Gate opens for exodus on Sunday, July 26, at 06:00</li>
     </ul>
 
     <ul>
