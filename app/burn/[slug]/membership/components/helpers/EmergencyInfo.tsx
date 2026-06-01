@@ -4,6 +4,7 @@ import { usePrompt } from "@/app/_components/PromptContext";
 import ActionButton from "@/app/_components/ActionButton";
 import { apiPatch } from "@/app/_components/api";
 import { useProject } from "@/app/_components/SessionContext";
+import { phonePromptField } from "@/utils/phone";
 
 export interface EmergencyInfoData {
   phone_number?: string;
@@ -70,12 +71,7 @@ export default function EmergencyInfo({ data }: { data: EmergencyInfoData }) {
               prompt(
                 "Optional — helps event staff contact you or someone on your behalf in an emergency.",
                 [
-                  {
-                    key: "phone_number",
-                    label: "Phone Number",
-                    defaultValue: info.phone_number ?? "",
-                    canBeEmpty: true,
-                  },
+                  phonePromptField("phone_number", "Phone Number", info.phone_number ?? ""),
                   {
                     key: "camp_name",
                     label: "Camp Name",
