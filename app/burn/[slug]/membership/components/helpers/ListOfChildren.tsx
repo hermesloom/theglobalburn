@@ -111,8 +111,10 @@ export default function ListOfChildren({ data }: { data: Child[] }) {
                 ? new Date(project.burn_config.event_end_date)
                 : null;
 
+              console.log({ eventEndDate })
               if (eventEndDate) {
                 const ageAtEventEnd = calculateAge(dob, eventEndDate);
+                console.log({ ageAtEventEnd })
                 if (ageAtEventEnd >= 14) {
                   alert(`This child will be ${ageAtEventEnd} years old by the event. Children who are 14 or older need their own membership.`);
                   return;
