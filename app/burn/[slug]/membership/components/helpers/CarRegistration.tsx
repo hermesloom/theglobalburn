@@ -169,7 +169,7 @@ export default function CarRegistration({
           )}
           {info.camp_or_area && (
             <p>
-              <strong>Camp Name / Area:</strong> {info.camp_or_area}
+              <strong>Camp Name / Neighborhood:</strong> {info.camp_or_area}
             </p>
           )}
           {info.registration_plate && (
@@ -205,7 +205,7 @@ export default function CarRegistration({
                   },
                   {
                     key: "camp_or_area",
-                    label: "Camp Name / Freecamper Area",
+                    label: "Camp Name / Neighborhood",
                     defaultValue: info.camp_or_area ?? "",
                     canBeEmpty: true,
                   },
