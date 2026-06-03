@@ -59,6 +59,12 @@ export type MemberSearchResult = {
     phone_number?: string;
     emergency_contact_onsite?: string;
     emergency_contact_other?: string;
+    car_registration?: {
+      phone_number?: string;
+      alt_contact?: string;
+      camp_or_area?: string;
+      registration_plate?: string;
+    } | null;
   };
 };
 
@@ -396,6 +402,16 @@ export default function ScannerManagerPage() {
                             {membership.metadata.phone_number && <p><strong>Phone:</strong> {membership.metadata.phone_number}</p>}
                             {membership.metadata.emergency_contact_onsite && <p><strong>On-site contact:</strong> {membership.metadata.emergency_contact_onsite}</p>}
                             {membership.metadata.emergency_contact_other && <p><strong>Other contact:</strong> {membership.metadata.emergency_contact_other}</p>}
+                          </div>
+                        )}
+
+                        {membership.metadata.car_registration && (
+                          <div key="car_registration">
+                            <h3 className="text-lg font-semibold mt-1">Sleeper Vehicle</h3>
+                            {membership.metadata.car_registration.registration_plate && <p><strong>Plate:</strong> {membership.metadata.car_registration.registration_plate}</p>}
+                            {membership.metadata.car_registration.camp_or_area && <p><strong>Camp/Area:</strong> {membership.metadata.car_registration.camp_or_area}</p>}
+                            {membership.metadata.car_registration.phone_number && <p><strong>Phone:</strong> {membership.metadata.car_registration.phone_number}</p>}
+                            {membership.metadata.car_registration.alt_contact && <p><strong>Alt contact:</strong> {membership.metadata.car_registration.alt_contact}</p>}
                           </div>
                         )}
 
