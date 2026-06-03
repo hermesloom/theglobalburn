@@ -44,6 +44,7 @@ interface OldChild {
 
 interface WatcherStatistics {
   memberCount: number;
+  sleeperVehicleCount: number;
   childrenCount: number;
   memberAgeDistribution: AgeEntry[];
   childrenAgeDistribution: AgeEntry[];
@@ -153,6 +154,7 @@ export default function WatcherStatisticsPage() {
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         <StatCard label="Members" value={stats.memberCount} color="#8884d8" />
+        <StatCard label="Sleeper Vehicles" value={stats.sleeperVehicleCount} color="#6aa3d5" />
         <StatCard label="Children" value={stats.childrenCount} color="#82ca9d" />
         <StatCard label="Dogs" value={stats.petCounts.dogs} color="#ffc658" />
         <StatCard label="Cats" value={stats.petCounts.cats} color="#ff7300" />

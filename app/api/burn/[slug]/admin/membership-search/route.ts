@@ -46,7 +46,8 @@ export const POST = requestWithProject(
           metadata->emergency_info->camp_name,
           metadata->emergency_info->phone_number,
           metadata->emergency_info->emergency_contact_onsite,
-          metadata->emergency_info->emergency_contact_other
+          metadata->emergency_info->emergency_contact_other,
+          metadata->car_registration
         `)
         .eq("project_id", project!.id)
         .range(
@@ -59,20 +60,22 @@ export const POST = requestWithProject(
       membershipQuery
         .or([
           ...searchTerms.map((term: string) =>
-            `first_name.ilike.%${term}%,last_name.ilike.%${term}%,metadata->emergency_info->>camp_name.ilike.%${term}%`
+            `first_name.ilike.%${term}%,last_name.ilike.%${term}%,metadata->emergency_info->>camp_name.ilike.%${term}%,metadata->car_registration->>registration_plate.ilike.%${term}%,metadata->car_registration->>camp_or_area.ilike.%${term}%`
           ),
           ...profileIds.map(id => `owner_id.eq.${id}`)
         ].join(','))
 
     const membershipResult = await membershipQuery;
 
-    const countOfTermsMatched = (result: { first_name: string, last_name: string, camp_name?: string | null }) => {
+    const countOfTermsMatched = (result: { first_name: string, last_name: string, camp_name?: string | null, car_registration?: any }) => {
       return (
         searchTerms.filter((term: string) => {
           return (
             result.first_name.toLowerCase().match(term) ||
             result.last_name.toLowerCase().match(term) ||
-            result.camp_name?.toLowerCase().match(term)
+            result.camp_name?.toLowerCase().match(term) ||
+            result.car_registration?.registration_plate?.toLowerCase().match(term) ||
+            result.car_registration?.camp_or_area?.toLowerCase().match(term)
           );
         }).length
       );
@@ -114,6 +117,7 @@ export const POST = requestWithProject(
           phone_number: membership.phone_number,
           emergency_contact_onsite: membership.emergency_contact_onsite,
           emergency_contact_other: membership.emergency_contact_other,
+          car_registration: membership.car_registration,
         },
         profile: {
           email: profileEmailsById[membership.owner_id]
