@@ -134,7 +134,7 @@ export default function CarRegistration({
         Reducing the number of cars inside of event area helps preserve the vibe and increase safety. Vehicles not used for sleeping must be parked in the long-term parking lot, not inside the event area.
       </p>
 
-      <p>
+      <p className="text-sm text-default-500 mb-4">
         For Borderlings who are <strong>sleeping in their car, caravan, or camper van</strong>, the following is <strong>MANDATORY</strong>.
       </p>
 
