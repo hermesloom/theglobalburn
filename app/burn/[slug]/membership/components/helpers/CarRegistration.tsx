@@ -76,6 +76,10 @@ async function printPermit(
     </ul>
 
     <ul>
+      <li>This permit is only valid for vehicles that a person is sleeping in. Vehicles not used for sleeping must be parked in the long-term parking lot, not inside the event area.</li>
+    </ul>
+
+    <ul>
       <li>No driving on site during the event.</li>
       <li>Keep this card visible at all times.</li>
     </ul>
@@ -128,7 +132,11 @@ export default function CarRegistration({
       <Heading className="mt-12">Sleeper Vehicle Application</Heading>
 
       <p className="text-sm text-default-500 mb-4">
-        Reducing the number of cars inside of event area helps preserve the vibe and increase safety. For Borderlings who are <strong>sleeping in their car, caravan, or camper van</strong>, the following is <strong>MANDATORY</strong>.
+        Reducing the number of cars inside of event area helps preserve the vibe and increase safety. Vehicles not used for sleeping must be parked in the long-term parking lot, not inside the event area.
+      </p>
+
+      <p>
+        For Borderlings who are <strong>sleeping in their car, caravan, or camper van</strong>, the following is <strong>MANDATORY</strong>.
       </p>
 
       <p className="text-sm text-default-500 mb-4">
