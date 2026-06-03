@@ -194,7 +194,7 @@ export default function CarRegistration({
             label: hasAnyValue ? "Edit car registration" : "Add sleeper vehicle registration",
             onClick: {
               prompt: () =>
-                prompt("Register your car for the event.", [
+                prompt("Register your sleeper vehicle for the event.", [
                   {
                     key: "name",
                     label: "Name",
