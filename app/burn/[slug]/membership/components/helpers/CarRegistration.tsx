@@ -20,8 +20,9 @@ async function printPermit(
   info: CarRegistrationData,
   eventName: string,
 ) {
-  const field = (label: string, value: string) =>
-    `<div style="margin-bottom:12px"><div style="font-weight:bold;font-size:16px;color:#555">${label}</div><div style="font-size:22px;text-align:right">${value}</div></div>`;
+  const blank = `<span style="display:inline-block;width:100%;border-bottom:1.5px solid #000;min-width:120px">&nbsp;</span>`;
+  const field = (label: string, value: string | undefined) =>
+    `<div style="margin-bottom:12px"><div style="font-weight:bold;font-size:16px;color:#555">${label}</div><div style="font-size:22px;text-align:right;margin-top:10px">${value || blank}</div></div>`;
 
   let qrCode = "";
   if (info.phone_number) {
@@ -61,8 +62,10 @@ async function printPermit(
   <div class="details" style="display:flex;align-items:flex-start;gap:24px;">
     <div style="flex:1;min-width:0">
       ${field("Name", memberName)}
-      ${info.phone_number ? field("Phone Number", info.phone_number) : ""}
-      ${info.alt_contact ? field("Alternative Name/Phone", info.alt_contact) : ""}
+      ${field("Phone Number", info.phone_number)}
+      ${field("Alternative Name/Phone", info.alt_contact)}
+      ${field("Camp Name / Neighborhood", info.camp_or_area)}
+      ${field("Registration Plate", info.registration_plate)}
     </div>
     ${qrCode ? `<div style="flex-shrink:0;width:210px">${qrCode}</div>` : ""}
   </div>
