@@ -55,6 +55,9 @@ async function printPermit(
 </head>
 <body>
   <h1>${eventName} Sleeper Vehicle Permit</h1>
+
+  <p>Valid for vehicles a person is sleeping in. Non-sleeper vehicles must be in the long-term parking lot (outside of the event).</p>
+
   <div class="details" style="display:flex;align-items:flex-start;gap:24px;">
     <div style="flex:1;min-width:0">
       ${field("Name", memberName)}
@@ -73,10 +76,6 @@ async function printPermit(
     <ul>
       <li>No stopping or parking on fire roads.</li>
       <li>Speed limit: 10 km/hr</li>
-    </ul>
-
-    <ul>
-      <li>This permit is only valid for vehicles that a person is sleeping in. Vehicles not used for sleeping must be parked in the long-term parking lot, not inside the event area.</li>
     </ul>
 
     <ul>
