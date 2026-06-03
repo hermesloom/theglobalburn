@@ -29,7 +29,7 @@ export const GET = requestWithProject(
     const memberships = await query(() =>
       supabase
         .from("burn_memberships")
-        .select("id, first_name, last_name, birthdate, metadata->children, metadata->pets")
+        .select("id, first_name, last_name, birthdate, metadata->children, metadata->pets, metadata->car_registration")
         .eq("project_id", project!.id)
     );
 
@@ -38,6 +38,7 @@ export const GET = requestWithProject(
     const memberAgeMap: Record<number, number> = {};
     const childAgeMap: Record<number, number> = {};
     let childrenCount = 0;
+    let sleeperVehicleCount = 0;
     let dogs = 0;
     let cats = 0;
     let otherPets = 0;
@@ -94,6 +95,11 @@ export const GET = requestWithProject(
         }
       }
 
+      const car = m.car_registration as any;
+      if (car && (car.phone_number || car.alt_contact || car.camp_or_area || car.registration_plate)) {
+        sleeperVehicleCount++;
+      }
+
       const pets = (m.pets as any[]) || [];
       for (const pet of pets) {
         const type = (pet.type || "").toLowerCase();
@@ -110,6 +116,7 @@ export const GET = requestWithProject(
 
     return {
       memberCount: memberships.length,
+      sleeperVehicleCount,
       childrenCount,
       memberAgeDistribution: toDistribution(memberAgeMap),
       childrenAgeDistribution: toDistribution(childAgeMap),
