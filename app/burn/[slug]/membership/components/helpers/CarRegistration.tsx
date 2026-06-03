@@ -131,7 +131,7 @@ export default function CarRegistration({
       <Heading className="mt-12">Sleeper Vehicle Application</Heading>
 
       <p className="text-sm text-default-500 mb-4">
-        Reducing the number of cars inside of event area helps preserve the vibe and increase safety. Vehicles not used for sleeping must be parked in the long-term parking lot, not inside the event area.
+        Reducing the number of vehicles inside of event area helps preserve the vibe and increase safety. Vehicles not used for sleeping must be parked in the long-term parking lot, not inside the event area.
       </p>
 
       <p className="text-sm text-default-500 mb-4">
