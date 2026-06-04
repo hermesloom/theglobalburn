@@ -16,6 +16,7 @@ export const POST = requestWithProject(
     const page = (body.page || 0);
 
     const searchTerms = searchTerm.trim().split(/\s+/);
+    const normalizedSearchTerm = searchTerm.replace(/\s+/g, '');
 
     // Query profiles for email matches
     const profileResult = await supabase
@@ -30,6 +31,19 @@ export const POST = requestWithProject(
     }
 
     const profileIds = profileResult.data.map((result) => result.id)
+
+    // Fetch all plates for space-insensitive matching (can't use SQL expressions in PostgREST filters)
+    const platesResult = await supabase
+      .from("burn_memberships")
+      .select(`id, metadata->car_registration->>registration_plate`)
+      .eq("project_id", project!.id);
+
+    const plateMatchIds: string[] = (platesResult.data || [])
+      .filter((r) => {
+        const plate = (r as any).registration_plate as string | null;
+        return plate?.replace(/\s+/g, '').toLowerCase().includes(normalizedSearchTerm);
+      })
+      .map((r) => r.id);
 
     let membershipQuery =
       supabase
@@ -62,7 +76,8 @@ export const POST = requestWithProject(
           ...searchTerms.map((term: string) =>
             `first_name.ilike.%${term}%,last_name.ilike.%${term}%,metadata->emergency_info->>camp_name.ilike.%${term}%,metadata->car_registration->>registration_plate.ilike.%${term}%,metadata->car_registration->>camp_or_area.ilike.%${term}%`
           ),
-          ...profileIds.map(id => `owner_id.eq.${id}`)
+          ...profileIds.map(id => `owner_id.eq.${id}`),
+          ...(plateMatchIds.length > 0 ? [`id.in.(${plateMatchIds.join(',')})`] : [])
         ].join(','))
 
     const membershipResult = await membershipQuery;
@@ -74,7 +89,7 @@ export const POST = requestWithProject(
             result.first_name.toLowerCase().match(term) ||
             result.last_name.toLowerCase().match(term) ||
             result.camp_name?.toLowerCase().match(term) ||
-            result.car_registration?.registration_plate?.toLowerCase().match(term) ||
+            result.car_registration?.registration_plate?.replace(/\s+/g, '').toLowerCase().includes(normalizedSearchTerm) ||
             result.car_registration?.camp_or_area?.toLowerCase().match(term)
           );
         }).length
