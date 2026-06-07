@@ -32,8 +32,33 @@ export default function TransferMembership() {
     );
   }
 
+  const lowIncomeLimit = Math.round(
+    (project!.burn_config.max_memberships *
+      project!.burn_config.share_memberships_low_income) /
+    100,
+  );
+
   return (
     <>
+      <Heading className="mt-12">Transfers and low/high income memberships</Heading>
+      <div className="flex flex-col gap-4">
+        <p>Your membership price is connected to you and doesn&apos;t follow the membership.</p>
+        <p>
+          If you transfer, the buyer will always have the option to pay the
+          standard or a high income price, independent of which membership type
+          you have.
+        </p>
+        <p>
+          If the buyer is approved for a low income membership and we currently
+          have sold less than {lowIncomeLimit} low income memberships, they will
+          also see that option.
+        </p>
+        <p>
+          How much you will get refunded only depends on what you paid, not
+          their choice.
+        </p>
+      </div>
+
       <Heading className="mt-12">Transfer your membership</Heading>
       <div className="flex flex-col gap-4">
         <p>If you want to transfer your membership, this is how it works:</p>
