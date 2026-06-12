@@ -17,7 +17,7 @@ export default function OpenSale() {
   const lowIncomeLimit = Math.round(
     ((project?.burn_config.max_memberships ?? 0) *
       (project?.burn_config.share_memberships_low_income ?? 0)) /
-      100,
+    100,
   );
   const initialRender = useRef(true);
   const [isLoading, setIsLoading] = useState(false);
