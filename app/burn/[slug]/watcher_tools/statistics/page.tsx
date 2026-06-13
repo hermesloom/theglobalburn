@@ -113,8 +113,13 @@ function AgeChart({ data, title }: { data: AgeEntry[]; title: string }) {
 
 
 function formatDateShort(date: string): string {
-  const [, month, day] = date.split("-");
-  return `${parseInt(month)}/${parseInt(day)}`;
+  const d = new Date(`${date}T12:00:00Z`);
+  return d.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    timeZone: "Europe/Stockholm",
+  });
 }
 
 function CheckInBarChart({
@@ -224,22 +229,7 @@ export default function WatcherStatisticsPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 mb-6">
-        <CheckInBarChart
-          data={stats.checkInsByHour as any}
-          title="Check-ins per Hour (Swedish time)"
-          xKey="slot"
-          xFormatter={(slot: string) => {
-            const [date, hh] = slot.split(" ");
-            return hh === "00" ? formatDateShort(date) : "";
-          }}
-          tooltipFormatter={(slot: string) => {
-            const [date, hh] = slot.split(" ");
-            return `${formatDateShort(date)} ${hh}:00`;
-          }}
-          xLabel="Date"
-          xAxisInterval={0}
-        />
+      <div className="grid grid-cols-2 gap-6 mb-6">
         <CheckInBarChart
           data={stats.checkInsByDay as any}
           title="Check-ins per Day (midnight–midnight, Swedish time)"
@@ -255,6 +245,21 @@ export default function WatcherStatisticsPage() {
           xLabel="Shift start"
         />
       </div>
+      <CheckInBarChart
+        data={stats.checkInsByHour as any}
+        title="Check-ins per Hour (Swedish time)"
+        xKey="slot"
+        xFormatter={(slot: string) => {
+          const [date, hh] = slot.split(" ");
+          return hh === "00" ? formatDateShort(date) : "";
+        }}
+        tooltipFormatter={(slot: string) => {
+          const [date, hh] = slot.split(" ");
+          return `${formatDateShort(date)} ${hh}:00`;
+        }}
+        xLabel="Date"
+        xAxisInterval={0}
+      />
 
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-1">
