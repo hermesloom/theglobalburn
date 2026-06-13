@@ -29,7 +29,7 @@ export const GET = requestWithProject(
     const memberships = await query(() =>
       supabase
         .from("burn_memberships")
-        .select("id, first_name, last_name, birthdate, metadata->children, metadata->pets, metadata->car_registration")
+        .select("id, first_name, last_name, birthdate, checked_in_at, metadata->children, metadata->pets, metadata->car_registration")
         .eq("project_id", project!.id)
     );
 
@@ -114,6 +114,62 @@ export const GET = requestWithProject(
         .map(([age, count]) => ({ age: parseInt(age), count }))
         .sort((a, b) => a.age - b.age);
 
+    const TZ = "Europe/Stockholm";
+    const swParts = (date: Date) => {
+      const parts = new Intl.DateTimeFormat("sv-SE", {
+        timeZone: TZ,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        hour12: false,
+      }).formatToParts(date);
+      const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+      const hour = parseInt(get("hour"));
+      const dateKey = `${get("year")}-${get("month")}-${get("day")}`;
+      return { hour, dateKey };
+    };
+
+    // Window: 10 days before event_end_date through 1 day after (12 days total)
+    const eventEndDateStr = project!.burn_config.event_end_date;
+    const windowDates = Array.from({ length: 12 }, (_, i) => {
+      const offset = i - 10; // -10 to +1
+      const base = eventEndDateStr
+        ? new Date(`${eventEndDateStr}T12:00:00Z`)
+        : new Date();
+      return swParts(new Date(base.getTime() + offset * 24 * 60 * 60 * 1000)).dateKey;
+    });
+    const windowDateSet = new Set(windowDates);
+
+    const checkInHourMap: Record<number, number> = {};
+    const checkInDayMap: Record<string, number> = {};
+    const checkInShiftMap: Record<string, number> = {};
+
+    for (const m of memberships) {
+      if (!m.checked_in_at) continue;
+      const t = new Date(m.checked_in_at as string);
+      const { hour, dateKey } = swParts(t);
+      if (!windowDateSet.has(dateKey)) continue;
+
+      checkInHourMap[hour] = (checkInHourMap[hour] || 0) + 1;
+      checkInDayMap[dateKey] = (checkInDayMap[dateKey] || 0) + 1;
+
+      // Shift starts at noon Swedish time; if before noon, assign to previous day's shift
+      let shiftKey = dateKey;
+      if (hour < 12) {
+        const prev = new Date(t.getTime() - 24 * 60 * 60 * 1000);
+        shiftKey = swParts(prev).dateKey;
+      }
+      checkInShiftMap[shiftKey] = (checkInShiftMap[shiftKey] || 0) + 1;
+    }
+
+    const checkInsByHour = Array.from({ length: 24 }, (_, h) => ({
+      hour: h,
+      count: checkInHourMap[h] || 0,
+    }));
+    const checkInsByDay = windowDates.map((date) => ({ date, count: checkInDayMap[date] || 0 }));
+    const checkInsByShift = windowDates.map((shiftStart) => ({ shiftStart, count: checkInShiftMap[shiftStart] || 0 }));
+
     return {
       memberCount: memberships.length,
       sleeperVehicleCount,
@@ -129,6 +185,9 @@ export const GET = requestWithProject(
           Math.min(...a.children.map((c) => c.currentAge)) - Math.min(...b.children.map((c) => c.currentAge))
         ),
       },
+      checkInsByHour,
+      checkInsByDay,
+      checkInsByShift,
     };
   },
   undefined,

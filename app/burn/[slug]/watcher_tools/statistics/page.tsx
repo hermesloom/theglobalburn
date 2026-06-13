@@ -55,6 +55,9 @@ interface WatcherStatistics {
     teenMembers: MemberEntry[];
     oldChildren: OldChild[];
   };
+  checkInsByHour: { hour: number; count: number }[];
+  checkInsByDay: { date: string; count: number }[];
+  checkInsByShift: { shiftStart: string; count: number }[];
 }
 
 function StatCard({
@@ -104,6 +107,56 @@ function AgeChart({ data, title }: { data: AgeEntry[]; title: string }) {
           </BarChart>
         </ResponsiveContainer>
       )}
+    </div>
+  );
+}
+
+function formatHour(hour: number): string {
+  if (hour === 0) return "12am";
+  if (hour < 12) return `${hour}am`;
+  if (hour === 12) return "12pm";
+  return `${hour - 12}pm`;
+}
+
+function formatDateShort(date: string): string {
+  const [, month, day] = date.split("-");
+  return `${parseInt(month)}/${parseInt(day)}`;
+}
+
+function CheckInBarChart({
+  data,
+  title,
+  xKey,
+  xFormatter,
+  xLabel,
+}: {
+  data: Record<string, number>[];
+  title: string;
+  xKey: string;
+  xFormatter: (v: any) => string;
+  xLabel: string;
+}) {
+  return (
+    <div className="bg-white p-4 rounded-lg shadow">
+      <h2 className="text-lg font-semibold mb-4">{title}</h2>
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 20 }}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis
+            dataKey={xKey}
+            tickFormatter={xFormatter}
+            label={{ value: xLabel, position: "insideBottom", offset: -10 }}
+            height={50}
+            tick={{ fontSize: 11 }}
+          />
+          <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+          <Tooltip
+            labelFormatter={(v) => xFormatter(v)}
+            formatter={(value) => [value, "Check-ins"]}
+          />
+          <Bar dataKey="count" fill="#4ade80" radius={[4, 4, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }
@@ -169,6 +222,30 @@ export default function WatcherStatisticsPage() {
         <AgeChart
           data={stats.childrenAgeDistribution}
           title={`Children Age Distribution at Event Start${stats.eventStartDate ? ` (${stats.eventStartDate})` : ""}`}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 mb-6">
+        <CheckInBarChart
+          data={stats.checkInsByHour as any}
+          title="Check-ins per Hour of Day (Swedish time)"
+          xKey="hour"
+          xFormatter={formatHour}
+          xLabel="Hour"
+        />
+        <CheckInBarChart
+          data={stats.checkInsByDay as any}
+          title="Check-ins per Day (midnight–midnight, Swedish time)"
+          xKey="date"
+          xFormatter={formatDateShort}
+          xLabel="Date"
+        />
+        <CheckInBarChart
+          data={stats.checkInsByShift as any}
+          title="Check-ins per Watcher Shift (noon–noon, Swedish time)"
+          xKey="shiftStart"
+          xFormatter={(v) => `${formatDateShort(v)} noon`}
+          xLabel="Shift start"
         />
       </div>
 
