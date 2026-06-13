@@ -55,7 +55,7 @@ interface WatcherStatistics {
     teenMembers: MemberEntry[];
     oldChildren: OldChild[];
   };
-  checkInsByHour: { hour: number; count: number }[];
+  checkInsByHour: { slot: string; count: number }[];
   checkInsByDay: { date: string; count: number }[];
   checkInsByShift: { shiftStart: string; count: number }[];
 }
@@ -111,12 +111,6 @@ function AgeChart({ data, title }: { data: AgeEntry[]; title: string }) {
   );
 }
 
-function formatHour(hour: number): string {
-  if (hour === 0) return "12am";
-  if (hour < 12) return `${hour}am`;
-  if (hour === 12) return "12pm";
-  return `${hour - 12}pm`;
-}
 
 function formatDateShort(date: string): string {
   const [, month, day] = date.split("-");
@@ -128,13 +122,17 @@ function CheckInBarChart({
   title,
   xKey,
   xFormatter,
+  tooltipFormatter,
   xLabel,
+  xAxisInterval,
 }: {
   data: Record<string, number>[];
   title: string;
   xKey: string;
   xFormatter: (v: any) => string;
+  tooltipFormatter?: (v: any) => string;
   xLabel: string;
+  xAxisInterval?: number;
 }) {
   return (
     <div className="bg-white p-4 rounded-lg shadow">
@@ -145,13 +143,14 @@ function CheckInBarChart({
           <XAxis
             dataKey={xKey}
             tickFormatter={xFormatter}
+            interval={xAxisInterval}
             label={{ value: xLabel, position: "insideBottom", offset: -10 }}
             height={50}
             tick={{ fontSize: 11 }}
           />
           <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
           <Tooltip
-            labelFormatter={(v) => xFormatter(v)}
+            labelFormatter={(v) => (tooltipFormatter ?? xFormatter)(v)}
             formatter={(value) => [value, "Check-ins"]}
           />
           <Bar dataKey="count" fill="#4ade80" radius={[4, 4, 0, 0]} />
@@ -228,10 +227,18 @@ export default function WatcherStatisticsPage() {
       <div className="grid grid-cols-1 gap-6 mb-6">
         <CheckInBarChart
           data={stats.checkInsByHour as any}
-          title="Check-ins per Hour of Day (Swedish time)"
-          xKey="hour"
-          xFormatter={formatHour}
-          xLabel="Hour"
+          title="Check-ins per Hour (Swedish time)"
+          xKey="slot"
+          xFormatter={(slot: string) => {
+            const [date, hh] = slot.split(" ");
+            return hh === "00" ? formatDateShort(date) : "";
+          }}
+          tooltipFormatter={(slot: string) => {
+            const [date, hh] = slot.split(" ");
+            return `${formatDateShort(date)} ${hh}:00`;
+          }}
+          xLabel="Date"
+          xAxisInterval={0}
         />
         <CheckInBarChart
           data={stats.checkInsByDay as any}

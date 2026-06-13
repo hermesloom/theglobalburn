@@ -140,8 +140,11 @@ export const GET = requestWithProject(
       return swParts(new Date(base.getTime() + offset * 24 * 60 * 60 * 1000)).dateKey;
     });
     const windowDateSet = new Set(windowDates);
+    const windowSlots = windowDates.flatMap((date) =>
+      Array.from({ length: 24 }, (_, h) => `${date} ${String(h).padStart(2, "0")}`)
+    );
 
-    const checkInHourMap: Record<number, number> = {};
+    const checkInSlotMap: Record<string, number> = {};
     const checkInDayMap: Record<string, number> = {};
     const checkInShiftMap: Record<string, number> = {};
 
@@ -151,7 +154,8 @@ export const GET = requestWithProject(
       const { hour, dateKey } = swParts(t);
       if (!windowDateSet.has(dateKey)) continue;
 
-      checkInHourMap[hour] = (checkInHourMap[hour] || 0) + 1;
+      const slot = `${dateKey} ${String(hour).padStart(2, "0")}`;
+      checkInSlotMap[slot] = (checkInSlotMap[slot] || 0) + 1;
       checkInDayMap[dateKey] = (checkInDayMap[dateKey] || 0) + 1;
 
       // Shift starts at noon Swedish time; if before noon, assign to previous day's shift
@@ -163,10 +167,7 @@ export const GET = requestWithProject(
       checkInShiftMap[shiftKey] = (checkInShiftMap[shiftKey] || 0) + 1;
     }
 
-    const checkInsByHour = Array.from({ length: 24 }, (_, h) => ({
-      hour: h,
-      count: checkInHourMap[h] || 0,
-    }));
+    const checkInsByHour = windowSlots.map((slot) => ({ slot, count: checkInSlotMap[slot] || 0 }));
     const checkInsByDay = windowDates.map((date) => ({ date, count: checkInDayMap[date] || 0 }));
     const checkInsByShift = windowDates.map((shiftStart) => ({ shiftStart, count: checkInShiftMap[shiftStart] || 0 }));
 
