@@ -56,6 +56,7 @@ export const POST = requestWithProject(
       metadata: {
         children: foundMembership.metadata.children,
         pets: foundMembership.metadata.pets,
+        car_registration: foundMembership.metadata.car_registration,
       }
     }
   },

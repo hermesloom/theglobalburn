@@ -26,6 +26,16 @@ interface Pet {
   name: string;
   type: string;
   chip_code: string;
+  description?: string;
+  other_information?: string;
+  photo_url?: string;
+}
+
+interface CarRegistration {
+  phone_number?: string;
+  alt_contact?: string;
+  camp_or_area?: string;
+  registration_plate?: string;
 }
 
 interface ScannedMember {
@@ -37,6 +47,7 @@ interface ScannedMember {
   metadata: {
     children: Child[];
     pets: Pet[];
+    car_registration?: CarRegistration;
   };
 }
 
@@ -77,7 +88,7 @@ export default function ScannerPage() {
   const [qrScanner, setQrScanner] = useState<QrScanner | null>(null);
   const [qrScannerHasFlash, setQrScannerHasFlash] = useState<boolean>(false);
   const [scannedMember, setScannedMember] = useState<ScannedMember | null>(null);
-  const [resultMessage, setResultMessage] = useState<{type: string, text: string} | null>(null);
+  const [resultMessage, setResultMessage] = useState<{ type: string, text: string } | null>(null);
   const [currentlyScanning, setCurrentlyScanning] = useState<boolean>(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -103,11 +114,11 @@ export default function ScannerPage() {
         setQrScanner(scanner);
 
         scanner?.start().then(async () => {
-        setQrScannerHasFlash(await scanner?.hasFlash());
+          setQrScannerHasFlash(await scanner?.hasFlash());
         })
-        .catch((e) => {
-          reject(`Could not start QR scanner. ERROR: ${e}`)
-        });
+          .catch((e) => {
+            reject(`Could not start QR scanner. ERROR: ${e}`)
+          });
       }
     })
   }
@@ -149,34 +160,34 @@ export default function ScannerPage() {
         .catch((error) => {
           setCurrentlyScanning(false);
           deniedAudio.play();
-          setResultMessage({type: 'error', text: error.message});
+          setResultMessage({ type: 'error', text: error.message });
         })
     }).catch((error) => {
-      setResultMessage({type: 'error', text: error});
+      setResultMessage({ type: 'error', text: error });
     });
   };
 
   const undoCheckInMember = () => {
     if (scannedMember == null) {
       // **Shouldn't** happen, but just in case...
-      setResultMessage({type: 'error', text: "Attempted undo of member check-in when no member was scanned"});
+      setResultMessage({ type: 'error', text: "Attempted undo of member check-in when no member was scanned" });
     } else {
       return apiPost(`/burn/${project!.slug}/admin/undo-check-in-member/${scannedMember.id}`)
-      .then(async (result) => {
-        await refreshProfile();
+        .then(async (result) => {
+          await refreshProfile();
 
-        if (result.status === "DONE") {
-          setScannedMember(null);
-          setResultMessage({type: 'notice', text: "Undo of check-in successful"});
-        } else {
-          // ERROR
-          setScannedMember(null);
-          setResultMessage({type: 'error', text: "There was a problem undoing the check-in of the member!"});
-        }
-      })
-      .catch(() => {
-        setResultMessage({type: 'error', text: "There was a error undoing check-in of the member!"});
-      })
+          if (result.status === "DONE") {
+            setScannedMember(null);
+            setResultMessage({ type: 'notice', text: "Undo of check-in successful" });
+          } else {
+            // ERROR
+            setScannedMember(null);
+            setResultMessage({ type: 'error', text: "There was a problem undoing the check-in of the member!" });
+          }
+        })
+        .catch(() => {
+          setResultMessage({ type: 'error', text: "There was a error undoing check-in of the member!" });
+        })
     }
   }
 
@@ -231,15 +242,48 @@ export default function ScannerPage() {
                     </div>
                   )}
 
+                  {scannedMember.metadata?.car_registration && (
+                    Object.values(scannedMember.metadata.car_registration).some(Boolean) && (
+                      <div className="mt-4">
+                        <h4 className="font-semibold mb-2">Sleeper Vehicle</h4>
+                        <div className="pl-4 border-l-2 border-gray-200 flex flex-col gap-1">
+                          {scannedMember.metadata.car_registration.registration_plate && (
+                            <p><strong>Plate:</strong> {scannedMember.metadata.car_registration.registration_plate}</p>
+                          )}
+                          {scannedMember.metadata.car_registration.phone_number && (
+                            <p><strong>Phone:</strong> {scannedMember.metadata.car_registration.phone_number}</p>
+                          )}
+                          {scannedMember.metadata.car_registration.alt_contact && (
+                            <p><strong>Alt Contact:</strong> {scannedMember.metadata.car_registration.alt_contact}</p>
+                          )}
+                          {scannedMember.metadata.car_registration.camp_or_area && (
+                            <p><strong>Camp / Area:</strong> {scannedMember.metadata.car_registration.camp_or_area}</p>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  )}
+
                   {scannedMember.metadata?.pets?.length > 0 && (
                     <div className="mt-4">
                       <h4 className="font-semibold mb-2">Pets</h4>
                       <div className="flex flex-col gap-2">
                         {scannedMember.metadata.pets.map((pet) => (
-                          <div key={pet.key} className="pl-4 border-l-2 border-gray-200">
-                            <p><strong>Name:</strong> {pet.name}</p>
-                            <p><strong>Type:</strong> {pet.type}</p>
-                            <p><strong>Chip Code:</strong> {pet.chip_code}</p>
+                          <div key={pet.key} className="pl-4 border-l-2 border-gray-200 flex gap-3">
+                            {pet.photo_url && (
+                              <img
+                                src={pet.photo_url}
+                                alt={pet.name}
+                                className="w-20 h-20 object-cover rounded flex-shrink-0"
+                              />
+                            )}
+                            <div>
+                              <p><strong>Name:</strong> {pet.name}</p>
+                              <p><strong>Type:</strong> {pet.type}</p>
+                              {pet.chip_code && <p><strong>Chip Code:</strong> {pet.chip_code}</p>}
+                              {pet.description && <p><strong>Description:</strong> {pet.description}</p>}
+                              {pet.other_information && <p><strong>Other Info:</strong> {pet.other_information}</p>}
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -279,13 +323,13 @@ export default function ScannerPage() {
             <Button
               color="primary"
               size="lg"
-              onPress={() => { if(qrScanner) { cancelScan(qrScanner) } }}
+              onPress={() => { if (qrScanner) { cancelScan(qrScanner) } }}
             >
               <CloseOutlined />
               Cancel
             </Button>
           </div>
-        )}
+          )}
 
         {!currentlyScanning && !scannedMember &&
           <div className="w-full h-full flex items-center justify-center">
@@ -300,16 +344,16 @@ export default function ScannerPage() {
           </div>}
 
         {(scannedMember || resultMessage) &&
-        (<div className="w-full h-full flex items-center justify-center">
-          <Button
-            color="success"
-            size="lg"
-            className="px-8 py-4 text-6xl min-h-20 min-w-80"
-            onPress={clearDisplay}
-          >
-            Done
-          </Button>
-        </div>)}
+          (<div className="w-full h-full flex items-center justify-center">
+            <Button
+              color="success"
+              size="lg"
+              className="px-8 py-4 text-6xl min-h-20 min-w-80"
+              onPress={clearDisplay}
+            >
+              Done
+            </Button>
+          </div>)}
 
         {!currentlyScanning && scannedMember && scannedMember.checked_in_at == null &&
           <div className="mt-12 w-full h-full flex items-center justify-center">
