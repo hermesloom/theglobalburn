@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Heading from "@/app/_components/Heading";
 import { usePrompt } from "@/app/_components/PromptContext";
 import ActionButton from "@/app/_components/ActionButton";
@@ -18,7 +18,9 @@ export interface Child {
 
 export default function ListOfChildren({ data }: { data: Child[] }) {
   const [children, setChildren] = useState(data);
-  const { project } = useProject();
+  const { project, refreshProfile } = useProject();
+
+  useEffect(() => { setChildren(data); }, [data]);
   const childColumns = [
     {
       key: "first_name",
@@ -42,6 +44,7 @@ export default function ListOfChildren({ data }: { data: Child[] }) {
       children: newChildren,
     });
     setChildren(newChildren);
+    refreshProfile();
   };
 
   return (

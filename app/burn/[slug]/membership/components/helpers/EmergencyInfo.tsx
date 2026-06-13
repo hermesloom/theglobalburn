@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Heading from "@/app/_components/Heading";
 import { usePrompt } from "@/app/_components/PromptContext";
 import ActionButton from "@/app/_components/ActionButton";
@@ -15,14 +15,19 @@ export interface EmergencyInfoData {
 
 export default function EmergencyInfo({ data }: { data: EmergencyInfoData }) {
   const [info, setInfo] = useState(data);
-  const { project } = useProject();
+  const { project, refreshProfile } = useProject();
   const prompt = usePrompt();
+
+  useEffect(() => { setInfo(data); }, [data]);
 
   const updateInfo = async (newInfo: EmergencyInfoData) => {
     await apiPatch(`/burn/${project!.slug}/emergency_info`, newInfo);
     setInfo(newInfo);
+    refreshProfile();
   };
 
+  console.log('info');
+  console.log(info);
   const hasAnyValue =
     info.phone_number ||
     info.emergency_contact_onsite ||

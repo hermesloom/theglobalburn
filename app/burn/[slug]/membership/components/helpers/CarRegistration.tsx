@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Heading from "@/app/_components/Heading";
 import { usePrompt } from "@/app/_components/PromptContext";
 import ActionButton from "@/app/_components/ActionButton";
@@ -108,8 +108,10 @@ export default function CarRegistration({
   data: CarRegistrationData;
 }) {
   const [info, setInfo] = useState(data);
-  const { project } = useProject();
+  const { project, refreshProfile } = useProject();
   const prompt = usePrompt();
+
+  useEffect(() => { setInfo(data); }, [data]);
 
   const memberName = [
     project?.membership?.first_name,
@@ -121,6 +123,7 @@ export default function CarRegistration({
   const updateInfo = async (newInfo: CarRegistrationData) => {
     await apiPatch(`/burn/${project!.slug}/car_registration`, newInfo);
     setInfo(newInfo);
+    refreshProfile();
   };
 
   const hasAnyValue =
