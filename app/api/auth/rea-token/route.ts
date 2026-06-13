@@ -11,7 +11,6 @@ import * as jose from "jose";
 // Map of allowed service types to their audience URLs
 const SERVICE_AUDIENCES: Record<string, string> = {
   rea: process.env.NEXT_PUBLIC_REA_URL || "https://rea.theborderland.se",
-  threshold: process.env.NEXT_PUBLIC_THRESHOLD_URL || "https://threshold.theborderland.se",
 };
 
 export const GET = requestWithAuth(async (supabase, profile, req) => {
