@@ -11,6 +11,18 @@ export default function RoleAssignmentsPage() {
   return (
     <DataTable
       endpoint="/admin/role-assignments"
+      dropdownFilters={[
+        {
+          key: "role",
+          label: "Role",
+          getOptions: (fullData) =>
+            fullData.roles.map((r: any) => ({
+              id: r.id,
+              label: r.projects.name + " - " + r.name,
+            })),
+          getValue: (row) => row.role_id,
+        },
+      ]}
       columns={[
         {
           key: "project",
