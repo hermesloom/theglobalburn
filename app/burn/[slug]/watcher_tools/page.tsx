@@ -252,7 +252,7 @@ export default function ScannerManagerPage() {
                     <TableColumn key="checked_in_at">Checked in at</TableColumn>
                     <TableColumn key="first_name">Name</TableColumn>
                     <TableColumn key="email">E-mail</TableColumn>
-                    <TableColumn key="children_pets">Children / Pets</TableColumn>
+                    <TableColumn key="children_pets">Children / Pets / Emergency Info / Sleeper Vehicle / Transfer History</TableColumn>
                   </TableHeader>
                   <TableBody>
                     {membershipResults.map((membership) => {
