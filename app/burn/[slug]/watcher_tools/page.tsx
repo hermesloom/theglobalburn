@@ -42,6 +42,16 @@ interface Pet {
   chip_code: string;
 }
 
+type BurnMembershipTransfer = {
+  created_at: string;
+  from_owner_id: string;
+  from_first_name: string;
+  from_last_name: string;
+  from_email: string;
+  to_owner_id: string;
+  to_email: string;
+};
+
 export type MemberSearchResult = {
   id: string;
   owner_id: string;
@@ -66,6 +76,7 @@ export type MemberSearchResult = {
       registration_plate?: string;
     } | null;
   };
+  transfer_history: BurnMembershipTransfer[];
 };
 
 // -------------------
@@ -325,6 +336,17 @@ export default function ScannerManagerPage() {
                               {membership.metadata.car_registration.camp_or_area && <p><strong>Camp/Area:</strong> {membership.metadata.car_registration.camp_or_area}</p>}
                               {membership.metadata.car_registration.phone_number && <p><strong>Phone:</strong> {membership.metadata.car_registration.phone_number}</p>}
                               {membership.metadata.car_registration.alt_contact && <p><strong>Alt contact:</strong> {membership.metadata.car_registration.alt_contact}</p>}
+                            </div>
+                          )}
+
+                          {(membership.transfer_history || []).length > 0 && (
+                            <div key="transfer_history">
+                              <h3 className="text-lg font-semibold mt-1">Transfer History</h3>
+                              {membership.transfer_history.map((t, i) => (
+                                <p key={i}>
+                                  {new Date(t.created_at).toLocaleDateString()}: {t.from_first_name} {t.from_last_name} ({t.from_email}) &rarr; {t.to_email}
+                                </p>
+                              ))}
                             </div>
                           )}
 
