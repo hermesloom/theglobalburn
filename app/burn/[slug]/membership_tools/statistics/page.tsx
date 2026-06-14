@@ -42,7 +42,7 @@ interface OldChild {
   children: OldChildInfo[];
 }
 
-interface WatcherStatistics {
+interface MembershipStatistics {
   memberCount: number;
   sleeperVehicleCount: number;
   childrenCount: number;
@@ -165,16 +165,16 @@ function CheckInBarChart({
   );
 }
 
-export default function WatcherStatisticsPage() {
+export default function MembershipStatisticsPage() {
   const { project } = useProject();
-  const [stats, setStats] = useState<WatcherStatistics | null>(null);
+  const [stats, setStats] = useState<MembershipStatistics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!project?.slug) return;
     setLoading(true);
-    apiGet(`/burn/${project.slug}/admin/watcher-statistics`)
+    apiGet(`/burn/${project.slug}/admin/membership-statistics`)
       .then((data) => {
         setStats(data);
         setError(null);
@@ -186,7 +186,7 @@ export default function WatcherStatisticsPage() {
   if (loading) {
     return (
       <>
-        <Heading>Watcher Statistics</Heading>
+        <Heading>Membership Statistics</Heading>
         <div className="flex justify-center items-center py-8">
           <Spinner size="lg" />
         </div>
@@ -197,7 +197,7 @@ export default function WatcherStatisticsPage() {
   if (error) {
     return (
       <>
-        <Heading>Watcher Statistics</Heading>
+        <Heading>Membership Statistics</Heading>
         <div className="text-red-500">Error: {error}</div>
       </>
     );
@@ -207,7 +207,7 @@ export default function WatcherStatisticsPage() {
 
   return (
     <>
-      <Heading>Watcher Statistics</Heading>
+      <Heading>Membership Statistics</Heading>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         <StatCard label="Members" value={stats.memberCount} color="#8884d8" />

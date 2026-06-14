@@ -125,7 +125,7 @@ export default function ProjectLayout({
             : null,
 
           ...(project.roles.includes(BurnRole.MembershipScanner) ||
-            project.roles.includes(BurnRole.ThresholdWatcher)
+            project.roles.includes(BurnRole.MembershipLead)
             ? ([{ separator: true }, { sectionTitle: "On-site" }] as any)
             : []),
 
@@ -139,11 +139,11 @@ export default function ProjectLayout({
             ] as any)
             : []),
 
-          ...(project.roles.includes(BurnRole.ThresholdWatcher)
+          ...(project.roles.includes(BurnRole.MembershipLead)
             ? ([
               {
-                label: "Watcher Tools",
-                path: `/burn/${project?.slug}/watcher_tools`,
+                label: "Membership Tools",
+                path: `/burn/${project?.slug}/membership_tools`,
                 icon: <MonitorOutlined />,
               },
               {
