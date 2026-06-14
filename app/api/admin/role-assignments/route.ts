@@ -6,13 +6,18 @@ import {
 import { NextResponse } from "next/server";
 import { s } from "ajv-ts";
 
-export const GET = requestWithAuthAdmin(async (supabase, _user) => {
+export const GET = requestWithAuthAdmin(async (supabase, _user, request) => {
+  const { searchParams } = new URL(request.url);
+  const roleId = searchParams.get("roleId");
+
   return {
-    data: await query(() =>
-      supabase
+    data: await query(() => {
+      let q = supabase
         .from("role_assignments")
-        .select("*, profiles(email), roles(name, projects(name))")
-    ),
+        .select("*, profiles(email), roles(name, projects(name))");
+      if (roleId) q = q.eq("role_id", roleId);
+      return q;
+    }),
     roles: await query(() =>
       supabase.from("roles").select("*, projects(name)")
     ),

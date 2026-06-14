@@ -36,9 +36,10 @@ export default function Dropdown({
         selectedKeys={[value]}
         selectionMode="single"
         variant="flat"
-        onSelectionChange={(keys) =>
-          Array.from(keys)[0] && onChange(Array.from(keys)[0] as string)
-        }
+        onSelectionChange={(keys) => {
+          const val = Array.from(keys)[0] as string | undefined;
+          if (val !== undefined) onChange(val);
+        }}
       >
         {options.map((option) => (
           <DropdownItem key={option.id}>{option.label}</DropdownItem>

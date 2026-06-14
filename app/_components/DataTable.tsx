@@ -33,13 +33,6 @@ export type TableSearchBarConfig = {
   fields: TableSearchField[];
 };
 
-export type TableDropdownFilter = {
-  key: string;
-  label: string;
-  getOptions: (fullData: FullData) => { id: string; label: string }[];
-  getValue: (row: DataItem) => string;
-};
-
 interface DataTableProps {
   endpoint: string;
   columns: Array<{
@@ -60,8 +53,8 @@ interface DataTableProps {
   sortRows?: (a: DataItem, b: DataItem) => number;
   /** Dropdown + input in the toolbar row; rows are filtered client-side. */
   searchBar?: TableSearchBarConfig;
-  /** Dropdown filters rendered above the table; rows are filtered client-side. */
-  dropdownFilters?: TableDropdownFilter[];
+  /** Called after data is loaded or reloaded. */
+  onFullDataLoaded?: (fullData: FullData) => void;
 }
 
 export default function DataTable({
@@ -73,14 +66,13 @@ export default function DataTable({
   rowActionsCrud,
   sortRows,
   searchBar,
-  dropdownFilters,
+  onFullDataLoaded,
 }: DataTableProps) {
   const initialLoadDone = useRef(false);
   const [fullData, setFullData] = useState<FullData | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFieldId, setSearchFieldId] = useState<string | null>(null);
-  const [filterValues, setFilterValues] = useState<{ [key: string]: string }>({});
   const prompt = usePrompt();
 
   const activeSearchFieldId =
@@ -93,6 +85,7 @@ export default function DataTable({
     try {
       const data = await apiGet(endpoint);
       setFullData(data);
+      onFullDataLoaded?.(data);
     } finally {
       setLoading(false);
     }
@@ -160,19 +153,11 @@ export default function DataTable({
           .includes(q),
       );
     }
-    if (dropdownFilters) {
-      for (const filter of dropdownFilters) {
-        const selected = filterValues[filter.key];
-        if (selected) {
-          rows = rows.filter((row) => filter.getValue(row) === selected);
-        }
-      }
-    }
     if (sortRows) {
       rows.sort(sortRows);
     }
     return rows;
-  }, [fullData, searchBar, activeSearchFieldId, searchQuery, sortRows, dropdownFilters, filterValues]);
+  }, [fullData, searchBar, activeSearchFieldId, searchQuery, sortRows]);
 
   return (
     <div>
@@ -199,24 +184,6 @@ export default function DataTable({
             </>
           ) : null}
         </div>
-        {fullData && !loading && dropdownFilters && dropdownFilters.length > 0 ? (
-          <div className="flex flex-wrap items-end gap-2">
-            {dropdownFilters.map((filter) => (
-              <Dropdown
-                key={filter.key}
-                buttonPrefix={`${filter.label}: `}
-                options={[
-                  { id: "", label: "All" },
-                  ...filter.getOptions(fullData),
-                ]}
-                value={filterValues[filter.key] ?? ""}
-                onChange={(value) =>
-                  setFilterValues((prev) => ({ ...prev, [filter.key]: value }))
-                }
-              />
-            ))}
-          </div>
-        ) : null}
         {fullData && !loading && searchBar && searchBar.fields.length > 0 ? (
           <div className="grid min-w-0 max-w-full grid-cols-1 items-end gap-2 sm:grid-cols-[auto_minmax(0,1fr)]">
             <div className="w-full justify-self-start sm:w-auto">
