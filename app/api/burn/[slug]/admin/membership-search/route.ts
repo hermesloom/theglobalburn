@@ -113,10 +113,63 @@ export const POST = requestWithProject(
       return { error: profileResult2.error };
     }
 
-    const profileEmailsById =
+    const profileEmailsById: Record<string, string> =
       Object.fromEntries(
         profileResult2.data.map(profile => [profile.id, profile.email])
       );
+
+    // Fetch all transfers for this project to build transfer history chains
+    const transfersResult = await supabase
+      .from("burn_membership_transfers")
+      .select("id, created_at, from_owner_id, to_owner_id, original_membership_json")
+      .eq("project_id", project!.id)
+      .order("created_at", { ascending: false });
+
+    const allTransfers = transfersResult.data || [];
+
+    // Collect profile IDs from transfers not already fetched
+    const missingProfileIds = [...new Set([
+      ...allTransfers.map(t => t.from_owner_id),
+      ...allTransfers.map(t => t.to_owner_id),
+    ])].filter(id => !profileEmailsById[id]);
+
+    if (missingProfileIds.length > 0) {
+      const extraProfilesResult = await supabase
+        .from("profiles")
+        .select("id, email")
+        .in("id", missingProfileIds);
+      for (const p of extraProfilesResult.data || []) {
+        profileEmailsById[p.id] = p.email;
+      }
+    }
+
+    // Map: to_owner_id -> most recent transfer received
+    const transferByRecipient = new Map<string, typeof allTransfers[0]>();
+    for (const transfer of allTransfers) {
+      if (!transferByRecipient.has(transfer.to_owner_id)) {
+        transferByRecipient.set(transfer.to_owner_id, transfer);
+      }
+    }
+
+    const buildTransferChain = (ownerId: string, visited = new Set<string>()): object[] => {
+      if (visited.has(ownerId)) return [];
+      visited.add(ownerId);
+      const transfer = transferByRecipient.get(ownerId);
+      if (!transfer) return [];
+      const prior = buildTransferChain(transfer.from_owner_id, visited);
+      return [
+        ...prior,
+        {
+          created_at: transfer.created_at,
+          from_owner_id: transfer.from_owner_id,
+          from_first_name: (transfer.original_membership_json as any)?.first_name,
+          from_last_name: (transfer.original_membership_json as any)?.last_name,
+          from_email: profileEmailsById[transfer.from_owner_id],
+          to_owner_id: transfer.to_owner_id,
+          to_email: profileEmailsById[transfer.to_owner_id],
+        },
+      ];
+    };
 
     return {
       data: (membershipResult.data || []).sort((a, b) => {
@@ -137,6 +190,7 @@ export const POST = requestWithProject(
         profile: {
           email: profileEmailsById[membership.owner_id]
         },
+        transfer_history: buildTransferChain(membership.owner_id),
       })),
     };
   },
