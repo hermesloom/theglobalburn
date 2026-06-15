@@ -18,6 +18,7 @@ import {
   MailOutlined,
   RocketOutlined,
   HeartOutlined,
+  ToolOutlined,
 } from "@ant-design/icons";
 import { useProject } from "@/app/_components/SessionContext";
 import { redirect } from "next/navigation";
@@ -176,6 +177,11 @@ export default function ProjectLayout({
                 label: "Memberships",
                 path: `/burn/${project?.slug}/admin/memberships`,
                 icon: <TeamOutlined />,
+              },
+              {
+                label: "Membership Admin",
+                path: `/burn/${project?.slug}/admin/membership-admin`,
+                icon: <ToolOutlined />,
               },
             ] as any)
             : []),
