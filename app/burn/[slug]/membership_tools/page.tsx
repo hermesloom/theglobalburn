@@ -182,7 +182,7 @@ export default function ScannerManagerPage() {
         <Button
           color="primary"
           variant="flat"
-          onPress={() => router.push(`/burn/${project?.slug}/watcher_tools/statistics`)}
+          onPress={() => router.push(`/burn/${project?.slug}/membership_tools/statistics`)}
         >
           Statistics
         </Button>

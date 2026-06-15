@@ -18,6 +18,7 @@ import {
   MailOutlined,
   RocketOutlined,
   HeartOutlined,
+  ToolOutlined,
 } from "@ant-design/icons";
 import { useProject } from "@/app/_components/SessionContext";
 import { redirect } from "next/navigation";
@@ -125,7 +126,7 @@ export default function ProjectLayout({
             : null,
 
           ...(project.roles.includes(BurnRole.MembershipScanner) ||
-            project.roles.includes(BurnRole.ThresholdWatcher)
+            project.roles.includes(BurnRole.MembershipLead)
             ? ([{ separator: true }, { sectionTitle: "On-site" }] as any)
             : []),
 
@@ -139,11 +140,11 @@ export default function ProjectLayout({
             ] as any)
             : []),
 
-          ...(project.roles.includes(BurnRole.ThresholdWatcher)
+          ...(project.roles.includes(BurnRole.MembershipLead)
             ? ([
               {
-                label: "Watcher Tools",
-                path: `/burn/${project?.slug}/watcher_tools`,
+                label: "Membership Tools",
+                path: `/burn/${project?.slug}/membership_tools`,
                 icon: <MonitorOutlined />,
               },
               {
@@ -176,6 +177,11 @@ export default function ProjectLayout({
                 label: "Memberships",
                 path: `/burn/${project?.slug}/admin/memberships`,
                 icon: <TeamOutlined />,
+              },
+              {
+                label: "Membership Admin",
+                path: `/burn/${project?.slug}/admin/membership-admin`,
+                icon: <ToolOutlined />,
               },
             ] as any)
             : []),

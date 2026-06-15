@@ -9,9 +9,13 @@ export enum BurnStage {
 export enum BurnRole {
   Admin = "admin",
   Participant = "participant",
+  // Seems to be a high-level role, managing the membership / sale process
   MembershipManager = "membership-manager",
+  // Can see information / statistics about members
+  MembershipLead = "membership-lead",
+  // For checking members in
   MembershipScanner = "membership-scanner",
-  ThresholdWatcher = "threshold-watcher",
+  // Can check members in/out and see extra information about members
   IdeaResolver = "idea-resolver",
 }
 

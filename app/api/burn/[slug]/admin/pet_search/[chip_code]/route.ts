@@ -55,7 +55,7 @@ export const GET = requestWithProject(
     )
   },
   undefined,
-  BurnRole.ThresholdWatcher
+  BurnRole.MembershipLead
 );
 
 

@@ -18,7 +18,7 @@ export const POST = requestWithProject(
     const newMetaData = foundMembership?.metadata ?? {};
 
     newMetaData["check_in_reset_actions"] = newMetaData["check_in_resets"] || [];
-    newMetaData["check_in_reset_actions"].push({profileId: profile.id, dateTime: new Date().toISOString()})
+    newMetaData["check_in_reset_actions"].push({ profileId: profile.id, dateTime: new Date().toISOString() })
 
     await query(() =>
       supabase
@@ -30,6 +30,6 @@ export const POST = requestWithProject(
 
   },
   undefined,
-  BurnRole.ThresholdWatcher
+  BurnRole.MembershipLead
 );
 

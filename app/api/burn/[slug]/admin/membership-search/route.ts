@@ -195,5 +195,5 @@ export const POST = requestWithProject(
     };
   },
   SearchSchema,
-  [BurnRole.MembershipManager, BurnRole.ThresholdWatcher],
+  [BurnRole.MembershipManager, BurnRole.MembershipLead],
 );

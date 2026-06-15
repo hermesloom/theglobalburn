@@ -53,6 +53,8 @@ interface DataTableProps {
   sortRows?: (a: DataItem, b: DataItem) => number;
   /** Dropdown + input in the toolbar row; rows are filtered client-side. */
   searchBar?: TableSearchBarConfig;
+  /** Called after data is loaded or reloaded. */
+  onFullDataLoaded?: (fullData: FullData) => void;
 }
 
 export default function DataTable({
@@ -64,6 +66,7 @@ export default function DataTable({
   rowActionsCrud,
   sortRows,
   searchBar,
+  onFullDataLoaded,
 }: DataTableProps) {
   const initialLoadDone = useRef(false);
   const [fullData, setFullData] = useState<FullData | undefined>(undefined);
@@ -82,6 +85,7 @@ export default function DataTable({
     try {
       const data = await apiGet(endpoint);
       setFullData(data);
+      onFullDataLoaded?.(data);
     } finally {
       setLoading(false);
     }

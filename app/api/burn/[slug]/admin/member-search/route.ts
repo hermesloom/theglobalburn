@@ -27,10 +27,10 @@ export const POST = requestWithProject(
       )
       .eq("project_id", project!.id);
 
-    const countOfTermsMatched = (result: {first_name: string, last_name: string}) => {
-      return(
+    const countOfTermsMatched = (result: { first_name: string, last_name: string }) => {
+      return (
         searchTerms.filter((term: string) => {
-          return(result.first_name.toLowerCase().match(term) || result.last_name.toLowerCase().match(term))
+          return (result.first_name.toLowerCase().match(term) || result.last_name.toLowerCase().match(term))
         }).length
       );
     }
@@ -42,7 +42,7 @@ export const POST = requestWithProject(
 
     const membershipResults =
       (membershipResultsData || []).sort((a, b) => {
-        return(
+        return (
           countOfTermsMatched(b) - countOfTermsMatched(a)
         )
       })
@@ -90,5 +90,5 @@ export const POST = requestWithProject(
     };
   },
   SearchSchema,
-  [BurnRole.MembershipManager, BurnRole.ThresholdWatcher],
+  [BurnRole.MembershipManager, BurnRole.MembershipLead],
 );
