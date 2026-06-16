@@ -178,11 +178,13 @@ export const POST = requestWithProject(
       );
     });
 
-    // Find current owner IDs for matching transfers not already in results
+    // Find current owner IDs for matching transfers not already in results.
+    // Only run on page 0 — transfer matches are not paginated, so appending on
+    // every page would cause the frontend's pagination loop to run forever.
     const existingOwnerIds = new Set((membershipResult.data || []).map((m) => m.owner_id));
-    const extraOwnerIds = [
-      ...new Set(matchingTransfers.map((t) => findCurrentOwner(t.to_owner_id))),
-    ].filter((id) => !existingOwnerIds.has(id));
+    const extraOwnerIds = page === 0
+      ? [...new Set(matchingTransfers.map((t) => findCurrentOwner(t.to_owner_id)))].filter((id) => !existingOwnerIds.has(id))
+      : [];
 
     if (extraOwnerIds.length > 0) {
       const extraMembershipsResult = await supabase
