@@ -1,47 +1,63 @@
-import { requestWithProject, query } from "@/app/api/_common/endpoints";
+import { requestWithProject } from "@/app/api/_common/endpoints";
 import { BurnRole } from "@/utils/types";
 
 export const GET = requestWithProject(
   async (supabase, profile, request, body, project) => {
-    const transfers: any[] = await query(() =>
-      supabase
-        .from("burn_membership_transfers")
-        .select("id, created_at, from_owner_id, to_owner_id, original_membership_json")
-        .eq("project_id", project!.id)
-        .order("created_at", { ascending: true })
-    );
+    const transfersResult = await supabase
+      .from("burn_membership_transfers")
+      .select("id, created_at, from_owner_id, to_owner_id, original_membership_json")
+      .eq("project_id", project!.id)
+      .order("created_at", { ascending: true });
 
+    if (transfersResult.error) {
+      console.error("transferred-memberships: transfers query error:", transfersResult.error);
+      return { data: [] };
+    }
+
+    const transfers = transfersResult.data || [];
     if (transfers.length === 0) {
       return { data: [] };
     }
 
-    const recipientIds = [...new Set(transfers.map((t) => t.to_owner_id))];
+    const recipientIds = [...new Set(transfers.map((t) => t.to_owner_id).filter(Boolean))];
+    if (recipientIds.length === 0) {
+      return { data: [] };
+    }
 
-    const memberships = await query(() =>
-      supabase
-        .from("burn_memberships")
-        .select("id, owner_id, first_name, last_name")
-        .eq("project_id", project!.id)
-        .in("owner_id", recipientIds)
-    );
+    const membershipsResult = await supabase
+      .from("burn_memberships")
+      .select("id, owner_id, first_name, last_name")
+      .eq("project_id", project!.id)
+      .in("owner_id", recipientIds);
 
-    const profileIds = [
+    if (membershipsResult.error) {
+      console.error("transferred-memberships: memberships query error:", membershipsResult.error);
+      return { data: [] };
+    }
+
+    const memberships = membershipsResult.data || [];
+
+    const allOwnerIds = [
       ...new Set([
-        ...(memberships as any[]).map((m) => m.owner_id),
+        ...memberships.map((m) => m.owner_id),
         ...transfers.map((t) => t.from_owner_id),
         ...transfers.map((t) => t.to_owner_id),
-      ]),
+      ].filter(Boolean)),
     ];
 
-    const profiles = await query(() =>
-      supabase.from("profiles").select("id, email").in("id", profileIds)
-    );
+    const profilesResult = allOwnerIds.length > 0
+      ? await supabase.from("profiles").select("id, email").in("id", allOwnerIds)
+      : { data: [], error: null };
+
+    if (profilesResult.error) {
+      console.error("transferred-memberships: profiles query error:", profilesResult.error);
+    }
 
     const emailById: Record<string, string> = Object.fromEntries(
-      (profiles as any[]).map((p) => [p.id, p.email])
+      (profilesResult.data || []).map((p) => [p.id, p.email])
     );
 
-    // Map: to_owner_id -> all transfers received (ordered asc, so last is most recent)
+    // Map: to_owner_id -> most recent transfer received (array is ascending, so last wins)
     const transfersByRecipient = new Map<string, (typeof transfers)[0]>();
     for (const transfer of transfers) {
       transfersByRecipient.set(transfer.to_owner_id, transfer);
@@ -68,7 +84,7 @@ export const GET = requestWithProject(
     };
 
     return {
-      data: (memberships as any[]).map((m) => ({
+      data: memberships.map((m) => ({
         id: m.id,
         first_name: m.first_name,
         last_name: m.last_name,
