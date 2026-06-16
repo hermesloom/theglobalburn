@@ -5,7 +5,15 @@ export const GET = requestWithProject(
   async (supabase, profile, request, body, project) => {
     const transfersResult = await supabase
       .from("burn_membership_transfers")
-      .select("id, created_at, from_owner_id, to_owner_id, original_membership_json")
+      .select(`
+        id,
+        created_at,
+        from_owner_id,
+        to_owner_id,
+        original_membership_json,
+        from_profile:profiles!from_owner_id(email),
+        to_profile:profiles!to_owner_id(email)
+      `)
       .eq("project_id", project!.id)
       .order("created_at", { ascending: true });
 
@@ -26,7 +34,7 @@ export const GET = requestWithProject(
 
     const membershipsResult = await supabase
       .from("burn_memberships")
-      .select("id, owner_id, first_name, last_name")
+      .select("id, owner_id, first_name, last_name, owner:profiles(email)")
       .eq("project_id", project!.id)
       .in("owner_id", recipientIds);
 
@@ -37,27 +45,7 @@ export const GET = requestWithProject(
 
     const memberships = membershipsResult.data || [];
 
-    const allOwnerIds = [
-      ...new Set([
-        ...memberships.map((m) => m.owner_id),
-        ...transfers.map((t) => t.from_owner_id),
-        ...transfers.map((t) => t.to_owner_id),
-      ].filter(Boolean)),
-    ];
-
-    const profilesResult = allOwnerIds.length > 0
-      ? await supabase.from("profiles").select("id, email").in("id", allOwnerIds)
-      : { data: [], error: null };
-
-    if (profilesResult.error) {
-      console.error("transferred-memberships: profiles query error:", profilesResult.error);
-    }
-
-    const emailById: Record<string, string> = Object.fromEntries(
-      (profilesResult.data || []).map((p) => [p.id, p.email])
-    );
-
-    // Map: to_owner_id -> most recent transfer received (array is ascending, so last wins)
+    // Map: to_owner_id -> most recent transfer received (array is ascending, so last entry wins)
     const transfersByRecipient = new Map<string, (typeof transfers)[0]>();
     for (const transfer of transfers) {
       transfersByRecipient.set(transfer.to_owner_id, transfer);
@@ -76,9 +64,9 @@ export const GET = requestWithProject(
           from_owner_id: transfer.from_owner_id,
           from_first_name: (transfer.original_membership_json as any)?.first_name,
           from_last_name: (transfer.original_membership_json as any)?.last_name,
-          from_email: emailById[transfer.from_owner_id],
+          from_email: (transfer.from_profile as any)?.email,
           to_owner_id: transfer.to_owner_id,
-          to_email: emailById[transfer.to_owner_id],
+          to_email: (transfer.to_profile as any)?.email,
         },
       ];
     };
@@ -88,7 +76,7 @@ export const GET = requestWithProject(
         id: m.id,
         first_name: m.first_name,
         last_name: m.last_name,
-        email: emailById[m.owner_id] ?? "",
+        email: (m.owner as any)?.email ?? "",
         transfer_history: buildTransferChain(m.owner_id),
       })),
     };
