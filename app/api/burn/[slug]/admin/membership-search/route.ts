@@ -133,11 +133,13 @@ export const POST = requestWithProject(
       ...allTransfers.map(t => t.to_owner_id),
     ])].filter(id => !profileEmailsById[id]);
 
+    console.log("[membership-search] missingProfileIds count:", missingProfileIds.length);
     if (missingProfileIds.length > 0) {
       const extraProfilesResult = await supabase
         .from("profiles")
         .select("id, email")
         .in("id", missingProfileIds);
+      console.log("[membership-search] extraProfilesResult count:", extraProfilesResult.data?.length, "error:", extraProfilesResult.error);
       for (const p of extraProfilesResult.data || []) {
         profileEmailsById[p.id] = p.email;
       }
