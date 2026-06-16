@@ -185,18 +185,20 @@ export default function DataTable({
           ) : null}
         </div>
         {fullData && !loading && searchBar && searchBar.fields.length > 0 ? (
-          <div className="grid min-w-0 max-w-full grid-cols-1 items-end gap-2 sm:grid-cols-[auto_minmax(0,1fr)]">
-            <div className="w-full justify-self-start sm:w-auto">
-              <Dropdown
-                buttonPrefix="Filter by: "
-                options={searchBar.fields.map((f) => ({
-                  id: f.id,
-                  label: f.label,
-                }))}
-                value={activeSearchFieldId}
-                onChange={(id) => setSearchFieldId(id)}
-              />
-            </div>
+          <div className="flex min-w-0 max-w-full items-end gap-2">
+            {searchBar.fields.length > 1 && (
+              <div className="w-full justify-self-start sm:w-auto">
+                <Dropdown
+                  buttonPrefix="Filter by: "
+                  options={searchBar.fields.map((f) => ({
+                    id: f.id,
+                    label: f.label,
+                  }))}
+                  value={activeSearchFieldId}
+                  onChange={(id) => setSearchFieldId(id)}
+                />
+              </div>
+            )}
             <div className="min-w-0 w-full">
               <Input
                 className="w-full"

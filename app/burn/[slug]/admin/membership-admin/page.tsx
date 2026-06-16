@@ -6,6 +6,7 @@ import { useProject } from "@/app/_components/SessionContext";
 import { apiGet } from "@/app/_components/api";
 import toast from "react-hot-toast";
 import { calculateAge } from "@/app/burn/[slug]/membership/components/helpers/date";
+import DataTable from "@/app/_components/DataTable";
 
 function arrayToCsv(data: string[][]): string {
   return data
@@ -149,16 +150,81 @@ export default function MembershipAdminPage() {
   };
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Membership Admin</h1>
-      <div className="flex gap-4">
-        <Button color="primary" onPress={downloadChildrenCsv} isLoading={loadingChildren}>
-          Download members with children (CSV)
-        </Button>
-        <Button color="primary" onPress={downloadPetsCsv} isLoading={loadingPets}>
-          Download members with pets (CSV)
-        </Button>
+    <div className="flex flex-col gap-8">
+      <div>
+        <h1 className="text-2xl font-bold mb-6">Membership Admin</h1>
+        <div className="flex gap-4">
+          <Button color="primary" onPress={downloadChildrenCsv} isLoading={loadingChildren}>
+            Download members with children (CSV)
+          </Button>
+          <Button color="primary" onPress={downloadPetsCsv} isLoading={loadingPets}>
+            Download members with pets (CSV)
+          </Button>
+        </div>
       </div>
+      <DataTable
+        title="Transferred Memberships"
+        endpoint={`/burn/${project?.slug}/admin/transferred-memberships`}
+        sortRows={(a, b) =>
+          String(a.last_name ?? "").localeCompare(String(b.last_name ?? ""))
+        }
+        searchBar={{
+          placeholder: "Search by name, email, or transfer history…",
+          fields: [
+            {
+              id: "all",
+              label: "All",
+              getValue: (row) =>
+                [
+                  row.first_name,
+                  row.last_name,
+                  row.email,
+                  ...((row.transfer_history as any[]) ?? []).flatMap((step: any) => [
+                    step.from_first_name,
+                    step.from_last_name,
+                    step.from_email,
+                    step.to_email,
+                  ]),
+                ]
+                  .filter(Boolean)
+                  .join(" "),
+            },
+          ],
+        }}
+        columns={[
+          { key: "first_name", label: "First name" },
+          { key: "last_name", label: "Last name" },
+          { key: "email", label: "Current owner email" },
+          {
+            key: "transfer_history",
+            label: "Transfer history",
+            render: (value) => {
+              const history: Array<{
+                created_at: string;
+                from_first_name: string;
+                from_last_name: string;
+                from_email: string;
+                to_email: string;
+              }> = value ?? [];
+              return (
+                <div className="flex flex-col gap-1 text-sm">
+                  {history.map((step, i) => (
+                    <div key={i} className="text-default-600">
+                      <span className="font-medium">
+                        {new Date(step.created_at).toLocaleDateString()}
+                      </span>
+                      {" — "}
+                      {step.from_first_name} {step.from_last_name} ({step.from_email})
+                      {" → "}
+                      {step.to_email}
+                    </div>
+                  ))}
+                </div>
+              );
+            },
+          },
+        ]}
+      />
     </div>
   );
 }

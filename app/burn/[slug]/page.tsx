@@ -110,9 +110,8 @@ export default function ProjectPage() {
 
   for (let i = 0; i < sortedEvents.length; i++) {
     const event = sortedEvents[i];
-    // For date ranges, use the end date; otherwise use the start date
-    // Null dates are treated as timestamp 0 (UNIX epoch)
-    const eventTime = (event.dateEnd || event.date)?.getTime() ?? 0;
+    // Use start date to determine past vs future; null dates treated as UNIX epoch
+    const eventTime = event.date?.getTime() ?? 0;
 
     // If this event is in the future and we haven't set separator yet
     if (eventTime > now.getTime() && separatorIndex === -1) {
@@ -249,8 +248,8 @@ export default function ProjectPage() {
                               const eventStartTime = event.date?.getTime() ?? 0;
                               const isWithinNextMonth = eventStartTime <= oneMonthFromNow.getTime();
 
-                              if (isFutureEvent && isWithinNextMonth && event.date) {
-                                const daysUntil = Math.ceil((eventStartTime - now.getTime()) / (24 * 60 * 60 * 1000));
+                              const daysUntil = Math.ceil((eventStartTime - now.getTime()) / (24 * 60 * 60 * 1000));
+                              if (isFutureEvent && isWithinNextMonth && event.date && daysUntil > 0) {
                                 return (
                                   <>
                                     {formattedDate} <strong>({daysUntil} {daysUntil === 1 ? 'day' : 'days'} from now)</strong>
