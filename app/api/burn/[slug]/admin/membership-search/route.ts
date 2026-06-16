@@ -133,15 +133,14 @@ export const POST = requestWithProject(
       ...allTransfers.map(t => t.to_owner_id),
     ])].filter(id => !profileEmailsById[id]);
 
-    console.log("[membership-search] missingProfileIds count:", missingProfileIds.length);
     if (missingProfileIds.length > 0) {
-      const extraProfilesResult = await supabase
-        .from("profiles")
-        .select("id, email")
-        .in("id", missingProfileIds);
-      console.log("[membership-search] extraProfilesResult count:", extraProfilesResult.data?.length, "error:", extraProfilesResult.error);
-      for (const p of extraProfilesResult.data || []) {
-        profileEmailsById[p.id] = p.email;
+      const chunkSize = 100;
+      for (let i = 0; i < missingProfileIds.length; i += chunkSize) {
+        const chunk = missingProfileIds.slice(i, i + chunkSize);
+        const result = await supabase.from("profiles").select("id, email").in("id", chunk);
+        for (const p of result.data || []) {
+          profileEmailsById[p.id] = p.email;
+        }
       }
     }
 
@@ -167,9 +166,6 @@ export const POST = requestWithProject(
       return findCurrentOwner(next.to_owner_id, visited);
     };
 
-    console.log("[membership-search] allTransfers count:", allTransfers.length);
-    console.log("[membership-search] profileEmailsById keys count:", Object.keys(profileEmailsById).length);
-
     // Find transfers matching search term (by previous owner name or email)
     const matchingTransfers = allTransfers.filter((t) => {
       const json = t.original_membership_json as any;
@@ -182,15 +178,11 @@ export const POST = requestWithProject(
       );
     });
 
-    console.log("[membership-search] matchingTransfers count:", matchingTransfers.length, matchingTransfers.map(t => ({ from: profileEmailsById[t.from_owner_id], to: t.to_owner_id })));
-
     // Find current owner IDs for matching transfers not already in results
     const existingOwnerIds = new Set((membershipResult.data || []).map((m) => m.owner_id));
     const extraOwnerIds = [
       ...new Set(matchingTransfers.map((t) => findCurrentOwner(t.to_owner_id))),
     ].filter((id) => !existingOwnerIds.has(id));
-
-    console.log("[membership-search] extraOwnerIds:", extraOwnerIds);
 
     if (extraOwnerIds.length > 0) {
       const extraMembershipsResult = await supabase
