@@ -145,9 +145,80 @@ export const POST = requestWithProject(
 
     // Map: to_owner_id -> most recent transfer received
     const transferByRecipient = new Map<string, typeof allTransfers[0]>();
+    // Map: from_owner_id -> transfer sent (for forward chain traversal)
+    const transferBySender = new Map<string, typeof allTransfers[0]>();
     for (const transfer of allTransfers) {
       if (!transferByRecipient.has(transfer.to_owner_id)) {
         transferByRecipient.set(transfer.to_owner_id, transfer);
+      }
+      if (!transferBySender.has(transfer.from_owner_id)) {
+        transferBySender.set(transfer.from_owner_id, transfer);
+      }
+    }
+
+    // Follow forward chain to find current owner of a membership
+    const findCurrentOwner = (ownerId: string, visited = new Set<string>()): string => {
+      if (visited.has(ownerId)) return ownerId;
+      visited.add(ownerId);
+      const next = transferBySender.get(ownerId);
+      if (!next) return ownerId;
+      return findCurrentOwner(next.to_owner_id, visited);
+    };
+
+    // Find transfers matching search term (by previous owner name or email)
+    const matchingTransfers = allTransfers.filter((t) => {
+      const json = t.original_membership_json as any;
+      const firstName = (json?.first_name || '').toLowerCase();
+      const lastName = (json?.last_name || '').toLowerCase();
+      const fromEmail = (profileEmailsById[t.from_owner_id] || '').toLowerCase();
+      return (
+        searchTerms.some((term: string) => firstName.includes(term) || lastName.includes(term)) ||
+        fromEmail.includes(searchTerm)
+      );
+    });
+
+    // Find current owner IDs for matching transfers not already in results
+    const existingOwnerIds = new Set((membershipResult.data || []).map((m) => m.owner_id));
+    const extraOwnerIds = [
+      ...new Set(matchingTransfers.map((t) => findCurrentOwner(t.to_owner_id))),
+    ].filter((id) => !existingOwnerIds.has(id));
+
+    if (extraOwnerIds.length > 0) {
+      const extraMembershipsResult = await supabase
+        .from("burn_memberships")
+        .select(`
+          id,
+          owner_id,
+          first_name,
+          last_name,
+          checked_in_at,
+          birthdate,
+          metadata->children,
+          metadata->pets,
+          metadata->emergency_info->camp_name,
+          metadata->emergency_info->phone_number,
+          metadata->emergency_info->emergency_contact_onsite,
+          metadata->emergency_info->emergency_contact_other,
+          metadata->car_registration
+        `)
+        .eq("project_id", project!.id)
+        .in("owner_id", extraOwnerIds);
+
+      if (!extraMembershipsResult.error && extraMembershipsResult.data) {
+        // Fetch emails for any new owners
+        const newOwnerIds = extraMembershipsResult.data
+          .map((m) => m.owner_id)
+          .filter((id) => !profileEmailsById[id]);
+        if (newOwnerIds.length > 0) {
+          const newProfilesResult = await supabase
+            .from("profiles")
+            .select("id, email")
+            .in("id", newOwnerIds);
+          for (const p of newProfilesResult.data || []) {
+            profileEmailsById[p.id] = p.email;
+          }
+        }
+        (membershipResult.data as any[]).push(...extraMembershipsResult.data);
       }
     }
 
