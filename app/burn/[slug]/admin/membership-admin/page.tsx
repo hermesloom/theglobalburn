@@ -169,11 +169,26 @@ export default function MembershipAdminPage() {
           String(a.last_name ?? "").localeCompare(String(b.last_name ?? ""))
         }
         searchBar={{
-          placeholder: "Type to filter…",
+          placeholder: "Search by name, email, or transfer history…",
           fields: [
-            { id: "last_name", label: "Last name", getValue: (row) => String(row.last_name ?? "") },
-            { id: "first_name", label: "First name", getValue: (row) => String(row.first_name ?? "") },
-            { id: "email", label: "Email", getValue: (row) => String(row.email ?? "") },
+            {
+              id: "all",
+              label: "All",
+              getValue: (row) =>
+                [
+                  row.first_name,
+                  row.last_name,
+                  row.email,
+                  ...((row.transfer_history as any[]) ?? []).flatMap((step: any) => [
+                    step.from_first_name,
+                    step.from_last_name,
+                    step.from_email,
+                    step.to_email,
+                  ]),
+                ]
+                  .filter(Boolean)
+                  .join(" "),
+            },
           ],
         }}
         columns={[
