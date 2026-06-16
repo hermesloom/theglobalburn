@@ -165,6 +165,9 @@ export const POST = requestWithProject(
       return findCurrentOwner(next.to_owner_id, visited);
     };
 
+    console.log("[membership-search] allTransfers count:", allTransfers.length);
+    console.log("[membership-search] profileEmailsById keys count:", Object.keys(profileEmailsById).length);
+
     // Find transfers matching search term (by previous owner name or email)
     const matchingTransfers = allTransfers.filter((t) => {
       const json = t.original_membership_json as any;
@@ -177,11 +180,15 @@ export const POST = requestWithProject(
       );
     });
 
+    console.log("[membership-search] matchingTransfers count:", matchingTransfers.length, matchingTransfers.map(t => ({ from: profileEmailsById[t.from_owner_id], to: t.to_owner_id })));
+
     // Find current owner IDs for matching transfers not already in results
     const existingOwnerIds = new Set((membershipResult.data || []).map((m) => m.owner_id));
     const extraOwnerIds = [
       ...new Set(matchingTransfers.map((t) => findCurrentOwner(t.to_owner_id))),
     ].filter((id) => !existingOwnerIds.has(id));
+
+    console.log("[membership-search] extraOwnerIds:", extraOwnerIds);
 
     if (extraOwnerIds.length > 0) {
       const extraMembershipsResult = await supabase
