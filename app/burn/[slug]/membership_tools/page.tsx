@@ -40,6 +40,7 @@ interface Pet {
   name: string;
   type: string;
   chip_code: string;
+  photo_url?: string;
 }
 
 type BurnMembershipTransfer = {
@@ -314,7 +315,12 @@ export default function ScannerManagerPage() {
                             <div key="pets">
                               <h3 className="text-lg font-semibold mt-1">Pets</h3>
                               {membership.metadata.pets.map((pet) =>
-                                <p key={pet.chip_code}>{pet.name} / {pet.type} / Chip: {pet.chip_code}</p>
+                                <div key={pet.chip_code} className="flex gap-4 items-start mb-2">
+                                  {pet.photo_url && (
+                                    <img src={pet.photo_url} alt={pet.name} style={{ maxHeight: 150, width: "auto", borderRadius: 8, flexShrink: 0 }} />
+                                  )}
+                                  <p>{pet.name} / {pet.type} / Chip: {pet.chip_code}</p>
+                                </div>
                               )}
                             </div>
                           )}
