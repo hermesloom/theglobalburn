@@ -6,6 +6,7 @@ import {
   validateNewMembershipEligibility,
   getAvailableMemberships,
 } from "@/app/api/_common/profile";
+import { sendEmail } from "@/app/_components/email";
 
 const TransferMembershipRequestSchema = s.object({
   email: s.string(),
@@ -90,8 +91,11 @@ export const POST = requestWithProject<
           project_id: project!.id,
           owner_id: recipientProfile.id,
           expires_at: new Date(
-            +new Date() +
-            recipientProject.burn_config.transfer_reservation_duration * 1000,
+            Math.min(
+              +new Date() +
+                recipientProject.burn_config.transfer_reservation_duration * 1000,
+              +new Date(recipientProject.burn_config.last_possible_transfer_at),
+            ),
           ).toISOString(),
           is_low_income: isLowIncome,
           details_modifiable: true,
@@ -108,6 +112,24 @@ export const POST = requestWithProject<
           is_being_transferred_to: purchaseRight.id,
         })
         .eq("id", project!.membership!.id),
+    );
+
+    const expiresAt = new Date(purchaseRight.expires_at).toLocaleString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: "Europe/Stockholm",
+      timeZoneName: "short",
+    });
+    const baseUrl = new URL(request.url).origin;
+    const membershipUrl = `${baseUrl}/burn/${project!.slug}/membership`;
+
+    await sendEmail(
+      body.email,
+      `You have a transfer membership available for ${project!.name}`,
+      `Hi,\n\nSomeone has initiated a membership transfer to you for ${project!.name}.\n\nYou can purchase the transferred membership here:\n${membershipUrl}\n\nThis offer expires on ${expiresAt}. After that, the transfer will be cancelled automatically.\n\nSee you at the burn!`,
     );
   },
   TransferMembershipRequestSchema,
