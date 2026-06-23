@@ -297,63 +297,65 @@ export default function ScannerManagerPage() {
                           </div>
                         </div>
 
-                        {/* Detail sections */}
-                        {(membership.metadata.children || []).length > 0 && (
-                          <div className="border-t border-gray-200 px-4 py-3">
-                            <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Children</h3>
-                            {membership.metadata.children.map((child) =>
-                              <p key={`${child.first_name}-${child.last_name}`} className="text-sm">{child.first_name} {child.last_name} — DOB: {formatDOB(child.dob)}</p>
-                            )}
-                          </div>
-                        )}
+                        {/* Detail sections — 2-col on sm+ */}
+                        <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {(membership.metadata.children || []).length > 0 && (
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                              <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Children</h3>
+                              {membership.metadata.children.map((child) =>
+                                <p key={`${child.first_name}-${child.last_name}`} className="text-sm">{child.first_name} {child.last_name} — DOB: {formatDOB(child.dob)}</p>
+                              )}
+                            </div>
+                          )}
 
-                        {(membership.metadata.pets || []).length > 0 && (
-                          <div className="border-t border-gray-200 px-4 py-3">
-                            <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Pets</h3>
-                            {membership.metadata.pets.map((pet) =>
-                              <div key={pet.chip_code} className="flex justify-between items-start gap-3 py-2 border-b border-gray-100 last:border-b-0">
-                                <div>
-                                  <p className="text-sm">{pet.name} / {pet.type}</p>
-                                  <p className="text-sm">Chip: {pet.chip_code}</p>
+                          {(membership.metadata.pets || []).length > 0 && (
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                              <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Pets</h3>
+                              {membership.metadata.pets.map((pet) =>
+                                <div key={pet.chip_code} className="flex justify-between items-start gap-3 py-2 border-b border-gray-200 last:border-b-0">
+                                  <div>
+                                    <p className="text-sm">{pet.name} / {pet.type}</p>
+                                    <p className="text-sm">Chip: {pet.chip_code}</p>
+                                  </div>
+                                  {pet.photo_url && (
+                                    <img src={pet.photo_url} alt={pet.name} style={{ maxHeight: 100, width: "auto", borderRadius: 6, flexShrink: 0 }} />
+                                  )}
                                 </div>
-                                {pet.photo_url && (
-                                  <img src={pet.photo_url} alt={pet.name} style={{ maxHeight: 100, width: "auto", borderRadius: 6, flexShrink: 0 }} />
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        )}
+                              )}
+                            </div>
+                          )}
 
-                        {(membership.metadata.camp_name || membership.metadata.phone_number || membership.metadata.emergency_contact_onsite || membership.metadata.emergency_contact_other) && (
-                          <div className="border-t border-gray-200 px-4 py-3">
-                            <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Emergency Info</h3>
-                            {membership.metadata.camp_name && <p className="text-sm"><strong>Camp:</strong> {membership.metadata.camp_name}</p>}
-                            {membership.metadata.phone_number && <p className="text-sm"><strong>Phone:</strong> <a href={`tel:${membership.metadata.phone_number}`} className="text-blue-500 underline">{membership.metadata.phone_number}</a></p>}
-                            {membership.metadata.emergency_contact_onsite && <p className="text-sm"><strong>On-site:</strong> {membership.metadata.emergency_contact_onsite}</p>}
-                            {membership.metadata.emergency_contact_other && <p className="text-sm"><strong>Other:</strong> {membership.metadata.emergency_contact_other}</p>}
-                          </div>
-                        )}
+                          {(membership.metadata.camp_name || membership.metadata.phone_number || membership.metadata.emergency_contact_onsite || membership.metadata.emergency_contact_other) && (
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                              <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Emergency Info</h3>
+                              {membership.metadata.camp_name && <p className="text-sm"><strong>Camp:</strong> {membership.metadata.camp_name}</p>}
+                              {membership.metadata.phone_number && <p className="text-sm"><strong>Phone:</strong> <a href={`tel:${membership.metadata.phone_number}`} className="text-blue-500 underline">{membership.metadata.phone_number}</a></p>}
+                              {membership.metadata.emergency_contact_onsite && <p className="text-sm"><strong>On-site:</strong> {membership.metadata.emergency_contact_onsite}</p>}
+                              {membership.metadata.emergency_contact_other && <p className="text-sm"><strong>Other:</strong> {membership.metadata.emergency_contact_other}</p>}
+                            </div>
+                          )}
 
-                        {membership.metadata.car_registration && (
-                          <div className="border-t border-gray-200 px-4 py-3">
-                            <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Sleeper Vehicle</h3>
-                            {membership.metadata.car_registration.registration_plate && <p className="text-sm"><strong>Plate:</strong> {membership.metadata.car_registration.registration_plate}</p>}
-                            {membership.metadata.car_registration.camp_or_area && <p className="text-sm"><strong>Camp/Area:</strong> {membership.metadata.car_registration.camp_or_area}</p>}
-                            {membership.metadata.car_registration.phone_number && <p className="text-sm"><strong>Phone:</strong> <a href={`tel:${membership.metadata.car_registration.phone_number}`} className="text-blue-500 underline">{membership.metadata.car_registration.phone_number}</a></p>}
-                            {membership.metadata.car_registration.alt_contact && <p className="text-sm"><strong>Alt contact:</strong> {membership.metadata.car_registration.alt_contact}</p>}
-                          </div>
-                        )}
+                          {membership.metadata.car_registration && (
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                              <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Sleeper Vehicle</h3>
+                              {membership.metadata.car_registration.registration_plate && <p className="text-sm"><strong>Plate:</strong> {membership.metadata.car_registration.registration_plate}</p>}
+                              {membership.metadata.car_registration.camp_or_area && <p className="text-sm"><strong>Camp/Area:</strong> {membership.metadata.car_registration.camp_or_area}</p>}
+                              {membership.metadata.car_registration.phone_number && <p className="text-sm"><strong>Phone:</strong> <a href={`tel:${membership.metadata.car_registration.phone_number}`} className="text-blue-500 underline">{membership.metadata.car_registration.phone_number}</a></p>}
+                              {membership.metadata.car_registration.alt_contact && <p className="text-sm"><strong>Alt contact:</strong> {membership.metadata.car_registration.alt_contact}</p>}
+                            </div>
+                          )}
 
-                        {(membership.transfer_history || []).length > 0 && (
-                          <div className="border-t border-gray-200 px-4 py-3">
-                            <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Transfer History</h3>
-                            {membership.transfer_history.map((t, i) => (
-                              <p key={i} className="text-sm">
-                                {new Date(t.created_at).toLocaleDateString()}: {t.from_first_name} {t.from_last_name} ({t.from_email}) &rarr; {t.to_email}
-                              </p>
-                            ))}
-                          </div>
-                        )}
+                          {(membership.transfer_history || []).length > 0 && (
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 sm:col-span-2">
+                              <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Transfer History</h3>
+                              {membership.transfer_history.map((t, i) => (
+                                <p key={i} className="text-sm">
+                                  {new Date(t.created_at).toLocaleDateString()}: {t.from_first_name} {t.from_last_name} ({t.from_email}) &rarr; {t.to_email}
+                                </p>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
