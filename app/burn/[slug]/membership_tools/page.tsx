@@ -72,7 +72,26 @@ export type MemberSearchResult = {
     } | null;
   };
   transfer_history: BurnMembershipTransfer[];
+  check_in_events: {
+    event_type: 'check_in' | 'check_out';
+    created_at: string;
+    actor_display_name: string;
+  }[];
 };
+
+const formatSwedishDateTime = (dateStr: string) =>
+  new Date(dateStr).toLocaleString('sv-SE', {
+    timeZone: 'Europe/Stockholm',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  });
+
+const formatSwedishDate = (dateStr: string) =>
+  new Date(dateStr).toLocaleDateString('sv-SE', { timeZone: 'Europe/Stockholm' });
 
 // -------------------
 // Credit: https://stackoverflow.com/questions/14964035/how-to-export-javascript-array-info-to-csv-on-client-side
@@ -258,9 +277,18 @@ export default function ScannerManagerPage() {
                           <div>
                             <p className="text-xl font-bold">{membership.first_name} {membership.last_name}</p>
                             <p className="text-sm text-gray-600">{membership.profile.email}</p>
-                            {membership.checked_in_at && (
-                              <p className="text-xs text-gray-500 mt-0.5">Checked in: {membership.checked_in_at}</p>
-                            )}
+
+                            {(membership.check_in_events || []).length > 0 ? (
+                              <p>
+                                <p>&nbsp;</p>
+                                <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Check-in/out History</h3>
+                                {membership.check_in_events.map((e, i) => (
+                                  <p key={i} className="text-sm">
+                                    {formatSwedishDateTime(e.created_at)}: Checked <strong>{e.event_type === 'check_in' ? 'IN' : 'OUT'}</strong> by {e.actor_display_name}
+                                  </p>
+                                ))}
+                              </p>
+                            ) : <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">"Not checked-in"</h3>}
                           </div>
                           <div className="flex items-center">
                             {membership.checked_in_at ? (
@@ -350,7 +378,7 @@ export default function ScannerManagerPage() {
                               <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Transfer History</h3>
                               {membership.transfer_history.map((t, i) => (
                                 <p key={i} className="text-sm">
-                                  {new Date(t.created_at).toLocaleDateString()}: {t.from_first_name} {t.from_last_name} ({t.from_email}) &rarr; {t.to_email}
+                                  {formatSwedishDate(t.created_at)}: {t.from_first_name} {t.from_last_name} ({t.from_email}) &rarr; {t.to_email}
                                 </p>
                               ))}
                             </div>

@@ -45,6 +45,17 @@ export const POST = requestWithProject(
           .update({ checked_in_at: new Date() })
           .eq("id", foundMembership.id)
       );
+
+      await query(() =>
+        supabase
+          .from("burn_membership_checkin_events")
+          .insert({
+            project_id: project!.id,
+            membership_id: foundMembership.id,
+            actor_profile_id: profile.id,
+            event_type: "check_in",
+          })
+      );
     }
 
     return {
