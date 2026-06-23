@@ -3,6 +3,12 @@
 import {
   Button,
   Input,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Textarea,
 } from "@nextui-org/react";
 import ActionButton from "@/app/_components/ActionButton";
 import { ReloadOutlined } from "@ant-design/icons";
@@ -78,6 +84,11 @@ export type MemberSearchResult = {
     created_at: string;
     actor_display_name: string;
   }[];
+  notes: {
+    note: string;
+    created_at: string;
+    actor_display_name: string;
+  }[];
 };
 
 const formatSwedishDateTime = (dateStr: string) =>
@@ -139,6 +150,9 @@ export default function ScannerManagerPage() {
   const [membershipSearchQuery, setMembershipSearchQuery] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [_searchError, setSearchError] = useState<string | null>(null);
+  const [notesModal, setNotesModal] = useState<{ membershipId: string } | null>(null);
+  const [notesText, setNotesText] = useState("");
+  const [isSavingNotes, setIsSavingNotes] = useState(false);
 
   const memberQueryRef = useRef<HTMLInputElement>(null);
 
@@ -209,6 +223,28 @@ export default function ScannerManagerPage() {
           Statistics
         </Button>
       </div>
+
+      <Modal isOpen={!!notesModal} onClose={() => { if (!isSavingNotes) setNotesModal(null); }} isDismissable={!isSavingNotes} hideCloseButton={isSavingNotes}>
+        <ModalContent>
+          <ModalHeader>Add Note</ModalHeader>
+          <ModalBody>
+            <p className="text-red-600 font-semibold">⚠ These notes are for facts, not opinions</p>
+            <Textarea value={notesText} onValueChange={setNotesText} placeholder="Enter note..." minRows={3} />
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="light" onPress={() => setNotesModal(null)} isDisabled={isSavingNotes}>Cancel</Button>
+            <Button color="primary" isLoading={isSavingNotes} onPress={async () => {
+              if (!notesText.trim()) return;
+              setIsSavingNotes(true);
+              await apiPost(`/burn/${project!.slug}/admin/memberships/${notesModal!.membershipId}/notes`, { note: notesText });
+              setIsSavingNotes(false);
+              setNotesModal(null);
+              setNotesText("");
+              await searchForMember();
+            }}>Add</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
 
       <div className="flex flex-col gap-4">
         <div className="relative w-full">
@@ -291,7 +327,10 @@ export default function ScannerManagerPage() {
                               </p>
                             ) : <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Not checked-in</h3>}
                           </div>
-                          <div className="flex items-center">
+                          <div className="flex items-center gap-2">
+                            <Button size="sm" className="mr-5" variant="flat" onPress={() => { setNotesText(""); setNotesModal({ membershipId: membership.id }); }}>
+                              Add note
+                            </Button>
                             {membership.checked_in_at ? (
                               <ActionButton
                                 action={{
@@ -328,6 +367,18 @@ export default function ScannerManagerPage() {
 
                         {/* Detail sections — 2-col on sm+ */}
                         <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {(membership.notes || []).length > 0 && (
+                            <div className="bg-yellow-50 border border-yellow-300 rounded-lg px-4 py-3 col-span-2">
+                              <h3 className="text-xs font-bold uppercase tracking-wide text-yellow-700 mb-1">Notes</h3>
+                              {membership.notes.map((n, i) => (
+                                <div key={i} className="mb-2 last:mb-0">
+                                  <p className="text-xs text-gray-500">{formatSwedishDateTime(n.created_at)} — {n.actor_display_name}</p>
+                                  <p className="text-sm whitespace-pre-wrap">{n.note}</p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
                           {(membership.metadata.children || []).length > 0 && (
                             <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
                               <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Children</h3>

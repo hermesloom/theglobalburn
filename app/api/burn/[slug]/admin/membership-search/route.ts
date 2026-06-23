@@ -265,8 +265,27 @@ export const POST = requestWithProject(
       }
     }
 
+    const notesResult = await supabase
+      .from("burn_membership_notes")
+      .select("membership_id, actor_profile_id, note, created_at")
+      .eq("project_id", project!.id)
+      .in("membership_id", allMembershipIds)
+      .order("created_at", { ascending: true });
+
+    const notes = notesResult.data || [];
+
+    // Resolve note actor emails not already fetched
+    const noteActorIds = [...new Set(notes.map((n) => n.actor_profile_id))].filter((id) => !profileEmailsById[id]);
+    if (noteActorIds.length > 0) {
+      const r = await supabase.from("profiles").select("id, email").in("id", noteActorIds);
+      for (const p of r.data || []) profileEmailsById[p.id] = p.email;
+    }
+
     // Look up memberships for actor profiles to get their names
-    const allActorProfileIds = [...new Set(events.map((e) => e.actor_profile_id))];
+    const allActorProfileIds = [...new Set([
+      ...events.map((e) => e.actor_profile_id),
+      ...notes.map((n) => n.actor_profile_id),
+    ])];
     const actorMembershipsResult = allActorProfileIds.length > 0
       ? await supabase
           .from("burn_memberships")
@@ -295,6 +314,16 @@ export const POST = requestWithProject(
       });
     }
 
+    const notesByMembershipId: Record<string, { note: string; created_at: string; actor_display_name: string }[]> = {};
+    for (const n of notes) {
+      if (!notesByMembershipId[n.membership_id]) notesByMembershipId[n.membership_id] = [];
+      notesByMembershipId[n.membership_id].push({
+        note: n.note,
+        created_at: n.created_at,
+        actor_display_name: resolveActorDisplayName(n.actor_profile_id),
+      });
+    }
+
     return {
       data: (membershipResult.data || []).sort((a, b) => {
         return (
@@ -316,6 +345,7 @@ export const POST = requestWithProject(
         },
         transfer_history: buildTransferChain(membership.owner_id),
         check_in_events: eventsByMembershipId[membership.id] || [],
+        notes: notesByMembershipId[membership.id] || [],
       })),
     };
   },
