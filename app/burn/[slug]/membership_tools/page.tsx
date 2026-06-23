@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { apiGet, apiPost } from "@/app/_components/api";
 import { useProject } from "@/app/_components/SessionContext";
 import { formatDOB } from "@/app/burn/[slug]/membership/components/helpers/date";
+import { linkifyPhoneNumbers } from "@/utils/phoneLinks";
 
 interface Profile {
   id: string;
@@ -358,8 +359,8 @@ export default function ScannerManagerPage() {
                               <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Emergency Info</h3>
                               {membership.metadata.camp_name && <p className="text-sm"><strong>Camp:</strong> {membership.metadata.camp_name}</p>}
                               {membership.metadata.phone_number && <p className="text-sm"><strong>Phone:</strong> <a href={`tel:${membership.metadata.phone_number}`} className="text-blue-500 underline">{membership.metadata.phone_number}</a></p>}
-                              {membership.metadata.emergency_contact_onsite && <p className="text-sm"><strong>On-site:</strong> {membership.metadata.emergency_contact_onsite}</p>}
-                              {membership.metadata.emergency_contact_other && <p className="text-sm"><strong>Other:</strong> {membership.metadata.emergency_contact_other}</p>}
+                              {membership.metadata.emergency_contact_onsite && <p className="text-sm"><strong>On-site:</strong> {linkifyPhoneNumbers(membership.metadata.emergency_contact_onsite)}</p>}
+                              {membership.metadata.emergency_contact_other && <p className="text-sm"><strong>Other:</strong> {linkifyPhoneNumbers(membership.metadata.emergency_contact_other)}</p>}
                             </div>
                           )}
 
