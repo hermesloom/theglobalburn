@@ -123,6 +123,7 @@ export default function ScannerManagerPage() {
   const [checkInCountSum, setCheckInCountSum] = useState<number>(0);
   const [membershipResults, setMembershipResults] = useState<MemberSearchResult[]>([]);
   const [membershipSearchQuery, setMembershipSearchQuery] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
   const [_searchError, setSearchError] = useState<string | null>(null);
 
   const memberQueryRef = useRef<HTMLInputElement>(null);
@@ -144,11 +145,15 @@ export default function ScannerManagerPage() {
     page = page || 0;
     resultsSoFar = resultsSoFar || [];
 
-    setMembershipResults([]);
-    setSearchError(null);
+    if (page === 0) {
+      setMembershipResults([]);
+      setSearchError(null);
+      setIsSearching(true);
+      const inputValue = memberQueryRef.current?.value;
+      setMembershipSearchQuery(inputValue || null);
+    }
 
     const inputValue = memberQueryRef.current?.value;
-    setMembershipSearchQuery(inputValue || null);
 
     apiPost(
       `/burn/${project?.slug}/admin/membership-search`,
@@ -157,6 +162,7 @@ export default function ScannerManagerPage() {
       .then(({ data: memberships }) => {
         if (memberships.length === 0) {
           setMembershipResults(resultsSoFar);
+          setIsSearching(false);
         } else {
           searchForMember(page + 1, resultsSoFar.concat(memberships))
         }
@@ -164,6 +170,7 @@ export default function ScannerManagerPage() {
       .catch((error) => {
         console.log({ message: error.message })
         setSearchError(error.message);
+        setIsSearching(false);
       })
   }
 
@@ -206,7 +213,8 @@ export default function ScannerManagerPage() {
           </div>
 
           {membershipSearchQuery != null &&
-            (membershipResults.length == 0 ?
+            (isSearching ? `Searching...` :
+            membershipResults.length == 0 ?
               `No membership results found for: '${membershipSearchQuery}'` :
               <div>
                 <Button
