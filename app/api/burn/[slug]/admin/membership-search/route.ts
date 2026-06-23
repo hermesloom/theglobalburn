@@ -245,6 +245,56 @@ export const POST = requestWithProject(
       ];
     };
 
+    const allMembershipIds = (membershipResult.data || []).map((m) => m.id);
+
+    const eventsResult = await supabase
+      .from("burn_membership_checkin_events")
+      .select("membership_id, actor_profile_id, event_type, created_at")
+      .eq("project_id", project!.id)
+      .in("membership_id", allMembershipIds)
+      .order("created_at", { ascending: true });
+
+    const events = eventsResult.data || [];
+
+    // Resolve actor profile IDs not already in profileEmailsById
+    const actorProfileIds = [...new Set(events.map((e) => e.actor_profile_id))].filter((id) => !profileEmailsById[id]);
+    if (actorProfileIds.length > 0) {
+      const actorProfilesResult = await supabase.from("profiles").select("id, email").in("id", actorProfileIds);
+      for (const p of actorProfilesResult.data || []) {
+        profileEmailsById[p.id] = p.email;
+      }
+    }
+
+    // Look up memberships for actor profiles to get their names
+    const allActorProfileIds = [...new Set(events.map((e) => e.actor_profile_id))];
+    const actorMembershipsResult = allActorProfileIds.length > 0
+      ? await supabase
+          .from("burn_memberships")
+          .select("owner_id, first_name, last_name")
+          .eq("project_id", project!.id)
+          .in("owner_id", allActorProfileIds)
+      : { data: [] };
+
+    const actorNameByProfileId: Record<string, string> = {};
+    for (const m of actorMembershipsResult.data || []) {
+      actorNameByProfileId[m.owner_id] = `${m.first_name} ${m.last_name}`;
+    }
+
+    const resolveActorDisplayName = (profileId: string): string =>
+      actorNameByProfileId[profileId] || profileEmailsById[profileId] || profileId;
+
+    const eventsByMembershipId: Record<string, { event_type: string; created_at: string; actor_display_name: string }[]> = {};
+    for (const event of events) {
+      if (!eventsByMembershipId[event.membership_id]) {
+        eventsByMembershipId[event.membership_id] = [];
+      }
+      eventsByMembershipId[event.membership_id].push({
+        event_type: event.event_type,
+        created_at: event.created_at,
+        actor_display_name: resolveActorDisplayName(event.actor_profile_id),
+      });
+    }
+
     return {
       data: (membershipResult.data || []).sort((a, b) => {
         return (
@@ -265,6 +315,7 @@ export const POST = requestWithProject(
           email: profileEmailsById[membership.owner_id]
         },
         transfer_history: buildTransferChain(membership.owner_id),
+        check_in_events: eventsByMembershipId[membership.id] || [],
       })),
     };
   },

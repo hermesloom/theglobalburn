@@ -33,6 +33,7 @@ export default function MembershipAdminPage() {
   const { project } = useProject();
   const [loadingChildren, setLoadingChildren] = useState(false);
   const [loadingPets, setLoadingPets] = useState(false);
+  const [loadingEmails, setLoadingEmails] = useState(false);
 
   const downloadChildrenCsv = async () => {
     setLoadingChildren(true);
@@ -79,6 +80,30 @@ export default function MembershipAdminPage() {
       toast.error("Failed to download CSV.");
     } finally {
       setLoadingChildren(false);
+    }
+  };
+
+  const downloadEmailsCsv = async () => {
+    setLoadingEmails(true);
+    try {
+      const result = await apiGet(`/burn/${project?.slug}/admin/memberships`);
+      const memberships: Array<{ profiles: { email: string } | null }> =
+        result.data;
+
+      const emails = memberships
+        .map((m) => m.profiles?.email)
+        .filter(Boolean) as string[];
+
+      const unique = [...new Set(emails)].sort();
+      downloadBlob(
+        arrayToCsv([["email"], ...unique.map((e) => [e])]),
+        "member-emails.csv",
+        "text/csv;charset=utf-8;"
+      );
+    } catch {
+      toast.error("Failed to download CSV.");
+    } finally {
+      setLoadingEmails(false);
     }
   };
 
@@ -159,6 +184,9 @@ export default function MembershipAdminPage() {
           </Button>
           <Button color="primary" onPress={downloadPetsCsv} isLoading={loadingPets}>
             Download members with pets (CSV)
+          </Button>
+          <Button color="primary" onPress={downloadEmailsCsv} isLoading={loadingEmails}>
+            Download all member emails (CSV)
           </Button>
         </div>
       </div>

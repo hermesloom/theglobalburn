@@ -15,18 +15,23 @@ export const POST = requestWithProject(
         .eq("owner_id", profileId)
     );
 
-    const newMetaData = foundMembership?.metadata ?? {};
-
-    newMetaData["check_in_reset_actions"] = newMetaData["check_in_resets"] || [];
-    newMetaData["check_in_reset_actions"].push({ profileId: profile.id, dateTime: new Date().toISOString() })
-
     await query(() =>
       supabase
         .from("burn_memberships")
-        .update({ checked_in_at: null, metadata: newMetaData })
+        .update({ checked_in_at: null })
         .eq("id", foundMembership.id)
     );
 
+    await query(() =>
+      supabase
+        .from("burn_membership_checkin_events")
+        .insert({
+          project_id: foundMembership.project_id,
+          membership_id: foundMembership.id,
+          actor_profile_id: profile.id,
+          event_type: "check_out",
+        })
+    );
 
   },
   undefined,
