@@ -40,6 +40,7 @@ interface Pet {
   name: string;
   type: string;
   chip_code: string;
+  photo_url?: string;
 }
 
 type BurnMembershipTransfer = {
@@ -122,6 +123,7 @@ export default function ScannerManagerPage() {
   const [checkInCountSum, setCheckInCountSum] = useState<number>(0);
   const [membershipResults, setMembershipResults] = useState<MemberSearchResult[]>([]);
   const [membershipSearchQuery, setMembershipSearchQuery] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
   const [_searchError, setSearchError] = useState<string | null>(null);
 
   const memberQueryRef = useRef<HTMLInputElement>(null);
@@ -143,11 +145,15 @@ export default function ScannerManagerPage() {
     page = page || 0;
     resultsSoFar = resultsSoFar || [];
 
-    setMembershipResults([]);
-    setSearchError(null);
+    if (page === 0) {
+      setMembershipResults([]);
+      setSearchError(null);
+      setIsSearching(true);
+      const inputValue = memberQueryRef.current?.value;
+      setMembershipSearchQuery(inputValue || null);
+    }
 
     const inputValue = memberQueryRef.current?.value;
-    setMembershipSearchQuery(inputValue || null);
 
     apiPost(
       `/burn/${project?.slug}/admin/membership-search`,
@@ -156,6 +162,7 @@ export default function ScannerManagerPage() {
       .then(({ data: memberships }) => {
         if (memberships.length === 0) {
           setMembershipResults(resultsSoFar);
+          setIsSearching(false);
         } else {
           searchForMember(page + 1, resultsSoFar.concat(memberships))
         }
@@ -163,6 +170,7 @@ export default function ScannerManagerPage() {
       .catch((error) => {
         console.log({ message: error.message })
         setSearchError(error.message);
+        setIsSearching(false);
       })
   }
 
@@ -205,7 +213,8 @@ export default function ScannerManagerPage() {
           </div>
 
           {membershipSearchQuery != null &&
-            (membershipResults.length == 0 ?
+            (isSearching ? `Searching...` :
+            membershipResults.length == 0 ?
               `No membership results found for: '${membershipSearchQuery}'` :
               <div>
                 <Button
@@ -314,7 +323,12 @@ export default function ScannerManagerPage() {
                             <div key="pets">
                               <h3 className="text-lg font-semibold mt-1">Pets</h3>
                               {membership.metadata.pets.map((pet) =>
-                                <p key={pet.chip_code}>{pet.name} / {pet.type} / Chip: {pet.chip_code}</p>
+                                <div key={pet.chip_code} className="flex gap-4 items-start mb-2">
+                                  {pet.photo_url && (
+                                    <img src={pet.photo_url} alt={pet.name} style={{ maxHeight: 150, width: "auto", borderRadius: 8, flexShrink: 0 }} />
+                                  )}
+                                  <p>{pet.name} / {pet.type} / Chip: {pet.chip_code}</p>
+                                </div>
                               )}
                             </div>
                           )}
@@ -323,7 +337,7 @@ export default function ScannerManagerPage() {
                             <div key="emergency">
                               <h3 className="text-lg font-semibold mt-1">Emergency Info</h3>
                               {membership.metadata.camp_name && <p><strong>Camp:</strong> {membership.metadata.camp_name}</p>}
-                              {membership.metadata.phone_number && <p><strong>Phone:</strong> {membership.metadata.phone_number}</p>}
+                              {membership.metadata.phone_number && <p><strong>Phone:</strong> <a href={`tel:${membership.metadata.phone_number}`} className="text-blue-500 underline">{membership.metadata.phone_number}</a></p>}
                               {membership.metadata.emergency_contact_onsite && <p><strong>On-site contact:</strong> {membership.metadata.emergency_contact_onsite}</p>}
                               {membership.metadata.emergency_contact_other && <p><strong>Other contact:</strong> {membership.metadata.emergency_contact_other}</p>}
                             </div>
@@ -334,7 +348,7 @@ export default function ScannerManagerPage() {
                               <h3 className="text-lg font-semibold mt-1">Sleeper Vehicle</h3>
                               {membership.metadata.car_registration.registration_plate && <p><strong>Plate:</strong> {membership.metadata.car_registration.registration_plate}</p>}
                               {membership.metadata.car_registration.camp_or_area && <p><strong>Camp/Area:</strong> {membership.metadata.car_registration.camp_or_area}</p>}
-                              {membership.metadata.car_registration.phone_number && <p><strong>Phone:</strong> {membership.metadata.car_registration.phone_number}</p>}
+                              {membership.metadata.car_registration.phone_number && <p><strong>Phone:</strong> <a href={`tel:${membership.metadata.car_registration.phone_number}`} className="text-blue-500 underline">{membership.metadata.car_registration.phone_number}</a></p>}
                               {membership.metadata.car_registration.alt_contact && <p><strong>Alt contact:</strong> {membership.metadata.car_registration.alt_contact}</p>}
                             </div>
                           )}
