@@ -288,7 +288,7 @@ export default function ScannerManagerPage() {
                                   </p>
                                 ))}
                               </p>
-                            ) : <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">"Not checked-in"</h3>}
+                            ) : <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Not checked-in</h3>}
                           </div>
                           <div className="flex items-center">
                             {membership.checked_in_at ? (
