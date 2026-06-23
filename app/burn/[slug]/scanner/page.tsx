@@ -162,7 +162,8 @@ export default function ScannerPage() {
         .catch((error) => {
           setCurrentlyScanning(false);
           deniedAudio.play();
-          setResultMessage({ type: 'error', text: error.message });
+          const text = error.httpStatus === 404 ? "Member not found" : error.message;
+          setResultMessage({ type: 'error', text });
         })
     }).catch((error) => {
       setResultMessage({ type: 'error', text: error });
