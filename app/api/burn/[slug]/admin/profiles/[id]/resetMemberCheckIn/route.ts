@@ -1,9 +1,10 @@
 import { requestWithProject, query } from "@/app/api/_common/endpoints";
+import { NextResponse } from "next/server";
 import { BurnRole } from "@/utils/types";
 
 // TODO: `profiles` aren't linked to a burn, so how to deal with scanners?  Maybe they're global?
 export const POST = requestWithProject(
-  async (supabase, profile, request, _body, _project) => {
+  async (supabase, profile, request, _body, project) => {
     const parts = request.nextUrl.pathname.split("/");
     parts.pop()
     const profileId = parts.pop()
@@ -13,7 +14,12 @@ export const POST = requestWithProject(
         .from("burn_memberships")
         .select("*")
         .eq("owner_id", profileId)
+        .eq("project_id", project!.id)
     );
+
+    if (!foundMembership) {
+      return NextResponse.json({ error: "No membership found" }, { status: 404 });
+    }
 
     await query(() =>
       supabase

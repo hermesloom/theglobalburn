@@ -5,6 +5,7 @@ import ActionButton from "@/app/_components/ActionButton";
 import { apiPatch } from "@/app/_components/api";
 import { useProject } from "@/app/_components/SessionContext";
 import { phonePromptField } from "@/utils/phone";
+import { linkifyPhoneNumbers } from "@/utils/phoneLinks";
 
 export interface EmergencyInfoData {
   phone_number?: string;
@@ -56,13 +57,13 @@ export default function EmergencyInfo({ data }: { data: EmergencyInfoData }) {
           {info.emergency_contact_onsite && (
             <p>
               <strong>Emergency Contact (On-Site):</strong>{" "}
-              {info.emergency_contact_onsite}
+              {linkifyPhoneNumbers(info.emergency_contact_onsite)}
             </p>
           )}
           {info.emergency_contact_other && (
             <p>
               <strong>Emergency Contact (Other):</strong>{" "}
-              {info.emergency_contact_other}
+              {linkifyPhoneNumbers(info.emergency_contact_other)}
             </p>
           )}
         </div>
