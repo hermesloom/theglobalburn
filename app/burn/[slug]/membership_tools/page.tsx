@@ -201,7 +201,7 @@ export default function ScannerManagerPage() {
 
           Search for a member:
 
-          <Input type="text" ref={memberQueryRef} name="member-query" className="border border-black rounded-lg" />
+          <Input type="text" ref={memberQueryRef} name="member-query" className="border border-black rounded-lg" onKeyDown={(e) => { if (e.key === 'Enter') searchForMember() }} />
 
           <div className="w-full h-full flex items-center justify-center">
             <Button
