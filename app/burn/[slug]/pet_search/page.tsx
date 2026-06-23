@@ -62,6 +62,7 @@ export default function ScannerPage() {
   const { project } = useProject();
 
   const [membershipResults, setMembershipResults] = useState<BurnMembership[] | null>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
 
   const chipCodeRef = useRef<HTMLInputElement>(null);
@@ -69,14 +70,17 @@ export default function ScannerPage() {
   const doSearch = (chipCode: string) => {
     setMembershipResults([]);
     setSearchError(null);
+    setIsSearching(true);
 
     apiGet(`/burn/${project!.slug}/admin/pet_search/${chipCode}`)
       .then((memberships) => {
         setMembershipResults(memberships);
+        setIsSearching(false);
       })
       .catch((error) => {
         console.log({ message: error.message })
         setSearchError(error.message);
+        setIsSearching(false);
       })
   };
 
@@ -95,17 +99,15 @@ export default function ScannerPage() {
 
   return (
     <>
-      <Heading>Pet search (by chip code)</Heading>
-
       <div className="flex flex-col gap-4">
         <div className="relative w-full">
 
-          <Input type="text" ref={chipCodeRef} name="chip_code" className="border border-black rounded-lg mb-4" />
+          <Input type="text" ref={chipCodeRef} name="chip_code" className="border border-black rounded-lg mb-4" onKeyDown={(e) => { if (e.key === 'Enter') searchForPet() }} />
 
           <div className="mb-4">
             <div className="w-full h-full flex items-center justify-center gap-4">
               <Button color="primary" onPress={searchForPet}>
-                Search
+                Search by chip code
               </Button>
               <Button color="secondary" onPress={showAllPets}>
                 Show all memberships with pets
@@ -123,7 +125,8 @@ export default function ScannerPage() {
             </Card>
           )}
 
-          {membershipResults && membershipResults.length === 0 && <div>No memberships with matching pet chip code found</div>}
+          {isSearching && <div>Searching...</div>}
+          {!isSearching && membershipResults && membershipResults.length === 0 && <div>No memberships with matching pet chip code found</div>}
           {membershipResults &&
             (membershipResults.map((membership) => {
               {
