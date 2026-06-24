@@ -33,22 +33,22 @@ export const GET = requestWithProject(
     const foundMemberships = await query(() =>
       supabase
         .from("burn_memberships")
-        .select("*")
+        .select("*, profiles(email)")
         .eq("project_id", project!.id)
         .in("id", ids)
     );
 
     return (
-      foundMemberships.map((membership: BurnMembership) => {
+      foundMemberships.map((membership: BurnMembership & { profiles: { email: string } }) => {
         return {
           id: membership.id,
           first_name: membership.first_name,
           last_name: membership.last_name,
-          birthdate: membership.birthdate,
           checked_in_at: membership.checked_in_at,
+          profile: { email: membership.profiles?.email },
           metadata: {
-            children: membership.metadata.children,
             pets: membership.metadata.pets,
+            emergency_info: membership.metadata.emergency_info,
           }
         }
       })
