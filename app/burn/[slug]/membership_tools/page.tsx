@@ -255,7 +255,7 @@ export default function ScannerManagerPage() {
                           <div className={`bg-gray-100 px-4 py-3 flex flex-wrap items-start justify-between gap-2${hasBody ? "" : " rounded-xl"}`}>
                             <div>
                               <p className="text-xl font-bold">{membership.first_name} {membership.last_name}</p>
-                              <p className="text-sm text-gray-600">{membership.profile.email}</p>
+                              <p className="text-sm text-gray-600"><a href={`mailto:${membership.profile.email}`} className="text-blue-500 underline">{membership.profile.email}</a></p>
 
                               {(membership.check_in_events || []).length > 0 ? (
                                 <p>
@@ -295,7 +295,7 @@ export default function ScannerManagerPage() {
                                     label: "Check IN",
                                     onClick: async () => {
                                       if (confirm("Are you sure you want to CHECK-IN this member?")) {
-                                        await apiPost(`/burn/${project!.slug}/admin/check-in-member/${membership.id}`)
+                                        await apiPost(`/ burn / ${project!.slug} /admin/check-in-member/${membership.id}`)
                                         await searchForMember()
                                       }
                                     },
