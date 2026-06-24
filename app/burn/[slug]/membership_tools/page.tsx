@@ -186,7 +186,14 @@ export default function ScannerManagerPage() {
 
   return (
     <>
-      <div className="flex justify-end mb-2">
+      <div className="flex justify-end gap-2 mb-2">
+        <Button
+          color="primary"
+          variant="flat"
+          onPress={() => router.push(`/burn/${project?.slug}/membership_tools/note-log`)}
+        >
+          Note Log
+        </Button>
         <Button
           color="primary"
           variant="flat"
