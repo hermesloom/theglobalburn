@@ -6,6 +6,7 @@ import {
   validateNewMembershipEligibility,
   getAvailableMemberships,
 } from "@/app/api/_common/profile";
+import { sendEmail } from "@/app/_components/email";
 
 const TransferMembershipRequestSchema = s.object({
   email: s.string(),
@@ -109,6 +110,34 @@ export const POST = requestWithProject<
         })
         .eq("id", project!.membership!.id),
     );
+
+    const expiresAt = new Date(purchaseRight.expires_at).toLocaleString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: "Europe/Stockholm",
+      timeZoneName: "short",
+    });
+    const baseUrl = new URL(request.url).origin;
+    const membershipUrl = `${baseUrl}/burn/${project!.slug}/membership`;
+
+    try {
+      console.log(
+        `[transfer-membership] Sending transfer email to ${body.email} for project ${project!.slug}, purchaseRightId=${purchaseRight.id}, expiresAt=${purchaseRight.expires_at}`,
+      );
+      await sendEmail(
+        body.email,
+        `You have a transfer membership available for ${project!.name}`,
+        `Hi,\n\nSomeone has initiated a membership transfer to you for ${project!.name}.\n\nYou can purchase the transferred membership here:\n${membershipUrl}\n\nThis offer expires on ${expiresAt}. After that, the transfer will be cancelled automatically.\n\nSee you at the burn!`,
+      );
+      console.log(
+        `[transfer-membership] Email sent successfully to ${body.email} for project ${project!.slug}`,
+      );
+    } catch (e) {
+      console.error(`[transfer-membership] Email failed (non-fatal):`, e);
+    }
   },
   TransferMembershipRequestSchema,
   BurnRole.Participant,
