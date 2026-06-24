@@ -105,34 +105,6 @@ const formatSwedishDateTime = (dateStr: string) =>
 const formatSwedishDate = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString('sv-SE', { timeZone: 'Europe/Stockholm' });
 
-// -------------------
-// Credit: https://stackoverflow.com/questions/14964035/how-to-export-javascript-array-info-to-csv-on-client-side
-// -------------------
-
-function arrayToCsv(data: string[][]) {
-  return data.map(row =>
-    row
-      .map(String)  // convert every value to String
-      .map(v => v.replaceAll('"', '""'))  // escape double quotes
-      .map(v => `"${v}"`)  // quote it
-      .join(',')  // comma-separated
-  ).join('\r\n');  // rows starting on new lines
-}
-
-function downloadBlob(content: string, filename: string, contentType: string) {
-  // Create a blob
-  const blob = new Blob([content], { type: contentType });
-  const url = URL.createObjectURL(blob);
-
-  // Create a link to download it
-  const pom = document.createElement('a');
-  pom.href = url;
-  pom.setAttribute('download', filename);
-  pom.click();
-}
-
-// -------------------
-
 
 const resetMemberCheckIn = (projectSlug: string, profileIds: string[]) => {
   // console.log({ profileIds })
@@ -267,45 +239,6 @@ export default function ScannerManagerPage() {
               membershipResults.length == 0 ?
                 `No membership results found for: '${membershipSearchQuery}'` :
                 <div>
-                  <Button
-                    color="primary"
-                    onPress={() => {
-                      const data = [[
-                        "First Name",
-                        "Last Name",
-                        "Birth Date",
-                        "Checked-in",
-                        "Children",
-                        "Pets",
-                      ]]
-
-                      membershipResults.forEach((membership) => {
-                        const children =
-                          (membership.metadata.children || []).map((child) =>
-                            `${child.first_name} ${child.last_name} - DOB: ${formatDOB(child.dob)}`
-                          ).join("\n")
-
-                        const pets =
-                          (membership.metadata.pets || []).map((pet) =>
-                            `${pet.name} / ${pet.type} / Chip: ${pet.chip_code}`
-                          ).join("\n")
-
-                        data.push([
-                          membership.first_name,
-                          membership.last_name,
-                          formatDOB(membership.birthdate),
-                          membership.checked_in_at,
-                          children,
-                          pets,
-                        ])
-                      })
-
-                      downloadBlob(arrayToCsv(data), 'memberships.csv', 'text/csv;charset=utf-8;')
-                    }}
-                  >
-                    Download CSV
-                  </Button>
-
                   <div className="flex flex-col gap-3 mt-3">
                     {membershipResults.map((membership) => {
                       const hasBody = (
