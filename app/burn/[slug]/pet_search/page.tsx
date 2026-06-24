@@ -151,26 +151,24 @@ export default function ScannerPage() {
                     {(membership.metadata?.pets?.length ?? 0) > 0 && (
                       <div className="mt-4">
                         <h4 className="font-semibold mb-2">Pets</h4>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-                          {(membership.metadata.pets ?? []).map((pet: Pet) => (
-                            <div key={pet.key} className="border border-gray-300 rounded-lg p-3 flex flex-col gap-2">
-                              <div className="flex flex-col gap-1">
-                                <p><strong>Name:</strong> {pet.name}</p>
-                                <p><strong>Type:</strong> {pet.type}</p>
-                                <p><strong>Chip Code:</strong> {pet.chip_code}</p>
-                                <p><strong>Description:</strong> {pet.description}</p>
-                                <p><strong>Other Info:</strong> {pet.other_information}</p>
-                              </div>
-                              {pet.photo_url && (
-                                <img
-                                  src={pet.photo_url}
-                                  alt={pet.name}
-                                  style={{ maxHeight: 250, width: "auto", borderRadius: 8 }}
-                                />
-                              )}
+                        {(membership.metadata.pets ?? []).map((pet: Pet) => (
+                          <div key={pet.key} className="border border-gray-300 rounded-lg p-3 grid grid-cols-1 lg:grid-cols-2 gap-2">
+                            {pet.photo_url && (
+                              <img
+                                src={pet.photo_url}
+                                alt={pet.name}
+                                style={{ maxHeight: 250, width: "auto", borderRadius: 8, flexShrink: 0 }}
+                              />
+                            )}
+                            <div className="flex flex-col gap-1">
+                              <p><strong>Name:</strong> {pet.name}</p>
+                              <p><strong>Type:</strong> {pet.type}</p>
+                              <p><strong>Chip Code:</strong> {pet.chip_code}</p>
+                              <p><strong>Description:</strong> {pet.description}</p>
+                              <p><strong>Other Info:</strong> {pet.other_information}</p>
                             </div>
-                          ))}
-                        </div>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
