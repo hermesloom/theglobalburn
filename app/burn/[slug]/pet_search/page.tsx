@@ -25,13 +25,6 @@ interface PetSearchMembership {
   };
 }
 
-interface Child {
-  dob: string;
-  key: string;
-  last_name: string;
-  first_name: string;
-}
-
 interface Pet {
   key: string;
   name: string;
@@ -155,7 +148,7 @@ export default function ScannerPage() {
                       </div>
                     )}
 
-                    {membership.metadata?.pets?.length > 0 && (
+                    {(membership.metadata?.pets?.length ?? 0) > 0 && (
                       <div className="mt-4">
                         <h4 className="font-semibold mb-2">Pets</h4>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
