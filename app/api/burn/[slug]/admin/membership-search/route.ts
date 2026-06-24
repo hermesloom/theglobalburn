@@ -18,25 +18,18 @@ export const POST = requestWithProject(
     const searchTerms = searchTerm.trim().split(/\s+/);
     const normalizedSearchTerm = searchTerm.replace(/\s+/g, '');
 
-    // Query profiles for email matches
-    const profileResult = await supabase
-      .from("profiles")
-      .select(`id`)
-      .ilike("email", `%${searchTerm}%`);
+    // Query profiles for email matches and all plates concurrently
+    const [profileResult, platesResult] = await Promise.all([
+      supabase.from("profiles").select(`id`).ilike("email", `%${searchTerm}%`),
+      supabase.from("burn_memberships").select(`id, metadata->car_registration->>registration_plate`).eq("project_id", project!.id),
+    ]);
 
     if (profileResult.error) {
       console.error("Error fetching profiles:", profileResult.error);
-      // return [];
       return { error: profileResult.error };
     }
 
     const profileIds = profileResult.data.map((result) => result.id)
-
-    // Fetch all plates for space-insensitive matching (can't use SQL expressions in PostgREST filters)
-    const platesResult = await supabase
-      .from("burn_memberships")
-      .select(`id, metadata->car_registration->>registration_plate`)
-      .eq("project_id", project!.id);
 
     const plateMatchIds: string[] = (platesResult.data || [])
       .filter((r) => {
@@ -102,14 +95,14 @@ export const POST = requestWithProject(
       return { error: membershipResult.error };
     }
 
-    const profileResult2 = await supabase
-      .from("profiles")
-      .select(`id,email`)
-      .in('id', membershipResult.data.map((r) => r.owner_id));
+    // Fetch owner emails and all transfers concurrently
+    const [profileResult2, transfersResult] = await Promise.all([
+      supabase.from("profiles").select(`id,email`).in('id', membershipResult.data.map((r) => r.owner_id)),
+      supabase.from("burn_membership_transfers").select("id, created_at, from_owner_id, to_owner_id, original_membership_json").eq("project_id", project!.id).order("created_at", { ascending: false }),
+    ]);
 
     if (profileResult2.error) {
       console.error("Error fetching profiles (second time):", profileResult2.error);
-      // return [];
       return { error: profileResult2.error };
     }
 
@@ -117,13 +110,6 @@ export const POST = requestWithProject(
       Object.fromEntries(
         profileResult2.data.map(profile => [profile.id, profile.email])
       );
-
-    // Fetch all transfers for this project to build transfer history chains
-    const transfersResult = await supabase
-      .from("burn_membership_transfers")
-      .select("id, created_at, from_owner_id, to_owner_id, original_membership_json")
-      .eq("project_id", project!.id)
-      .order("created_at", { ascending: false });
 
     const allTransfers = transfersResult.data || [];
 
@@ -247,52 +233,30 @@ export const POST = requestWithProject(
 
     const allMembershipIds = (membershipResult.data || []).map((m) => m.id);
 
-    const eventsResult = await supabase
-      .from("burn_membership_checkin_events")
-      .select("membership_id, actor_profile_id, event_type, created_at")
-      .eq("project_id", project!.id)
-      .in("membership_id", allMembershipIds)
-      .order("created_at", { ascending: true });
+    // Fetch checkin events and notes concurrently
+    const [eventsResult, notesResult] = await Promise.all([
+      supabase.from("burn_membership_checkin_events").select("membership_id, actor_profile_id, event_type, created_at").eq("project_id", project!.id).in("membership_id", allMembershipIds).order("created_at", { ascending: true }),
+      supabase.from("burn_membership_notes").select("membership_id, actor_profile_id, note, created_at").eq("project_id", project!.id).in("membership_id", allMembershipIds).order("created_at", { ascending: true }),
+    ]);
 
     const events = eventsResult.data || [];
-
-    // Resolve actor profile IDs not already in profileEmailsById
-    const actorProfileIds = [...new Set(events.map((e) => e.actor_profile_id))].filter((id) => !profileEmailsById[id]);
-    if (actorProfileIds.length > 0) {
-      const actorProfilesResult = await supabase.from("profiles").select("id, email").in("id", actorProfileIds);
-      for (const p of actorProfilesResult.data || []) {
-        profileEmailsById[p.id] = p.email;
-      }
-    }
-
-    const notesResult = await supabase
-      .from("burn_membership_notes")
-      .select("membership_id, actor_profile_id, note, created_at")
-      .eq("project_id", project!.id)
-      .in("membership_id", allMembershipIds)
-      .order("created_at", { ascending: true });
-
     const notes = notesResult.data || [];
 
-    // Resolve note actor emails not already fetched
-    const noteActorIds = [...new Set(notes.map((n) => n.actor_profile_id))].filter((id) => !profileEmailsById[id]);
-    if (noteActorIds.length > 0) {
-      const r = await supabase.from("profiles").select("id, email").in("id", noteActorIds);
-      for (const p of r.data || []) profileEmailsById[p.id] = p.email;
-    }
-
-    // Look up memberships for actor profiles to get their names
+    // Resolve actor emails and actor memberships concurrently
     const allActorProfileIds = [...new Set([
       ...events.map((e) => e.actor_profile_id),
       ...notes.map((n) => n.actor_profile_id),
     ])];
-    const actorMembershipsResult = allActorProfileIds.length > 0
-      ? await supabase
-          .from("burn_memberships")
-          .select("owner_id, first_name, last_name")
-          .eq("project_id", project!.id)
-          .in("owner_id", allActorProfileIds)
-      : { data: [] };
+    const missingActorEmailIds = allActorProfileIds.filter((id) => !profileEmailsById[id]);
+    const [actorEmailsResult, actorMembershipsResult] = await Promise.all([
+      missingActorEmailIds.length > 0
+        ? supabase.from("profiles").select("id, email").in("id", missingActorEmailIds)
+        : Promise.resolve({ data: [] }),
+      allActorProfileIds.length > 0
+        ? supabase.from("burn_memberships").select("owner_id, first_name, last_name").eq("project_id", project!.id).in("owner_id", allActorProfileIds)
+        : Promise.resolve({ data: [] }),
+    ]);
+    for (const p of actorEmailsResult.data || []) profileEmailsById[p.id] = p.email;
 
     const actorNameByProfileId: Record<string, string> = {};
     for (const m of actorMembershipsResult.data || []) {
