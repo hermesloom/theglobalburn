@@ -152,7 +152,7 @@ export default function ScannerPage() {
                       <div className="mt-4">
                         <h4 className="font-semibold mb-2">Pets</h4>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-                          {membership.metadata.pets.map((pet: Pet) => (
+                          {(membership.metadata.pets ?? []).map((pet: Pet) => (
                             <div key={pet.key} className="border border-gray-300 rounded-lg p-3 flex flex-col gap-2">
                               <div className="flex flex-col gap-1">
                                 <p><strong>Name:</strong> {pet.name}</p>
