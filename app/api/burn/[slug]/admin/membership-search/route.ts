@@ -18,25 +18,20 @@ export const POST = requestWithProject(
     const searchTerms = searchTerm.trim().split(/\s+/);
     const normalizedSearchTerm = searchTerm.replace(/\s+/g, '');
 
-    // Query profiles for email matches
-    const profileResult = await supabase
-      .from("profiles")
-      .select(`id`)
-      .ilike("email", `%${searchTerm}%`);
+    // Query profiles for email matches and all plates concurrently
+    let t = Date.now();
+    const [profileResult, platesResult] = await Promise.all([
+      supabase.from("profiles").select(`id`).ilike("email", `%${searchTerm}%`),
+      supabase.from("burn_memberships").select(`id, metadata->car_registration->>registration_plate`).eq("project_id", project!.id),
+    ]);
+    console.log(`[timing] profileResult + platesResult: ${Date.now() - t}ms`);
 
     if (profileResult.error) {
       console.error("Error fetching profiles:", profileResult.error);
-      // return [];
       return { error: profileResult.error };
     }
 
     const profileIds = profileResult.data.map((result) => result.id)
-
-    // Fetch all plates for space-insensitive matching (can't use SQL expressions in PostgREST filters)
-    const platesResult = await supabase
-      .from("burn_memberships")
-      .select(`id, metadata->car_registration->>registration_plate`)
-      .eq("project_id", project!.id);
 
     const plateMatchIds: string[] = (platesResult.data || [])
       .filter((r) => {
@@ -69,7 +64,6 @@ export const POST = requestWithProject(
           ((page + 1) * pageSize) - 1
         );
 
-
     membershipQuery =
       membershipQuery
         .or([
@@ -80,7 +74,9 @@ export const POST = requestWithProject(
           ...(plateMatchIds.length > 0 ? [`id.in.(${plateMatchIds.join(',')})`] : [])
         ].join(','))
 
+    t = Date.now();
     const membershipResult = await membershipQuery;
+    console.log(`[timing] membershipQuery: ${Date.now() - t}ms (${membershipResult.data?.length ?? 0} rows)`);
 
     const countOfTermsMatched = (result: { first_name: string, last_name: string, camp_name?: string | null, car_registration?: any }) => {
       return (
@@ -98,95 +94,40 @@ export const POST = requestWithProject(
 
     if (membershipResult.error) {
       console.error("Error fetching memberships:", membershipResult.error);
-      // return [];
       return { error: membershipResult.error };
     }
 
-    const profileResult2 = await supabase
-      .from("profiles")
-      .select(`id,email`)
-      .in('id', membershipResult.data.map((r) => r.owner_id));
+    const foundOwnerIds = (membershipResult.data || []).map((m) => m.owner_id);
+
+    // Fetch owner emails and search transfers by previous owner concurrently.
+    // search_transfers_by_previous_owner only runs on page 0 — transfer matches are not paginated.
+    t = Date.now();
+    const [profileResult2, prevOwnerSearchResult] = await Promise.all([
+      supabase.from("profiles").select(`id,email`).in('id', foundOwnerIds),
+      page === 0
+        ? supabase.rpc("search_transfers_by_previous_owner", { p_search_terms: searchTerms, p_search_term: searchTerm, p_project_id: project!.id })
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+    console.log(`[timing] profileResult2 + prevOwnerSearch: ${Date.now() - t}ms`);
 
     if (profileResult2.error) {
       console.error("Error fetching profiles (second time):", profileResult2.error);
-      // return [];
       return { error: profileResult2.error };
     }
 
     const profileEmailsById: Record<string, string> =
       Object.fromEntries(
-        profileResult2.data.map(profile => [profile.id, profile.email])
+        profileResult2.data.map((p: any) => [p.id, p.email])
       );
 
-    // Fetch all transfers for this project to build transfer history chains
-    const transfersResult = await supabase
-      .from("burn_membership_transfers")
-      .select("id, created_at, from_owner_id, to_owner_id, original_membership_json")
-      .eq("project_id", project!.id)
-      .order("created_at", { ascending: false });
-
-    const allTransfers = transfersResult.data || [];
-
-    // Collect profile IDs from transfers not already fetched
-    const missingProfileIds = [...new Set([
-      ...allTransfers.map(t => t.from_owner_id),
-      ...allTransfers.map(t => t.to_owner_id),
-    ])].filter(id => !profileEmailsById[id]);
-
-    if (missingProfileIds.length > 0) {
-      const chunkSize = 100;
-      for (let i = 0; i < missingProfileIds.length; i += chunkSize) {
-        const chunk = missingProfileIds.slice(i, i + chunkSize);
-        const result = await supabase.from("profiles").select("id, email").in("id", chunk);
-        for (const p of result.data || []) {
-          profileEmailsById[p.id] = p.email;
-        }
-      }
-    }
-
-    // Map: to_owner_id -> most recent transfer received
-    const transferByRecipient = new Map<string, typeof allTransfers[0]>();
-    // Map: from_owner_id -> transfer sent (for forward chain traversal)
-    const transferBySender = new Map<string, typeof allTransfers[0]>();
-    for (const transfer of allTransfers) {
-      if (!transferByRecipient.has(transfer.to_owner_id)) {
-        transferByRecipient.set(transfer.to_owner_id, transfer);
-      }
-      if (!transferBySender.has(transfer.from_owner_id)) {
-        transferBySender.set(transfer.from_owner_id, transfer);
-      }
-    }
-
-    // Follow forward chain to find current owner of a membership
-    const findCurrentOwner = (ownerId: string, visited = new Set<string>()): string => {
-      if (visited.has(ownerId)) return ownerId;
-      visited.add(ownerId);
-      const next = transferBySender.get(ownerId);
-      if (!next) return ownerId;
-      return findCurrentOwner(next.to_owner_id, visited);
-    };
-
-    // Find transfers matching search term (by previous owner name or email)
-    const matchingTransfers = allTransfers.filter((t) => {
-      const json = t.original_membership_json as any;
-      const firstName = (json?.first_name || '').toLowerCase();
-      const lastName = (json?.last_name || '').toLowerCase();
-      const fromEmail = (profileEmailsById[t.from_owner_id] || '').toLowerCase();
-      return (
-        searchTerms.some((term: string) => firstName.includes(term) || lastName.includes(term)) ||
-        fromEmail.includes(searchTerm)
-      );
-    });
-
-    // Find current owner IDs for matching transfers not already in results.
-    // Only run on page 0 — transfer matches are not paginated, so appending on
-    // every page would cause the frontend's pagination loop to run forever.
-    const existingOwnerIds = new Set((membershipResult.data || []).map((m) => m.owner_id));
+    // Fetch extra memberships whose current owner was found via transfer history search
+    const existingOwnerIds = new Set(foundOwnerIds);
     const extraOwnerIds = page === 0
-      ? [...new Set(matchingTransfers.map((t) => findCurrentOwner(t.to_owner_id)))].filter((id) => !existingOwnerIds.has(id))
+      ? [...new Set((prevOwnerSearchResult.data || []).map((r: any) => r.current_owner_id as string))].filter((id) => !existingOwnerIds.has(id))
       : [];
 
     if (extraOwnerIds.length > 0) {
+      t = Date.now();
       const extraMembershipsResult = await supabase
         .from("burn_memberships")
         .select(`
@@ -206,23 +147,73 @@ export const POST = requestWithProject(
         `)
         .eq("project_id", project!.id)
         .in("owner_id", extraOwnerIds);
+      console.log(`[timing] extraMemberships (${extraOwnerIds.length} owners): ${Date.now() - t}ms`);
 
       if (!extraMembershipsResult.error && extraMembershipsResult.data) {
-        // Fetch emails for any new owners
-        const newOwnerIds = extraMembershipsResult.data
-          .map((m) => m.owner_id)
-          .filter((id) => !profileEmailsById[id]);
-        if (newOwnerIds.length > 0) {
-          const newProfilesResult = await supabase
-            .from("profiles")
-            .select("id, email")
-            .in("id", newOwnerIds);
-          for (const p of newProfilesResult.data || []) {
-            profileEmailsById[p.id] = p.email;
-          }
-        }
         (membershipResult.data as any[]).push(...extraMembershipsResult.data);
       }
+    }
+
+    // All membership owner IDs now known — fetch transfer chains, events, and notes concurrently
+    const allOwnerIds = (membershipResult.data || []).map((m) => m.owner_id);
+    const allMembershipIds = (membershipResult.data || []).map((m) => m.id);
+
+    t = Date.now();
+    const [transferChainsResult, eventsResult, notesResult] = await Promise.all([
+      allOwnerIds.length > 0
+        ? supabase.rpc("get_transfer_chains", { p_owner_ids: allOwnerIds, p_project_id: project!.id })
+        : Promise.resolve({ data: [], error: null }),
+      supabase.from("burn_membership_checkin_events").select("membership_id, actor_profile_id, event_type, created_at").eq("project_id", project!.id).in("membership_id", allMembershipIds).order("created_at", { ascending: true }),
+      supabase.from("burn_membership_notes").select("membership_id, actor_profile_id, note, created_at").eq("project_id", project!.id).in("membership_id", allMembershipIds).order("created_at", { ascending: true }),
+    ]);
+    console.log(`[timing] transferChains + eventsResult + notesResult: ${Date.now() - t}ms`);
+
+    const allTransfers: any[] = transferChainsResult.data || [];
+    for (const tr of allTransfers) {
+      if (tr.from_email) profileEmailsById[tr.from_owner_id] = tr.from_email;
+      if (tr.to_email)   profileEmailsById[tr.to_owner_id]   = tr.to_email;
+    }
+
+    // Fetch emails for extra membership owners not yet known
+    const newOwnerIds = allOwnerIds.filter((id: string) => !profileEmailsById[id]);
+    if (newOwnerIds.length > 0) {
+      const newProfilesResult = await supabase.from("profiles").select("id, email").in("id", newOwnerIds);
+      for (const p of newProfilesResult.data || []) profileEmailsById[p.id] = p.email;
+    }
+
+    const events = eventsResult.data || [];
+    const notes = notesResult.data || [];
+
+    // Resolve actor emails and actor memberships concurrently
+    const allActorProfileIds = [...new Set([
+      ...events.map((e) => e.actor_profile_id),
+      ...notes.map((n) => n.actor_profile_id),
+    ])];
+    const missingActorEmailIds = allActorProfileIds.filter((id) => !profileEmailsById[id]);
+    t = Date.now();
+    const [actorEmailsResult, actorMembershipsResult] = await Promise.all([
+      missingActorEmailIds.length > 0
+        ? supabase.from("profiles").select("id, email").in("id", missingActorEmailIds)
+        : Promise.resolve({ data: [] }),
+      allActorProfileIds.length > 0
+        ? supabase.from("burn_memberships").select("owner_id, first_name, last_name").eq("project_id", project!.id).in("owner_id", allActorProfileIds)
+        : Promise.resolve({ data: [] }),
+    ]);
+    console.log(`[timing] actorEmails + actorMemberships: ${Date.now() - t}ms`);
+    for (const p of actorEmailsResult.data || []) profileEmailsById[p.id] = p.email;
+
+    const actorNameByProfileId: Record<string, string> = {};
+    for (const m of actorMembershipsResult.data || []) {
+      actorNameByProfileId[m.owner_id] = `${m.first_name} ${m.last_name}`;
+    }
+
+    const resolveActorDisplayName = (profileId: string): string =>
+      actorNameByProfileId[profileId] || profileEmailsById[profileId] || profileId;
+
+    // Build transfer chain lookup maps
+    const transferByRecipient = new Map<string, any>();
+    for (const transfer of allTransfers) {
+      if (!transferByRecipient.has(transfer.to_owner_id)) transferByRecipient.set(transfer.to_owner_id, transfer);
     }
 
     const buildTransferChain = (ownerId: string, visited = new Set<string>()): object[] => {
@@ -245,6 +236,26 @@ export const POST = requestWithProject(
       ];
     };
 
+    const eventsByMembershipId: Record<string, { event_type: string; created_at: string; actor_display_name: string }[]> = {};
+    for (const event of events) {
+      if (!eventsByMembershipId[event.membership_id]) eventsByMembershipId[event.membership_id] = [];
+      eventsByMembershipId[event.membership_id].push({
+        event_type: event.event_type,
+        created_at: event.created_at,
+        actor_display_name: resolveActorDisplayName(event.actor_profile_id),
+      });
+    }
+
+    const notesByMembershipId: Record<string, { note: string; created_at: string; actor_display_name: string }[]> = {};
+    for (const n of notes) {
+      if (!notesByMembershipId[n.membership_id]) notesByMembershipId[n.membership_id] = [];
+      notesByMembershipId[n.membership_id].push({
+        note: n.note,
+        created_at: n.created_at,
+        actor_display_name: resolveActorDisplayName(n.actor_profile_id),
+      });
+    }
+
     return {
       data: (membershipResult.data || []).sort((a, b) => {
         return (
@@ -265,6 +276,8 @@ export const POST = requestWithProject(
           email: profileEmailsById[membership.owner_id]
         },
         transfer_history: buildTransferChain(membership.owner_id),
+        check_in_events: eventsByMembershipId[membership.id] || [],
+        notes: notesByMembershipId[membership.id] || [],
       })),
     };
   },

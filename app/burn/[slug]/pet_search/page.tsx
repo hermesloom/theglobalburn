@@ -1,17 +1,28 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import Heading from "@/app/_components/Heading";
 import { Input, Button, Card, CardBody } from "@nextui-org/react";
 import { apiGet } from "@/app/_components/api";
-import { useSession, useProject } from "@/app/_components/SessionContext";
-import { BurnMembership } from "@/utils/types";
+import { useProject } from "@/app/_components/SessionContext";
+import { linkifyPhoneNumbers } from "@/utils/phoneLinks";
 
-interface Child {
-  dob: string;
-  key: string;
-  last_name: string;
+interface EmergencyInfo {
+  camp_name?: string;
+  phone_number?: string;
+  emergency_contact_onsite?: string;
+  emergency_contact_other?: string;
+}
+
+interface PetSearchMembership {
+  id: string;
   first_name: string;
+  last_name: string;
+  checked_in_at?: string;
+  profile: { email: string };
+  metadata: {
+    pets?: Pet[];
+    emergency_info?: EmergencyInfo;
+  };
 }
 
 interface Pet {
@@ -46,22 +57,13 @@ const formatRelativeDateTime = (date: Date) => {
   return `${weekday} at ${timeString} (${relativeDay})`;
 }
 
-const formatDOB = (dob: string) => {
-  return new Date(dob).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-}
-
 // TODO: Wire up audio feedback - click.mp3, ding.mp3, denied.mp3, buzz.mp3
 
 export default function ScannerPage() {
-  const { profile } = useSession();
-  console.log({ profile })
   const { project } = useProject();
 
-  const [membershipResults, setMembershipResults] = useState<BurnMembership[] | null>([]);
+  const [membershipResults, setMembershipResults] = useState<PetSearchMembership[] | null>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
 
   const chipCodeRef = useRef<HTMLInputElement>(null);
@@ -69,14 +71,17 @@ export default function ScannerPage() {
   const doSearch = (chipCode: string) => {
     setMembershipResults([]);
     setSearchError(null);
+    setIsSearching(true);
 
     apiGet(`/burn/${project!.slug}/admin/pet_search/${chipCode}`)
       .then((memberships) => {
         setMembershipResults(memberships);
+        setIsSearching(false);
       })
       .catch((error) => {
         console.log({ message: error.message })
         setSearchError(error.message);
+        setIsSearching(false);
       })
   };
 
@@ -95,17 +100,15 @@ export default function ScannerPage() {
 
   return (
     <>
-      <Heading>Pet search (by chip code)</Heading>
-
       <div className="flex flex-col gap-4">
         <div className="relative w-full">
 
-          <Input type="text" ref={chipCodeRef} name="chip_code" className="border border-black rounded-lg mb-4" />
+          <Input type="text" ref={chipCodeRef} name="chip_code" className="border border-black rounded-lg mb-4" onKeyDown={(e) => { if (e.key === 'Enter') searchForPet() }} />
 
           <div className="mb-4">
             <div className="w-full h-full flex items-center justify-center gap-4">
               <Button color="primary" onPress={searchForPet}>
-                Search
+                Search by chip code
               </Button>
               <Button color="secondary" onPress={showAllPets}>
                 Show all memberships with pets
@@ -123,60 +126,54 @@ export default function ScannerPage() {
             </Card>
           )}
 
-          {membershipResults && membershipResults.length === 0 && <div>No memberships with matching pet chip code found</div>}
+          {isSearching && <div>Searching...</div>}
+          {!isSearching && membershipResults && membershipResults.length === 0 && <div>No memberships with matching pet chip code found</div>}
           {membershipResults &&
             (membershipResults.map((membership) => {
-              {
-                return < Card key="membership.id" className={`w-full h-full ${membership.checked_in_at == null ? 'bg-green-100' : 'bg-yellow-100'}`}>
-                  <CardBody className="flex flex-col justify-between">
-                    <div className="flex flex-col gap-2">
-                      <p><strong>Name:</strong> {membership.first_name} {membership.last_name}</p>
-                      <p><strong>Birthdate:</strong> {formatDOB(membership.birthdate)}</p>
-                      <p><strong>Checked in:</strong> {membership.checked_in_at == null ? 'No' : formatRelativeDateTime(new Date(membership.checked_in_at))}</p>
+              const emergency_info = membership.metadata?.emergency_info;
+              return <Card key="membership.id" className={`w-full h-full ${membership.checked_in_at == null ? 'bg-green-100' : 'bg-yellow-100'}`}>
+                <CardBody className="flex flex-col justify-between">
+                  <div className="flex flex-col gap-2">
+                    <p><strong>Name:</strong> {membership.first_name} {membership.last_name}</p>
+                    <p><strong>Email:</strong> <a href={`mailto:${membership.profile?.email}`} className="text-blue-500 underline">{membership.profile?.email}</a></p>
+                    <p><strong>Checked in:</strong> {membership.checked_in_at == null ? 'No' : formatRelativeDateTime(new Date(membership.checked_in_at))}</p>
 
-                      {membership.metadata?.children?.length > 0 && (
-                        <div className="mt-4">
-                          <h4 className="font-semibold mb-2">Children</h4>
-                          <div className="flex flex-col gap-2">
-                            {membership.metadata.children.map((child: Child) => (
-                              <div key={child.key} className="pl-4 border-l-2 border-gray-200">
-                                <p><strong>Name:</strong> {child.first_name} {child.last_name}</p>
-                                <p><strong>Birthdate:</strong> {formatDOB(child.dob)}</p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                    {emergency_info && (emergency_info.camp_name || emergency_info.phone_number || emergency_info.emergency_contact_onsite || emergency_info.emergency_contact_other) && (
+                      <div className="mt-2">
+                        <h4 className="font-semibold mb-1">Emergency Info</h4>
+                        {emergency_info.camp_name && <p><strong>Camp Name:</strong> {emergency_info.camp_name}</p>}
+                        {emergency_info.phone_number && <p><strong>Phone:</strong> <a href={`tel:${emergency_info.phone_number}`} className="text-blue-500 underline">{emergency_info.phone_number}</a></p>}
+                        {emergency_info.emergency_contact_onsite && <p><strong>On-site:</strong> {linkifyPhoneNumbers(emergency_info.emergency_contact_onsite)}</p>}
+                        {emergency_info.emergency_contact_other && <p><strong>Other:</strong> {linkifyPhoneNumbers(emergency_info.emergency_contact_other)}</p>}
+                      </div>
+                    )}
 
-                      {membership.metadata?.pets?.length > 0 && (
-                        <div className="mt-4">
-                          <h4 className="font-semibold mb-2">Pets</h4>
-                          <div className="flex flex-col gap-2">
-                            {membership.metadata.pets.map((pet: Pet) => (
-                              <div key={pet.key} className="pl-4 border-l-2 border-gray-200 flex gap-4">
-                                {pet.photo_url && (
-                                  <img
-                                    src={pet.photo_url}
-                                    alt={pet.name}
-                                    style={{ maxHeight: 250, width: "auto", borderRadius: 8, flexShrink: 1 }}
-                                  />
-                                )}
-                                <div className="flex flex-col gap-1">
-                                  <p><strong>Name:</strong> {pet.name}</p>
-                                  <p><strong>Type:</strong> {pet.type}</p>
-                                  <p><strong>Chip Code:</strong> {pet.chip_code}</p>
-                                  <p><strong>Pet Description:</strong> {pet.description}</p>
-                                  <p><strong>Other Information:</strong> {pet.other_information}</p>
-                                </div>
-                              </div>
-                            ))}
+                    {(membership.metadata?.pets?.length ?? 0) > 0 && (
+                      <div className="mt-4">
+                        <h4 className="font-semibold mb-2">Pets</h4>
+                        {(membership.metadata.pets ?? []).map((pet: Pet) => (
+                          <div key={pet.key} className="border border-gray-300 rounded-lg p-3 grid grid-cols-1 lg:grid-cols-2 gap-2">
+                            {pet.photo_url && (
+                              <img
+                                src={pet.photo_url}
+                                alt={pet.name}
+                                style={{ maxHeight: 250, width: "auto", borderRadius: 8, flexShrink: 0 }}
+                              />
+                            )}
+                            <div className="flex flex-col gap-1">
+                              <p><strong>Name:</strong> {pet.name}</p>
+                              <p><strong>Type:</strong> {pet.type}</p>
+                              <p><strong>Chip Code:</strong> {pet.chip_code}</p>
+                              <p><strong>Description:</strong> {pet.description}</p>
+                              <p><strong>Other Info:</strong> {pet.other_information}</p>
+                            </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  </CardBody>
-                </Card>
-              }
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </CardBody>
+              </Card>
             }))}
         </div>
 

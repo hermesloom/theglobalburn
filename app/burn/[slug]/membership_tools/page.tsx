@@ -3,12 +3,12 @@
 import {
   Button,
   Input,
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Textarea,
 } from "@nextui-org/react";
 import ActionButton from "@/app/_components/ActionButton";
 import { ReloadOutlined } from "@ant-design/icons";
@@ -17,7 +17,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { apiGet, apiPost } from "@/app/_components/api";
 import { useProject } from "@/app/_components/SessionContext";
-import { formatDOB } from "@/app/burn/[slug]/membership/components/helpers/date";
+import { formatDOB, calculateAge } from "@/app/burn/[slug]/membership/components/helpers/date";
+import { linkifyPhoneNumbers } from "@/utils/phoneLinks";
 
 interface Profile {
   id: string;
@@ -40,6 +41,7 @@ interface Pet {
   name: string;
   type: string;
   chip_code: string;
+  photo_url?: string;
 }
 
 type BurnMembershipTransfer = {
@@ -77,35 +79,31 @@ export type MemberSearchResult = {
     } | null;
   };
   transfer_history: BurnMembershipTransfer[];
+  check_in_events: {
+    event_type: 'check_in' | 'check_out';
+    created_at: string;
+    actor_display_name: string;
+  }[];
+  notes: {
+    note: string;
+    created_at: string;
+    actor_display_name: string;
+  }[];
 };
 
-// -------------------
-// Credit: https://stackoverflow.com/questions/14964035/how-to-export-javascript-array-info-to-csv-on-client-side
-// -------------------
+const formatSwedishDateTime = (dateStr: string) =>
+  new Date(dateStr).toLocaleString('sv-SE', {
+    timeZone: 'Europe/Stockholm',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  });
 
-function arrayToCsv(data: string[][]) {
-  return data.map(row =>
-    row
-      .map(String)  // convert every value to String
-      .map(v => v.replaceAll('"', '""'))  // escape double quotes
-      .map(v => `"${v}"`)  // quote it
-      .join(',')  // comma-separated
-  ).join('\r\n');  // rows starting on new lines
-}
-
-function downloadBlob(content: string, filename: string, contentType: string) {
-  // Create a blob
-  const blob = new Blob([content], { type: contentType });
-  const url = URL.createObjectURL(blob);
-
-  // Create a link to download it
-  const pom = document.createElement('a');
-  pom.href = url;
-  pom.setAttribute('download', filename);
-  pom.click();
-}
-
-// -------------------
+const formatSwedishDate = (dateStr: string) =>
+  new Date(dateStr).toLocaleDateString('sv-SE', { timeZone: 'Europe/Stockholm' });
 
 
 const resetMemberCheckIn = (projectSlug: string, profileIds: string[]) => {
@@ -122,7 +120,11 @@ export default function ScannerManagerPage() {
   const [checkInCountSum, setCheckInCountSum] = useState<number>(0);
   const [membershipResults, setMembershipResults] = useState<MemberSearchResult[]>([]);
   const [membershipSearchQuery, setMembershipSearchQuery] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
   const [_searchError, setSearchError] = useState<string | null>(null);
+  const [notesModal, setNotesModal] = useState<{ membershipId: string } | null>(null);
+  const [notesText, setNotesText] = useState("");
+  const [isSavingNotes, setIsSavingNotes] = useState(false);
 
   const memberQueryRef = useRef<HTMLInputElement>(null);
 
@@ -143,11 +145,15 @@ export default function ScannerManagerPage() {
     page = page || 0;
     resultsSoFar = resultsSoFar || [];
 
-    setMembershipResults([]);
-    setSearchError(null);
+    if (page === 0) {
+      setMembershipResults([]);
+      setSearchError(null);
+      setIsSearching(true);
+      const inputValue = memberQueryRef.current?.value;
+      setMembershipSearchQuery(inputValue || null);
+    }
 
     const inputValue = memberQueryRef.current?.value;
-    setMembershipSearchQuery(inputValue || null);
 
     apiPost(
       `/burn/${project?.slug}/admin/membership-search`,
@@ -156,6 +162,7 @@ export default function ScannerManagerPage() {
       .then(({ data: memberships }) => {
         if (memberships.length === 0) {
           setMembershipResults(resultsSoFar);
+          setIsSearching(false);
         } else {
           searchForMember(page + 1, resultsSoFar.concat(memberships))
         }
@@ -163,6 +170,7 @@ export default function ScannerManagerPage() {
       .catch((error) => {
         console.log({ message: error.message })
         setSearchError(error.message);
+        setIsSearching(false);
       })
   }
 
@@ -178,7 +186,14 @@ export default function ScannerManagerPage() {
 
   return (
     <>
-      <div className="flex justify-end mb-2">
+      <div className="flex justify-end gap-2 mb-2">
+        <Button
+          color="primary"
+          variant="flat"
+          onPress={() => router.push(`/burn/${project?.slug}/membership_tools/note-log`)}
+        >
+          Note Log
+        </Button>
         <Button
           color="primary"
           variant="flat"
@@ -188,12 +203,34 @@ export default function ScannerManagerPage() {
         </Button>
       </div>
 
+      <Modal isOpen={!!notesModal} onClose={() => { if (!isSavingNotes) setNotesModal(null); }} isDismissable={!isSavingNotes} hideCloseButton={isSavingNotes}>
+        <ModalContent>
+          <ModalHeader>Add Note</ModalHeader>
+          <ModalBody>
+            <p className="text-red-600 font-semibold">⚠ These notes are for facts, not opinions</p>
+            <Textarea value={notesText} onValueChange={setNotesText} placeholder="Enter note..." minRows={3} />
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="light" onPress={() => setNotesModal(null)} isDisabled={isSavingNotes}>Cancel</Button>
+            <Button color="primary" isLoading={isSavingNotes} onPress={async () => {
+              if (!notesText.trim()) return;
+              setIsSavingNotes(true);
+              await apiPost(`/burn/${project!.slug}/admin/memberships/${notesModal!.membershipId}/notes`, { note: notesText });
+              setIsSavingNotes(false);
+              setNotesModal(null);
+              setNotesText("");
+              await searchForMember();
+            }}>Add</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
       <div className="flex flex-col gap-4">
         <div className="relative w-full">
 
           Search for a member:
 
-          <Input type="text" ref={memberQueryRef} name="member-query" className="border border-black rounded-lg" />
+          <Input type="text" ref={memberQueryRef} name="member-query" className="border border-black rounded-lg" onKeyDown={(e) => { if (e.key === 'Enter') searchForMember() }} />
 
           <div className="w-full h-full flex items-center justify-center">
             <Button
@@ -205,64 +242,45 @@ export default function ScannerManagerPage() {
           </div>
 
           {membershipSearchQuery != null &&
-            (membershipResults.length == 0 ?
-              `No membership results found for: '${membershipSearchQuery}'` :
-              <div>
-                <Button
-                  color="primary"
-                  onPress={() => {
-                    const data = [[
-                      "First Name",
-                      "Last Name",
-                      "Birth Date",
-                      "Checked-in",
-                      "Children",
-                      "Pets",
-                    ]]
-
-                    membershipResults.forEach((membership) => {
-                      const children =
-                        (membership.metadata.children || []).map((child) =>
-                          `${child.first_name} ${child.last_name} - DOB: ${formatDOB(child.dob)}`
-                        ).join("\n")
-
-                      const pets =
-                        (membership.metadata.pets || []).map((pet) =>
-                          `${pet.name} / ${pet.type} / Chip: ${pet.chip_code}`
-                        ).join("\n")
-
-                      data.push([
-                        membership.first_name,
-                        membership.last_name,
-                        formatDOB(membership.birthdate),
-                        membership.checked_in_at,
-                        children,
-                        pets,
-                      ])
-                    })
-
-                    downloadBlob(arrayToCsv(data), 'memberships.csv', 'text/csv;charset=utf-8;')
-                  }}
-                >
-                  Download CSV
-                </Button>
-
-                <Table isStriped>
-                  <TableHeader>
-                    <TableColumn key="checked_in_at">Checked in at</TableColumn>
-                    <TableColumn key="first_name">Name</TableColumn>
-                    <TableColumn key="email">E-mail</TableColumn>
-                    <TableColumn key="children_pets">Children / Pets / Emergency Info / Sleeper Vehicle / Transfer History</TableColumn>
-                  </TableHeader>
-                  <TableBody>
+            (isSearching ? `Searching...` :
+              membershipResults.length == 0 ?
+                `No membership results found for: '${membershipSearchQuery}'` :
+                <div>
+                  <div className="flex flex-col gap-3 mt-3">
                     {membershipResults.map((membership) => {
-                      return <TableRow key={membership.owner_id} >
-                        <TableCell key="checked_in_at">
-                          <p>{membership.checked_in_at}</p>
+                      const hasBody = (
+                        (membership.notes || []).length > 0 ||
+                        (membership.metadata.children || []).length > 0 ||
+                        (membership.metadata.pets || []).length > 0 ||
+                        !!(membership.metadata.camp_name || membership.metadata.phone_number || membership.metadata.emergency_contact_onsite || membership.metadata.emergency_contact_other) ||
+                        !!membership.metadata.car_registration ||
+                        (membership.transfer_history || []).length > 0
+                      );
+                      return (
+                        <div key={membership.owner_id} className="border border-gray-300 rounded-xl overflow-hidden shadow-sm">
+                          {/* Header */}
+                          <div className={`bg-gray-100 px-4 py-3 flex flex-wrap items-start justify-between gap-2${hasBody ? "" : " rounded-xl"}`}>
+                            <div>
+                              <p className="text-xl font-bold">{membership.first_name} {membership.last_name}</p>
+                              <p className="text-sm text-gray-600"><a href={`mailto:${membership.profile.email}`} className="text-blue-500 underline">{membership.profile.email}</a></p>
 
-                          <p>
-                            {
-                              membership.checked_in_at ?
+                              {(membership.check_in_events || []).length > 0 ? (
+                                <p>
+                                  <p>&nbsp;</p>
+                                  <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Check-in/out History</h3>
+                                  {membership.check_in_events.map((e, i) => (
+                                    <p key={i} className="text-sm">
+                                      {formatSwedishDateTime(e.created_at)}: Checked <strong>{e.event_type === 'check_in' ? 'IN' : 'OUT'}</strong> by {e.actor_display_name}
+                                    </p>
+                                  ))}
+                                </p>
+                              ) : <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Not checked-in</h3>}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button size="sm" className="mr-5" variant="flat" onPress={() => { setNotesText(""); setNotesModal({ membershipId: membership.id }); }}>
+                                Add note
+                              </Button>
+                              {membership.checked_in_at ? (
                                 <ActionButton
                                   action={{
                                     key: "reset-member-check-in",
@@ -270,22 +288,6 @@ export default function ScannerManagerPage() {
                                     onClick: async () => {
                                       if (confirm("Are you sure you want to MANUALLY CHECK OUT this member ?")) {
                                         await resetMemberCheckIn(project!.slug, [membership.owner_id])
-
-                                        await searchForMember()
-                                      }
-                                    },
-                                  }}
-                                  data={membership}
-                                  size="md"
-                                /> :
-                                <ActionButton
-                                  action={{
-                                    key: "manually-check-in",
-                                    label: "Check IN",
-                                    onClick: async () => {
-                                      if (confirm("Are you sure you want to CHECK-IN this member?")) {
-                                        await apiPost(`/burn/${project!.slug}/admin/check-in-member/${membership.id}`)
-
                                         await searchForMember()
                                       }
                                     },
@@ -293,69 +295,101 @@ export default function ScannerManagerPage() {
                                   data={membership}
                                   size="md"
                                 />
-                            }
-                          </p>
-                        </TableCell>
-                        <TableCell key="name">
-                          {membership.first_name}&nbsp;{membership.last_name}
-                        </TableCell>
-                        <TableCell key="email">{membership.profile.email}</TableCell>
-                        <TableCell key="children_pets">
-                          {(membership.metadata.children || []).length > 0 && (
-                            <div key="children">
-                              <h3 className="text-lg font-semibold mt-1">Children</h3>
-                              {membership.metadata.children.map((child) =>
-                                <p key={`${child.first_name}-${child.last_name}`}>{child.first_name} {child.last_name} - DOB: {formatDOB(child.dob)}</p>
+                              ) : (
+                                <ActionButton
+                                  action={{
+                                    key: "manually-check-in",
+                                    label: "Check IN",
+                                    onClick: async () => {
+                                      if (confirm("Are you sure you want to CHECK-IN this member?")) {
+                                        await apiPost(`/burn/${project!.slug}/admin/check-in-member/${membership.id}`)
+                                        await searchForMember()
+                                      }
+                                    },
+                                  }}
+                                  data={membership}
+                                  size="md"
+                                />
                               )}
                             </div>
-                          )}
+                          </div>
 
-                          {(membership.metadata.pets || []).length > 0 && (
-                            <div key="pets">
-                              <h3 className="text-lg font-semibold mt-1">Pets</h3>
-                              {membership.metadata.pets.map((pet) =>
-                                <p key={pet.chip_code}>{pet.name} / {pet.type} / Chip: {pet.chip_code}</p>
-                              )}
-                            </div>
-                          )}
+                          {/* Detail sections — 2-col on sm+ */}
+                          {hasBody && <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {(membership.notes || []).length > 0 && (
+                              <div className="bg-yellow-50 border border-yellow-300 rounded-lg px-4 py-3 col-span-2">
+                                <h3 className="text-xs font-bold uppercase tracking-wide text-yellow-700 mb-1">Notes</h3>
+                                {membership.notes.map((n, i) => (
+                                  <div key={i} className="mb-2 last:mb-0">
+                                    <p className="text-xs text-gray-500">{formatSwedishDateTime(n.created_at)} — {n.actor_display_name}</p>
+                                    <p className="text-sm whitespace-pre-wrap">{n.note}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
 
-                          {(membership.metadata.camp_name || membership.metadata.phone_number || membership.metadata.emergency_contact_onsite || membership.metadata.emergency_contact_other) && (
-                            <div key="emergency">
-                              <h3 className="text-lg font-semibold mt-1">Emergency Info</h3>
-                              {membership.metadata.camp_name && <p><strong>Camp:</strong> {membership.metadata.camp_name}</p>}
-                              {membership.metadata.phone_number && <p><strong>Phone:</strong> {membership.metadata.phone_number}</p>}
-                              {membership.metadata.emergency_contact_onsite && <p><strong>On-site contact:</strong> {membership.metadata.emergency_contact_onsite}</p>}
-                              {membership.metadata.emergency_contact_other && <p><strong>Other contact:</strong> {membership.metadata.emergency_contact_other}</p>}
-                            </div>
-                          )}
+                            {(membership.metadata.children || []).length > 0 && (
+                              <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                                <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Children</h3>
+                                {membership.metadata.children.map((child) =>
+                                  <p key={`${child.first_name}-${child.last_name}`} className="text-sm">{child.first_name} {child.last_name} — DOB: {formatDOB(child.dob)} (age {calculateAge(new Date(child.dob))})</p>
+                                )}
+                              </div>
+                            )}
 
-                          {membership.metadata.car_registration && (
-                            <div key="car_registration">
-                              <h3 className="text-lg font-semibold mt-1">Sleeper Vehicle</h3>
-                              {membership.metadata.car_registration.registration_plate && <p><strong>Plate:</strong> {membership.metadata.car_registration.registration_plate}</p>}
-                              {membership.metadata.car_registration.camp_or_area && <p><strong>Camp/Area:</strong> {membership.metadata.car_registration.camp_or_area}</p>}
-                              {membership.metadata.car_registration.phone_number && <p><strong>Phone:</strong> {membership.metadata.car_registration.phone_number}</p>}
-                              {membership.metadata.car_registration.alt_contact && <p><strong>Alt contact:</strong> {membership.metadata.car_registration.alt_contact}</p>}
-                            </div>
-                          )}
+                            {(membership.metadata.pets || []).length > 0 && (
+                              <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                                <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Pets</h3>
+                                {membership.metadata.pets.map((pet) =>
+                                  <div key={pet.chip_code} className="flex justify-between items-start gap-3 py-2 border-b border-gray-200 last:border-b-0">
+                                    <div>
+                                      <p className="text-sm">{pet.name} / {pet.type}</p>
+                                      <p className="text-sm">Chip: {pet.chip_code}</p>
+                                    </div>
+                                    {pet.photo_url && (
+                                      <img src={pet.photo_url} alt={pet.name} style={{ maxHeight: 100, width: "auto", borderRadius: 6, flexShrink: 0 }} />
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            )}
 
-                          {(membership.transfer_history || []).length > 0 && (
-                            <div key="transfer_history">
-                              <h3 className="text-lg font-semibold mt-1">Transfer History</h3>
-                              {membership.transfer_history.map((t, i) => (
-                                <p key={i}>
-                                  {new Date(t.created_at).toLocaleDateString()}: {t.from_first_name} {t.from_last_name} ({t.from_email}) &rarr; {t.to_email}
-                                </p>
-                              ))}
-                            </div>
-                          )}
+                            {(membership.metadata.camp_name || membership.metadata.phone_number || membership.metadata.emergency_contact_onsite || membership.metadata.emergency_contact_other) && (
+                              <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                                <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Emergency Info</h3>
+                                {membership.metadata.camp_name && <p className="text-sm"><strong>Camp:</strong> {membership.metadata.camp_name}</p>}
+                                {membership.metadata.phone_number && <p className="text-sm"><strong>Phone:</strong> <a href={`tel:${membership.metadata.phone_number}`} className="text-blue-500 underline">{membership.metadata.phone_number}</a></p>}
+                                {membership.metadata.emergency_contact_onsite && <p className="text-sm"><strong>On-site:</strong> {linkifyPhoneNumbers(membership.metadata.emergency_contact_onsite)}</p>}
+                                {membership.metadata.emergency_contact_other && <p className="text-sm"><strong>Other:</strong> {linkifyPhoneNumbers(membership.metadata.emergency_contact_other)}</p>}
+                              </div>
+                            )}
 
-                        </TableCell>
-                      </TableRow>
+                            {membership.metadata.car_registration && (
+                              <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                                <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Sleeper Vehicle</h3>
+                                {membership.metadata.car_registration.registration_plate && <p className="text-sm"><strong>Plate:</strong> {membership.metadata.car_registration.registration_plate}</p>}
+                                {membership.metadata.car_registration.camp_or_area && <p className="text-sm"><strong>Camp/Area:</strong> {membership.metadata.car_registration.camp_or_area}</p>}
+                                {membership.metadata.car_registration.phone_number && <p className="text-sm"><strong>Phone:</strong> <a href={`tel:${membership.metadata.car_registration.phone_number}`} className="text-blue-500 underline">{membership.metadata.car_registration.phone_number}</a></p>}
+                                {membership.metadata.car_registration.alt_contact && <p className="text-sm"><strong>Alt contact:</strong> {membership.metadata.car_registration.alt_contact}</p>}
+                              </div>
+                            )}
+
+                            {(membership.transfer_history || []).length > 0 && (
+                              <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 sm:col-span-2">
+                                <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Transfer History</h3>
+                                {membership.transfer_history.map((t, i) => (
+                                  <p key={i} className="text-sm">
+                                    {formatSwedishDate(t.created_at)}: {t.from_first_name} {t.from_last_name} ({t.from_email}) &rarr; {t.to_email}
+                                  </p>
+                                ))}
+                              </div>
+                            )}
+                          </div>}
+                        </div>
+                      );
                     })}
-                  </TableBody>
-                </Table >
-              </div>)}
+                  </div>
+                </div>)}
         </div>
       </div>
     </>

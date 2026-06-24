@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Button, Card, CardBody } from "@nextui-org/react";
+import { Button, Card, CardBody, Modal, ModalContent, ModalHeader, ModalBody, useDisclosure } from "@nextui-org/react";
 import { apiPost } from "@/app/_components/api";
 import { useSession, useProject } from "@/app/_components/SessionContext";
 import { formatRelativeDateTime, calculateAge, isSameDay } from "@/app/burn/[slug]/membership/components/helpers/date";
@@ -10,6 +10,7 @@ import {
   CloseOutlined,
   QrcodeOutlined,
   BulbOutlined,
+  QuestionCircleOutlined,
 } from "@ant-design/icons";
 
 import QrScanner from 'qr-scanner';
@@ -84,6 +85,7 @@ function formatDOBJSX(dobString: string, highlightUnderage: boolean = false): JS
 export default function ScannerPage() {
   const { profile, refreshProfile } = useSession();
   const { project } = useProject();
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const [qrScanner, setQrScanner] = useState<QrScanner | null>(null);
   const [qrScannerHasFlash, setQrScannerHasFlash] = useState<boolean>(false);
@@ -160,7 +162,8 @@ export default function ScannerPage() {
         .catch((error) => {
           setCurrentlyScanning(false);
           deniedAudio.play();
-          setResultMessage({ type: 'error', text: error.message });
+          const text = error.httpStatus === 404 ? "Member not found" : error.message;
+          setResultMessage({ type: 'error', text });
         })
     }).catch((error) => {
       setResultMessage({ type: 'error', text: error });
@@ -206,10 +209,52 @@ export default function ScannerPage() {
 
   return (
     <>
-      <div className="mb-4 text-right w-full">
-        <p>Scanner ID: {profile?.metadata.scanner_id}</p>
-        <p>Check-ins: {profile?.metadata.check_in_count || 0}</p>
+      <div className="mb-4 flex justify-between items-start w-full">
+        <div className="flex items-center gap-1">
+          <Button isIconOnly variant="light" onPress={onOpen} aria-label="Help">
+            <QuestionCircleOutlined className="text-xl" />
+          </Button>
+          <span className="text-sm">Useful Info</span>
+        </div>
+        <div className="text-right">
+          <p>Scanner ID: {profile?.metadata.scanner_id}</p>
+          <p>Check-ins: {profile?.metadata.check_in_count || 0}</p>
+        </div>
       </div>
+
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="full" scrollBehavior="inside">
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="text-2xl font-bold">Important Info</ModalHeader>
+              <ModalBody className="pb-8">
+                <div className="mt-4">
+                  <Button color="primary" onPress={onClose}>Close</Button>
+                </div>
+                <p>For any questions about the below, contact the watcher via radio or phone at <a href="tel:+46 72 216 3831" className="text-blue-500 underline">+46 72 216 3831</a></p>
+                <p><a href="https://docs.google.com/document/d/1cNYwpLhixDr5XQAVDMSrAtncT_8N49Q6NofBk8HTK9E/edit?tab=t.0" className="text-blue-500 underline">The full gatekeeper handbook</a></p>
+                <p>Encourage people to refer to the QR code (available at the gate) for the membership platform and the useful information.</p>
+                <p>The gate barrier is opened at 09:00 and closed at 22:00</p>
+                <p>Non-members are not allowed on site during burn week, that is from Monday to Sunday when the event is taking place (except for emergency personnel)</p>
+                <p>Wristbands are how we tell that members have registered properly</p>
+                <p>Wristbands must be worn on the WRIST</p>
+                <p>Wristbands that go missing CANNOT BE REPLACED</p>
+                <p>The full name and date of birth should match the physical ID (national ID card/passport/driver’s licence, NO COPIES).</p>
+                <p>Sleeper vehicles are the only non-emergency vehicles allowed into the event. They should be registered in the membership platform and they should be decorated.</p>
+                <p>Speed limit when going to park is 10 km/h. NO PARKING EVER ON ROADS. The traffic must flow!</p>
+                <p>NO DRIVING during the event (except emergencies)</p>
+                <p>All vehicles (sleeper vehicles in the event and cars in the parking lot) should have a filled out form on their dashboard at all times.</p>
+                <p>Children 0-13 must be registered under a membership in the membership platform.</p>
+                <p>Children 14-17 must have their OWN membership</p>
+                <p>Pets must be registered in the membership platform</p>
+                <div className="mt-4">
+                  <Button color="primary" onPress={onClose}>Close</Button>
+                </div>
+              </ModalBody>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
 
       <div className="flex flex-col gap-4">
         <video
