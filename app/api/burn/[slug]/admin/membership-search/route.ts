@@ -19,10 +19,12 @@ export const POST = requestWithProject(
     const normalizedSearchTerm = searchTerm.replace(/\s+/g, '');
 
     // Query profiles for email matches and all plates concurrently
+    let t = Date.now();
     const [profileResult, platesResult] = await Promise.all([
       supabase.from("profiles").select(`id`).ilike("email", `%${searchTerm}%`),
       supabase.from("burn_memberships").select(`id, metadata->car_registration->>registration_plate`).eq("project_id", project!.id),
     ]);
+    console.log(`[timing] profileResult + platesResult: ${Date.now() - t}ms`);
 
     if (profileResult.error) {
       console.error("Error fetching profiles:", profileResult.error);
@@ -73,7 +75,9 @@ export const POST = requestWithProject(
           ...(plateMatchIds.length > 0 ? [`id.in.(${plateMatchIds.join(',')})`] : [])
         ].join(','))
 
+    t = Date.now();
     const membershipResult = await membershipQuery;
+    console.log(`[timing] membershipQuery: ${Date.now() - t}ms (${membershipResult.data?.length ?? 0} rows)`);
 
     const countOfTermsMatched = (result: { first_name: string, last_name: string, camp_name?: string | null, car_registration?: any }) => {
       return (
@@ -96,10 +100,12 @@ export const POST = requestWithProject(
     }
 
     // Fetch owner emails and all transfers concurrently
+    t = Date.now();
     const [profileResult2, transfersResult] = await Promise.all([
       supabase.from("profiles").select(`id,email`).in('id', membershipResult.data.map((r) => r.owner_id)),
       supabase.from("burn_membership_transfers").select("id, created_at, from_owner_id, to_owner_id, original_membership_json").eq("project_id", project!.id).order("created_at", { ascending: false }),
     ]);
+    console.log(`[timing] profileResult2 + transfersResult: ${Date.now() - t}ms (transfers: ${transfersResult.data?.length ?? 0})`);
 
     if (profileResult2.error) {
       console.error("Error fetching profiles (second time):", profileResult2.error);
@@ -120,6 +126,7 @@ export const POST = requestWithProject(
     ])].filter(id => !profileEmailsById[id]);
 
     if (missingProfileIds.length > 0) {
+      t = Date.now();
       const chunkSize = 100;
       for (let i = 0; i < missingProfileIds.length; i += chunkSize) {
         const chunk = missingProfileIds.slice(i, i + chunkSize);
@@ -128,6 +135,7 @@ export const POST = requestWithProject(
           profileEmailsById[p.id] = p.email;
         }
       }
+      console.log(`[timing] transfer profile chunks (${missingProfileIds.length} ids): ${Date.now() - t}ms`);
     }
 
     // Map: to_owner_id -> most recent transfer received
@@ -173,6 +181,7 @@ export const POST = requestWithProject(
       : [];
 
     if (extraOwnerIds.length > 0) {
+      t = Date.now();
       const extraMembershipsResult = await supabase
         .from("burn_memberships")
         .select(`
@@ -193,6 +202,7 @@ export const POST = requestWithProject(
         .eq("project_id", project!.id)
         .in("owner_id", extraOwnerIds);
 
+      console.log(`[timing] extraMembershipsResult (${extraOwnerIds.length} owners): ${Date.now() - t}ms`);
       if (!extraMembershipsResult.error && extraMembershipsResult.data) {
         // Fetch emails for any new owners
         const newOwnerIds = extraMembershipsResult.data
@@ -234,11 +244,13 @@ export const POST = requestWithProject(
     const allMembershipIds = (membershipResult.data || []).map((m) => m.id);
 
     // Fetch checkin events and notes concurrently
+    t = Date.now();
     const [eventsResult, notesResult] = await Promise.all([
       supabase.from("burn_membership_checkin_events").select("membership_id, actor_profile_id, event_type, created_at").eq("project_id", project!.id).in("membership_id", allMembershipIds).order("created_at", { ascending: true }),
       supabase.from("burn_membership_notes").select("membership_id, actor_profile_id, note, created_at").eq("project_id", project!.id).in("membership_id", allMembershipIds).order("created_at", { ascending: true }),
     ]);
 
+    console.log(`[timing] eventsResult + notesResult: ${Date.now() - t}ms`);
     const events = eventsResult.data || [];
     const notes = notesResult.data || [];
 
@@ -248,6 +260,7 @@ export const POST = requestWithProject(
       ...notes.map((n) => n.actor_profile_id),
     ])];
     const missingActorEmailIds = allActorProfileIds.filter((id) => !profileEmailsById[id]);
+    t = Date.now();
     const [actorEmailsResult, actorMembershipsResult] = await Promise.all([
       missingActorEmailIds.length > 0
         ? supabase.from("profiles").select("id, email").in("id", missingActorEmailIds)
@@ -256,6 +269,7 @@ export const POST = requestWithProject(
         ? supabase.from("burn_memberships").select("owner_id, first_name, last_name").eq("project_id", project!.id).in("owner_id", allActorProfileIds)
         : Promise.resolve({ data: [] }),
     ]);
+    console.log(`[timing] actorEmails + actorMemberships: ${Date.now() - t}ms`);
     for (const p of actorEmailsResult.data || []) profileEmailsById[p.id] = p.email;
 
     const actorNameByProfileId: Record<string, string> = {};
