@@ -91,11 +91,8 @@ export const POST = requestWithProject<
           project_id: project!.id,
           owner_id: recipientProfile.id,
           expires_at: new Date(
-            Math.min(
-              +new Date() +
-                recipientProject.burn_config.transfer_reservation_duration * 1000,
-              +new Date(recipientProject.burn_config.last_possible_transfer_at),
-            ),
+            +new Date() +
+            recipientProject.burn_config.transfer_reservation_duration * 1000,
           ).toISOString(),
           is_low_income: isLowIncome,
           details_modifiable: true,
