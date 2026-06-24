@@ -17,7 +17,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { apiGet, apiPost } from "@/app/_components/api";
 import { useProject } from "@/app/_components/SessionContext";
-import { formatDOB } from "@/app/burn/[slug]/membership/components/helpers/date";
+import { formatDOB, calculateAge } from "@/app/burn/[slug]/membership/components/helpers/date";
 import { linkifyPhoneNumbers } from "@/utils/phoneLinks";
 
 interface Profile {
@@ -325,7 +325,7 @@ export default function ScannerManagerPage() {
                               <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
                                 <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Children</h3>
                                 {membership.metadata.children.map((child) =>
-                                  <p key={`${child.first_name}-${child.last_name}`} className="text-sm">{child.first_name} {child.last_name} — DOB: {formatDOB(child.dob)}</p>
+                                  <p key={`${child.first_name}-${child.last_name}`} className="text-sm">{child.first_name} {child.last_name} — DOB: {formatDOB(child.dob)} (age {calculateAge(new Date(child.dob))})</p>
                                 )}
                               </div>
                             )}
