@@ -295,7 +295,7 @@ export default function ScannerManagerPage() {
                                     label: "Check IN",
                                     onClick: async () => {
                                       if (confirm("Are you sure you want to CHECK-IN this member?")) {
-                                        await apiPost(`/ burn / ${project!.slug} /admin/check-in-member/${membership.id}`)
+                                        await apiPost(`/burn/${project!.slug}/admin/check-in-member/${membership.id}`)
                                         await searchForMember()
                                       }
                                     },
