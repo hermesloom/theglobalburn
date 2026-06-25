@@ -211,11 +211,10 @@ export default function MembershipStatisticsPage() {
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         <StatCard label="Members" value={stats.memberCount} color="#8884d8" />
+        <StatCard label="Check-ins" value={stats.checkInsByDay.reduce((s, d) => s + d.count, 0)} color="#4ade80" />
         <StatCard label="Sleeper Vehicles" value={stats.sleeperVehicleCount} color="#6aa3d5" />
         <StatCard label="Children" value={stats.childrenCount} color="#82ca9d" />
-        <StatCard label="Dogs" value={stats.petCounts.dogs} color="#ffc658" />
-        <StatCard label="Cats" value={stats.petCounts.cats} color="#ff7300" />
-        <StatCard label="Other Pets" value={stats.petCounts.other} color="#a4a4a4" />
+        <StatCard label="Pets" value={`Dogs:${stats.petCounts.dogs} / Cats:${stats.petCounts.cats} / Other:${stats.petCounts.other}`} color="#ffc658" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
