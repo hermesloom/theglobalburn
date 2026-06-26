@@ -228,7 +228,15 @@ export default function ScannerManagerPage() {
       <div className="flex flex-col gap-4">
         <div className="relative w-full">
 
-          Search for a member:
+          <div className="text-sm text-gray-500 mb-2">
+            <p>Search by:</p>
+            <ul className="list-disc list-inside ml-2">
+              <li>Name, email, or camp</li>
+              <li>License plate — omit spaces/hyphens: <em>ABC123</em>, not <em>ABC 123</em> or <em>ABC-123</em></li>
+              <li>Previous membership owner</li>
+            </ul>
+          </div>
+          <span>Search for a member:</span>
 
           <Input type="text" ref={memberQueryRef} name="member-query" className="border border-black rounded-lg" onKeyDown={(e) => { if (e.key === 'Enter') searchForMember() }} />
 
