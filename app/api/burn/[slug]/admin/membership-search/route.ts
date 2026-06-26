@@ -10,7 +10,7 @@ const SearchSchema = s.object({
 
 const pageSize = 500;
 
-const normalizeRegistrationPlate = (string) => {
+const normalizeRegistrationPlate = (string: string) => {
   return string.replace(/[\s\-]+/g, '').trim().toLowerCase();
 }
 
@@ -26,7 +26,7 @@ export const POST = requestWithProject(
     let t = Date.now();
     const [profileResult, platesResult] = await Promise.all([
       supabase.from("profiles").select(`id`).ilike("email", `%${searchTerm}%`),
-      supabase.from("burn_memberships").select(`id, metadata->car_registration->>registration_plate`).eq("project_id", project!.id),
+      supabase.from("burn_memberships").select(`id, metadata->car_registration->>registration_plate`).eq("project_id", project!.id).not("metadata->car_registration->>registration_plate", "is", null),
     ]);
     console.log(`[timing] profileResult + platesResult: ${Date.now() - t}ms`);
 
@@ -40,7 +40,7 @@ export const POST = requestWithProject(
     const plateMatchIds: string[] = (platesResult.data || [])
       .filter((r) => {
         const plate = (r as any).registration_plate as string | null;
-        return normalizeRegistrationPlate(plate).includes(normalizedSearchTerm);
+        return plate != null && normalizeRegistrationPlate(plate).includes(normalizedSearchTerm); // ponytail: plate != null guard kept — TS doesn't know the DB filter holds
       })
       .map((r) => r.id);
 
