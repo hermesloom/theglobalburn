@@ -233,7 +233,7 @@ export default function ScannerManagerPage() {
             <ul className="list-disc list-inside ml-2">
               <li>Name, email, or camp</li>
               <li>License plate — omit spaces/hyphens: <em>ABC123</em>, not <em>ABC 123</em> or <em>ABC-123</em></li>
-              <li>Previous membership owner</li>
+              <li>Previous membership owner (name or email)</li>
             </ul>
           </div>
           <span>Search for a member:</span>
