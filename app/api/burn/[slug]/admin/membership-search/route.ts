@@ -10,13 +10,17 @@ const SearchSchema = s.object({
 
 const pageSize = 500;
 
+const normalizeRegistrationPlate = (string) => {
+  return string.replace(/[\s\-]+/g, '').trim().toLowerCase();
+}
+
 export const POST = requestWithProject(
   async (supabase, profile, request, body, project) => {
     const searchTerm = body.q.toLowerCase();
     const page = (body.page || 0);
 
     const searchTerms = searchTerm.trim().split(/\s+/);
-    const normalizedSearchTerm = searchTerm.replace(/\s+/g, '');
+    const normalizedSearchTerm = normalizeRegistrationPlate(searchTerm);
 
     // Query profiles for email matches and all plates concurrently
     let t = Date.now();
@@ -36,7 +40,7 @@ export const POST = requestWithProject(
     const plateMatchIds: string[] = (platesResult.data || [])
       .filter((r) => {
         const plate = (r as any).registration_plate as string | null;
-        return plate?.replace(/\s+/g, '').toLowerCase().includes(normalizedSearchTerm);
+        return normalizeRegistrationPlate(plate).includes(normalizedSearchTerm);
       })
       .map((r) => r.id);
 
@@ -171,7 +175,7 @@ export const POST = requestWithProject(
     const allTransfers: any[] = transferChainsResult.data || [];
     for (const tr of allTransfers) {
       if (tr.from_email) profileEmailsById[tr.from_owner_id] = tr.from_email;
-      if (tr.to_email)   profileEmailsById[tr.to_owner_id]   = tr.to_email;
+      if (tr.to_email) profileEmailsById[tr.to_owner_id] = tr.to_email;
     }
 
     // Fetch emails for extra membership owners not yet known
