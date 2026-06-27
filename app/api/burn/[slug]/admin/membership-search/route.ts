@@ -14,9 +14,12 @@ const normalizeRegistrationPlate = (string: string) => {
   return string.replace(/[\s\-]+/g, '').trim().toLowerCase();
 }
 
+const normalizeTerm = (s: string) =>
+  s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+
 export const POST = requestWithProject(
   async (supabase, profile, request, body, project) => {
-    const searchTerm = body.q.toLowerCase();
+    const searchTerm = normalizeTerm(body.q);
     const page = (body.page || 0);
 
     const searchTerms = searchTerm.trim().split(/\s+/);
@@ -86,11 +89,11 @@ export const POST = requestWithProject(
       return (
         searchTerms.filter((term: string) => {
           return (
-            result.first_name.toLowerCase().match(term) ||
-            result.last_name.toLowerCase().match(term) ||
-            result.camp_name?.toLowerCase().match(term) ||
+            normalizeTerm(result.first_name).includes(term) ||
+            normalizeTerm(result.last_name).includes(term) ||
+            (result.camp_name && normalizeTerm(result.camp_name).includes(term)) ||
             result.car_registration?.registration_plate?.replace(/\s+/g, '').toLowerCase().includes(normalizedSearchTerm) ||
-            result.car_registration?.camp_or_area?.toLowerCase().match(term)
+            (result.car_registration?.camp_or_area && normalizeTerm(result.car_registration.camp_or_area).includes(term))
           );
         }).length
       );
