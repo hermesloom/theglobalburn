@@ -194,7 +194,7 @@ export default function CarRegistration({
         <ActionButton
           action={{
             key: "editCarRegistration",
-            label: hasAnyValue ? "Edit car registration" : "Add sleeper vehicle registration",
+            label: hasAnyValue ? "Edit sleeper vehicle registration" : "Add sleeper vehicle registration",
             onClick: {
               prompt: () =>
                 prompt("Register your sleeper vehicle for the event.", [
