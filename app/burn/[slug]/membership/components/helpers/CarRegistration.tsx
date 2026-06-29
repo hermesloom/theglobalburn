@@ -134,7 +134,7 @@ export default function CarRegistration({
       <Heading className="mt-12">Sleeper Vehicle Application</Heading>
 
       <p className="text-sm text-default-500 mb-4">
-        (All <strong>non-sleeper vehicles</strong> should have <a href="https://docs.google.com/document/d/1OXUdZQozSgg-ugvzp-aI81bh_YjeLMk7WC84wSRPJJs/edit?tab=t.0">this form</a> visible at all times when parked in the long-term parking)
+        (All <strong>non-sleeper vehicles</strong> should have <a className="text-primary underline" href="https://docs.google.com/document/d/1OXUdZQozSgg-ugvzp-aI81bh_YjeLMk7WC84wSRPJJs/edit?tab=t.0" target="_blank">this form</a> visible at all times when parked in the long-term parking)
       </p>
 
       <p className="text-sm text-default-500 mb-4">
