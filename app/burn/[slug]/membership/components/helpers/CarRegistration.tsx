@@ -137,6 +137,10 @@ export default function CarRegistration({
       <Heading className="mt-12">Sleeper Vehicle Application</Heading>
 
       <p className="text-sm text-default-500 mb-4">
+        (All <strong>non-sleeper vehicles</strong> should have <a href="https://docs.google.com/document/d/1OXUdZQozSgg-ugvzp-aI81bh_YjeLMk7WC84wSRPJJs/edit?tab=t.0">this form</a> visible at all times when parked in the long-term parking)
+      </p>
+
+      <p className="text-sm text-default-500 mb-4">
         Reducing the number of vehicles inside of event area helps preserve the vibe and increase safety. Vehicles not used for sleeping must be parked in the long-term parking lot, not inside the event area.
       </p>
 
@@ -197,7 +201,7 @@ export default function CarRegistration({
         <ActionButton
           action={{
             key: "editCarRegistration",
-            label: hasAnyValue ? "Edit car registration" : "Add sleeper vehicle registration",
+            label: hasAnyValue ? "Edit sleeper vehicle registration" : "Add sleeper vehicle registration",
             onClick: {
               prompt: () =>
                 prompt("Register your sleeper vehicle for the event.", [
