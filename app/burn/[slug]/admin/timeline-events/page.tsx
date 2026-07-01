@@ -102,7 +102,7 @@ export default function TimelineEventsAdminPage() {
         title: title.trim(),
         body: body.trim() || undefined,
         date: date ? stockholmInputToISO(date) : undefined,
-        date_end: dateEnd ? stockholmInputToISO(dateEnd) : undefined,
+        date_end: dateEnd ? stockholmInputToISO(dateEnd) : "",
       };
 
       if (editingEvent) {
@@ -257,7 +257,7 @@ export default function TimelineEventsAdminPage() {
 
               <div className="flex gap-2 items-end">
                 <Input
-                  key={`end-${editingEvent?.id || 'new'}`}
+                  key={`end-${editingEvent?.id || 'new'}-${dateEnd ? 'set' : 'empty'}`}
                   label="End Date/Time (Optional)"
                   type="datetime-local"
                   value={dateEnd}
