@@ -255,14 +255,26 @@ export default function TimelineEventsAdminPage() {
                 description="Leave empty for TBD"
               />
 
-              <Input
-                key={`end-${editingEvent?.id || 'new'}`}
-                label="End Date/Time (Optional)"
-                type="datetime-local"
-                value={dateEnd}
-                onChange={(e) => setDateEnd(e.target.value)}
-                description="For events spanning multiple days"
-              />
+              <div className="flex gap-2 items-end">
+                <Input
+                  key={`end-${editingEvent?.id || 'new'}`}
+                  label="End Date/Time (Optional)"
+                  type="datetime-local"
+                  value={dateEnd}
+                  onChange={(e) => setDateEnd(e.target.value)}
+                  description="For events spanning multiple days"
+                />
+                {dateEnd && (
+                  <Button
+                    variant="flat"
+                    color="danger"
+                    onPress={() => setDateEnd("")}
+                    className="mb-6"
+                  >
+                    Clear
+                  </Button>
+                )}
+              </div>
             </div>
           </ModalBody>
           <ModalFooter>
