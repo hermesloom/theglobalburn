@@ -17,6 +17,8 @@ export enum BurnRole {
   MembershipScanner = "membership-scanner",
   // Can check members in/out and see extra information about members
   IdeaResolver = "idea-resolver",
+  // Can edit the burn timeline
+  TimelineManager = "timeline-manager",
 }
 
 export enum BurnMembershipPricing {
