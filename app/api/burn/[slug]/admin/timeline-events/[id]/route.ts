@@ -10,7 +10,7 @@ const UpdateTimelineEventRequestSchema = s.object({
   date_end: s.string().optional(),
 });
 
-// PATCH - Update an existing timeline event (admin required)
+// PATCH - Update an existing timeline event (TimelineManager role required)
 export const PATCH = requestWithProject<
   s.infer<typeof UpdateTimelineEventRequestSchema>
 >(
@@ -53,10 +53,10 @@ export const PATCH = requestWithProject<
     return event;
   },
   UpdateTimelineEventRequestSchema,
-  BurnRole.Admin
+  BurnRole.TimelineManager
 );
 
-// DELETE - Delete a timeline event (admin required)
+// DELETE - Delete a timeline event (TimelineManager role required)
 export const DELETE = requestWithProject(
   async (supabase, profile, request, body, project) => {
     const id = request.nextUrl.pathname.split("/").pop();
@@ -88,5 +88,5 @@ export const DELETE = requestWithProject(
     return { success: true };
   },
   undefined,
-  BurnRole.Admin
+  BurnRole.TimelineManager
 );
