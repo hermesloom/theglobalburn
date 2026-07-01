@@ -23,10 +23,10 @@ export const GET = requestWithProject(
     return { data: events };
   },
   undefined,
-  BurnRole.Admin
+  BurnRole.TimelineManager
 );
 
-// POST - Create a new timeline event (admin required)
+// POST - Create a new timeline event (TimelineManager role required)
 export const POST = requestWithProject<
   s.infer<typeof CreateTimelineEventRequestSchema>
 >(
@@ -48,5 +48,5 @@ export const POST = requestWithProject<
     return event;
   },
   CreateTimelineEventRequestSchema,
-  BurnRole.Admin
+  BurnRole.TimelineManager
 );

@@ -25,7 +25,7 @@ export default function ProjectPage() {
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const isAdmin = project?.roles.includes(BurnRole.Admin) ?? false;
+  const canEditTimeline = project?.roles.includes(BurnRole.TimelineManager) ?? false;
 
   useEffect(() => {
     const fetchTimelineEvents = async () => {
@@ -133,7 +133,7 @@ export default function ProjectPage() {
       <>
         <Heading>{project?.name} – Timeline</Heading>
 
-        {isAdmin && (
+        {canEditTimeline && (
           <div className="mt-4">
             <Button
               color="primary"
@@ -154,7 +154,7 @@ export default function ProjectPage() {
     <>
       <Heading>{project?.name} – Timeline</Heading>
 
-      {isAdmin && (
+      {canEditTimeline && (
         <div className="mt-4">
           <Button
             color="primary"

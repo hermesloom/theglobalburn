@@ -1,31 +1,20 @@
-/**
- * Formats a date to YYYY-MM-DD HH:MM:SS format in the local timezone.
- *
- * @param date The date to format (string, number, or Date object)
- * @returns Formatted date string with time
- */
+const STOCKHOLM_TZ = "Europe/Stockholm";
+
+function getStockholmParts(dateObj: Date) {
+  return new Intl.DateTimeFormat("sv-SE", {
+    timeZone: STOCKHOLM_TZ,
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    hour12: false,
+  }).formatToParts(dateObj);
+}
+
 function formatDateWithTime(date: string | number | Date): string {
   if (!date) return "";
-
   const dateObj = new Date(date);
-
-  // Format date components
-  const year = dateObj.getFullYear();
-  const month = String(dateObj.getMonth() + 1).padStart(2, "0");
-  const day = String(dateObj.getDate()).padStart(2, "0");
-  const hours = String(dateObj.getHours()).padStart(2, "0");
-  const minutes = String(dateObj.getMinutes()).padStart(2, "0");
-  const seconds = String(dateObj.getSeconds()).padStart(2, "0");
-
-  // Get timezone abbreviation
-  const timeZoneAbbr =
-    new Intl.DateTimeFormat("en-US", {
-      timeZoneName: "shortGeneric",
-    })
-      .formatToParts(dateObj)
-      .find((part) => part.type === "timeZoneName")?.value || "";
-
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} ${timeZoneAbbr}`;
+  const parts = getStockholmParts(dateObj);
+  const get = (t: string) => parts.find(p => p.type === t)?.value ?? "00";
+  return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")}:${get("second")} CET/CEST`;
 }
 
 /**
@@ -38,24 +27,19 @@ function formatDate(date: string | number | Date): string {
   if (!date) return "";
 
   const dateObj = new Date(date);
+  const parts = getStockholmParts(dateObj);
+  const get = (t: string) => parts.find(p => p.type === t)?.value ?? "00";
 
-  // Check if time is midnight UTC (00:00:00)
-  // We check UTC because dates like "2026-06-15" are parsed as midnight UTC
-  const isMidnightUTC =
-    dateObj.getUTCHours() === 0 &&
-    dateObj.getUTCMinutes() === 0 &&
-    dateObj.getUTCSeconds() === 0;
+  // Midnight UTC: date-only strings like "2026-06-15" parsed by JS
+  // Midnight Stockholm: DB events where user entered midnight Stockholm time
+  const isMidnightUTC = dateObj.getUTCHours() === 0 && dateObj.getUTCMinutes() === 0 && dateObj.getUTCSeconds() === 0;
+  const isMidnightStockholm = get("hour") === "00" && get("minute") === "00" && get("second") === "00";
 
-  if (isMidnightUTC) {
-    // Only show date part
-    const year = dateObj.getFullYear();
-    const month = String(dateObj.getMonth() + 1).padStart(2, "0");
-    const day = String(dateObj.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  } else {
-    // Show full date and time
-    return formatDateWithTime(dateObj);
+  if (isMidnightUTC || isMidnightStockholm) {
+    return `${get("year")}-${get("month")}-${get("day")}`;
   }
+
+  return formatDateWithTime(dateObj);
 }
 
 const formatRelativeDateTime = (date: Date) => {
@@ -130,24 +114,24 @@ function isSameDay(date1: Date, date2: Date) {
  * @returns Formatted date range string
  */
 function formatDateRange(startDate: Date, endDate: Date): string {
-  const startMonth = startDate.toLocaleDateString("en-US", { month: "long" });
-  const startDay = startDate.getDate();
-  const endMonth = endDate.toLocaleDateString("en-US", { month: "long" });
-  const endDay = endDate.getDate();
-  const year = endDate.getFullYear();
+  const fmt = (d: Date, opts: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat("en-US", { timeZone: STOCKHOLM_TZ, ...opts }).format(d);
 
-  // If same month, format as "Month Day1 – Day2, Year"
-  if (startDate.getMonth() === endDate.getMonth() && startDate.getFullYear() === endDate.getFullYear()) {
+  const startMonth = fmt(startDate, { month: "long" });
+  const startDay = Number(fmt(startDate, { day: "numeric" }));
+  const startYear = Number(fmt(startDate, { year: "numeric" }));
+  const endMonth = fmt(endDate, { month: "long" });
+  const endDay = Number(fmt(endDate, { day: "numeric" }));
+  const year = Number(fmt(endDate, { year: "numeric" }));
+  const startMonthNum = Number(fmt(startDate, { month: "numeric" }));
+  const endMonthNum = Number(fmt(endDate, { month: "numeric" }));
+
+  if (startMonthNum === endMonthNum && startYear === year) {
     return `${startMonth} ${startDay} – ${endDay}, ${year}`;
   }
-
-  // If different months but same year, format as "Month1 Day1 – Month2 Day2, Year"
-  if (startDate.getFullYear() === endDate.getFullYear()) {
+  if (startYear === year) {
     return `${startMonth} ${startDay} – ${endMonth} ${endDay}, ${year}`;
   }
-
-  // If different years, format as "Month1 Day1, Year1 – Month2 Day2, Year2"
-  const startYear = startDate.getFullYear();
   return `${startMonth} ${startDay}, ${startYear} – ${endMonth} ${endDay}, ${year}`;
 }
 
