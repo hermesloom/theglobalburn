@@ -155,18 +155,16 @@ export default function CarRegistration({
 
       <p className="text-sm text-default-500 mb-4">
         <strong>Step 2:</strong>
-        {" "}Print the permit below (or fill it out at the gate) and keep it visible in your windshield/window at all times. IMPORTANT! This is how you'll be reached in an emergency involving your vehicle.{" "}
+        {" "}Print the permit below (or fill it out at the gate) and keep it visible in your windshield/window at all times. IMPORTANT! This is how you'll be reached in an emergency involving your vehicle.
       </p>
 
       <p className="text-sm text-default-500 mb-4">
         <strong>Step 3:</strong>
-        {" "}Pimp your vehicle. <strong>All vehicles parked inside the event area must be decorated</strong> - no default-world cars, vans, or caravans. Plan ahead.
+        {" "}<a className="text-primary underline" href="https://coda.io/d/Survival-Guide_ddTvwEwgvJw/Preparing" target="_blank" rel="noopener noreferrer">Read the Survival Guide</a> - especially Preparing and Safety - for the 4-metre fire perimeter between vehicles and other structures.
       </p>
 
       <p className="text-sm text-default-500 mb-4">
-        <strong>Step 4:</strong>
-        {" "}<a className="text-primary underline" href="https://coda.io/d/Survival-Guide_ddTvwEwgvJw/Preparing" target="_blank" rel="noopener noreferrer">Read the Survival Guide</a> - especially Preparing and Safety - for the 4-metre fire perimeter between vehicles and other structures.{" "}
-
+        Please also make the Borderland even more beautiful by pimping your vehicle! Turning your vehicle into art is a tradition, and we love it when cars, vans and caravans leave the default world behind.
       </p>
 
       {hasAnyValue && (
