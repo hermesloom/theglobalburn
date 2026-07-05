@@ -91,12 +91,13 @@ export default function MembershipAdminPage() {
         first_name: string;
         last_name: string;
         metadata?: { burner_questionnaire_result?: { borderland_visits?: string; previous_events?: string } };
+        profiles: { email: string } | null;
       }> = result.data;
 
-      const rows: string[][] = [["First name", "Last name", "Borderland visits", "Previous events"]];
+      const rows: string[][] = [["First name", "Last name", "Email", "Borderland visits", "Previous events"]];
       for (const m of memberships) {
         const q = m.metadata?.burner_questionnaire_result;
-        rows.push([m.first_name ?? "", m.last_name ?? "", q?.borderland_visits ?? "", q?.previous_events ?? ""]);
+        rows.push([m.first_name ?? "", m.last_name ?? "", m.profiles?.email ?? "", q?.borderland_visits ?? "", q?.previous_events ?? ""]);
       }
       downloadBlob(arrayToCsv(rows), "member-info.csv", "text/csv;charset=utf-8;");
     } catch {
