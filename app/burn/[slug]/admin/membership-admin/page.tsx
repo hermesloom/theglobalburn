@@ -33,7 +33,7 @@ export default function MembershipAdminPage() {
   const { project } = useProject();
   const [loadingChildren, setLoadingChildren] = useState(false);
   const [loadingPets, setLoadingPets] = useState(false);
-  const [loadingEmails, setLoadingEmails] = useState(false);
+  const [loadingMemberInfo, setLoadingMemberInfo] = useState(false);
 
   const downloadChildrenCsv = async () => {
     setLoadingChildren(true);
@@ -83,27 +83,27 @@ export default function MembershipAdminPage() {
     }
   };
 
-  const downloadEmailsCsv = async () => {
-    setLoadingEmails(true);
+  const downloadMemberInfoCsv = async () => {
+    setLoadingMemberInfo(true);
     try {
       const result = await apiGet(`/burn/${project?.slug}/admin/memberships`);
-      const memberships: Array<{ profiles: { email: string } | null }> =
-        result.data;
+      const memberships: Array<{
+        first_name: string;
+        last_name: string;
+        metadata?: { burner_questionnaire_result?: { borderland_visits?: string; previous_events?: string } };
+        profiles: { email: string } | null;
+      }> = result.data;
 
-      const emails = memberships
-        .map((m) => m.profiles?.email)
-        .filter(Boolean) as string[];
-
-      const unique = [...new Set(emails)].sort();
-      downloadBlob(
-        arrayToCsv([["email"], ...unique.map((e) => [e])]),
-        "member-emails.csv",
-        "text/csv;charset=utf-8;"
-      );
+      const rows: string[][] = [["First name", "Last name", "Email", "Borderland visits", "Previous events"]];
+      for (const m of memberships) {
+        const q = m.metadata?.burner_questionnaire_result;
+        rows.push([m.first_name ?? "", m.last_name ?? "", m.profiles?.email ?? "", q?.borderland_visits ?? "", q?.previous_events ?? ""]);
+      }
+      downloadBlob(arrayToCsv(rows), "member-info.csv", "text/csv;charset=utf-8;");
     } catch {
       toast.error("Failed to download CSV.");
     } finally {
-      setLoadingEmails(false);
+      setLoadingMemberInfo(false);
     }
   };
 
@@ -185,8 +185,8 @@ export default function MembershipAdminPage() {
           <Button color="primary" onPress={downloadPetsCsv} isLoading={loadingPets}>
             Download members with pets (CSV)
           </Button>
-          <Button color="primary" onPress={downloadEmailsCsv} isLoading={loadingEmails}>
-            Download all member emails (CSV)
+          <Button color="primary" onPress={downloadMemberInfoCsv} isLoading={loadingMemberInfo}>
+            Download member info (CSV)
           </Button>
         </div>
       </div>
