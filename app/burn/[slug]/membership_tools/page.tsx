@@ -209,7 +209,7 @@ export default function ScannerManagerPage() {
         <ModalContent>
           <ModalHeader>Add Note</ModalHeader>
           <ModalBody>
-            <p className="text-red-600 font-semibold">⚠ These notes are for facts, not opinions</p>
+            <p className="text-red-600 font-semibold">⚠ These notes are for facts, not opinions (REMEMBER: any member can request their data via GDPR) </p>
             <Textarea value={notesText} onValueChange={setNotesText} placeholder="Enter note..." minRows={3} />
           </ModalBody>
           <ModalFooter>
