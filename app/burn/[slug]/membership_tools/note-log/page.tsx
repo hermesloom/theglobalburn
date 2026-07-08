@@ -5,6 +5,7 @@ import { useProject } from "@/app/_components/SessionContext";
 import { apiGet } from "@/app/_components/api";
 import { Spinner } from "@nextui-org/react";
 import Heading from "@/app/_components/Heading";
+import { CopyOutlined, CheckOutlined } from "@ant-design/icons";
 
 interface NoteEntry {
   id: string;
@@ -13,6 +14,23 @@ interface NoteEntry {
   member_name: string;
   actor_name: string;
   note: string;
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      onClick={() => {
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }}
+      className="text-gray-400 hover:text-gray-600 transition-colors"
+      title="Copy note"
+    >
+      {copied ? <CheckOutlined style={{ color: "#22c55e" }} /> : <CopyOutlined />}
+    </button>
+  );
 }
 
 export default function NoteLogPage() {
@@ -69,7 +87,10 @@ export default function NoteLogPage() {
                   <div className="text-xs text-gray-400">by {n.actor_name}</div>
                 </div>
               </div>
-              <p className="text-gray-700 whitespace-pre-wrap">{n.note}</p>
+              <div className="flex items-start gap-2">
+                <p className="text-gray-700 whitespace-pre-wrap flex-1">{n.note}</p>
+                <CopyButton text={`${n.member_name}:\n${n.note}\n— ${n.actor_name}`} />
+              </div>
             </div>
           ))}
         </div>
