@@ -91,16 +91,18 @@ export type MemberSearchResult = {
   }[];
 };
 
-const formatSwedishDateTime = (dateStr: string) =>
-  new Date(dateStr).toLocaleString('sv-SE', {
-    timeZone: 'Europe/Stockholm',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZoneName: 'short',
-  });
+const formatSwedishDateTime = (dateStr: string): string => {
+  const date = new Date(dateStr);
+  const opts = { timeZone: "Europe/Stockholm" } as const;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    ...opts, weekday: "long", month: "long", day: "numeric",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false, year: "numeric",
+  }).formatToParts(date);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  const tz = new Intl.DateTimeFormat("sv-SE", { ...opts, timeZoneName: "short" })
+    .formatToParts(date).find((p) => p.type === "timeZoneName")?.value ?? "";
+  return `${get("weekday")}, ${get("month")} ${get("day")}, ${get("hour")}:${get("minute")}:${get("second")} ${tz} (${get("year")})`;
+};
 
 const formatSwedishDate = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString('sv-SE', { timeZone: 'Europe/Stockholm' });
