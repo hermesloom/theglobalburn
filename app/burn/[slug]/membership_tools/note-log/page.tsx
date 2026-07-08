@@ -17,6 +17,19 @@ interface NoteEntry {
   note: string;
 }
 
+function formatNoteDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const opts = { timeZone: "Europe/Stockholm" } as const;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    ...opts, weekday: "long", month: "long", day: "numeric",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false, year: "numeric",
+  }).formatToParts(date);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  const tz = new Intl.DateTimeFormat("sv-SE", { ...opts, timeZoneName: "short" })
+    .formatToParts(date).find((p) => p.type === "timeZoneName")?.value ?? "";
+  return `${get("weekday")}, ${get("month")} ${get("day")}, ${get("hour")}:${get("minute")}:${get("second")} ${tz} (${get("year")})`;
+}
+
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
   return (
@@ -125,7 +138,7 @@ export default function NoteLogPage() {
                   <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">General note</span>
                 )}
                 <div className="text-right">
-                  <div className="text-sm text-gray-500">{new Date(n.created_at).toLocaleString("sv-SE", { timeZone: "Europe/Stockholm", timeZoneName: "short" })}</div>
+                  <div className="text-sm text-gray-500">{formatNoteDate(n.created_at)}</div>
                   <div className="text-xs text-gray-400">by {n.actor_name}</div>
                 </div>
               </div>
