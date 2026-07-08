@@ -14,6 +14,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import Link from "next/link";
 
 interface AgeEntry {
   age: number;
@@ -207,6 +208,9 @@ export default function MembershipStatisticsPage() {
 
   return (
     <>
+      <Link href={`/burn/${project?.slug}/membership_tools`} className="text-sm text-blue-600 hover:underline mb-4 inline-block">
+        ← Back to Membership Tools
+      </Link>
       <Heading>Membership Statistics</Heading>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">

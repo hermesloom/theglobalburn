@@ -1,5 +1,23 @@
 import { requestWithProject, query } from "@/app/api/_common/endpoints";
 import { BurnRole } from "@/utils/types";
+import s from "ajv-ts";
+
+const NoteSchema = s.object({ note: s.string() });
+
+export const POST = requestWithProject(
+  async (supabase, profile, request, body, project) => {
+    return await query(() =>
+      supabase.from("burn_membership_notes").insert({
+        project_id: project!.id,
+        membership_id: null,
+        actor_profile_id: profile.id,
+        note: body.note,
+      }),
+    );
+  },
+  NoteSchema,
+  BurnRole.MembershipManager,
+);
 
 export const GET = requestWithProject(
   async (supabase, profile, request, body, project) => {
@@ -12,7 +30,7 @@ export const GET = requestWithProject(
     );
 
     const actorProfileIds = [...new Set(notes.map((n) => n.actor_profile_id))];
-    const membershipIds = [...new Set(notes.map((n) => n.membership_id))];
+    const membershipIds = [...new Set(notes.map((n) => n.membership_id).filter(Boolean))];
 
     const [actorMembershipsData, membershipNamesData] = await Promise.all([
       actorProfileIds.length > 0
@@ -58,7 +76,7 @@ export const GET = requestWithProject(
       id: n.id,
       created_at: n.created_at,
       membership_id: n.membership_id,
-      member_name: membershipNameById[n.membership_id] || n.membership_id,
+      member_name: n.membership_id ? (membershipNameById[n.membership_id] || n.membership_id) : null,
       actor_name:
         actorNameByProfileId[n.actor_profile_id] ||
         emailById[n.actor_profile_id] ||
