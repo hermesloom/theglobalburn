@@ -110,6 +110,7 @@ export default function NoteLogPage() {
       </Link>
       <Heading>Note Log</Heading>
       <div className="bg-white rounded-lg shadow p-4 mb-4">
+        <p className="text-red-600 font-semibold mb-2">⚠ These notes are for facts, not opinions (REMEMBER: any member can request their data via GDPR)</p>
         <textarea
           className="w-full border border-gray-300 rounded p-2 text-sm resize-none"
           rows={3}
