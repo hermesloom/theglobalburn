@@ -9,12 +9,21 @@ function getStockholmParts(dateObj: Date) {
   }).formatToParts(dateObj);
 }
 
+function getSwedishTZLabel(dateObj: Date): string {
+  const parts = getStockholmParts(dateObj);
+  const get = (t: string) => Number(parts.find(p => p.type === t)?.value ?? "0");
+  const stockholmHour = get("hour");
+  const utcHour = dateObj.getUTCHours();
+  const offset = ((stockholmHour - utcHour) + 24) % 24;
+  return offset === 1 ? "CET" : "CEST";
+}
+
 function formatDateWithTime(date: string | number | Date): string {
   if (!date) return "";
   const dateObj = new Date(date);
   const parts = getStockholmParts(dateObj);
   const get = (t: string) => parts.find(p => p.type === t)?.value ?? "00";
-  return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")}:${get("second")} CET/CEST`;
+  return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")}:${get("second")} ${getSwedishTZLabel(dateObj)}`;
 }
 
 /**
@@ -127,6 +136,11 @@ function formatDateRange(startDate: Date, endDate: Date): string {
   const endMonthNum = Number(fmt(endDate, { month: "numeric" }));
 
   if (startMonthNum === endMonthNum && startYear === year) {
+    if (startDay === endDay) {
+      const startTime = fmt(startDate, { hour: "2-digit", minute: "2-digit", hour12: false });
+      const endTime = fmt(endDate, { hour: "2-digit", minute: "2-digit", hour12: false });
+      return `${startMonth} ${startDay} ${startTime}-${endTime} ${getSwedishTZLabel(startDate)}, ${year}`;
+    }
     return `${startMonth} ${startDay} – ${endDay}, ${year}`;
   }
   if (startYear === year) {
