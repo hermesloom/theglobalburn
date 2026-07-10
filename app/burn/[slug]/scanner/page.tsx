@@ -231,30 +231,68 @@ export default function ScannerPage() {
                 <div className="mt-4">
                   <Button color="primary" onPress={onClose}>Close</Button>
                 </div>
-                <p>For any questions about the below, contact the watcher via radio or phone at <a href="tel:+46 72 216 3831" className="text-blue-500 underline">+46 72 216 3831</a></p>
-                <p><a href="https://docs.google.com/document/d/1cNYwpLhixDr5XQAVDMSrAtncT_8N49Q6NofBk8HTK9E/edit?tab=t.0" className="text-blue-500 underline">The full gatekeeper handbook</a></p>
-                <p>Encourage people to refer to the QR code (available at the gate) for the membership platform and the useful information.</p>
-                <p>The gate barrier is opened at 09:00 and closed at 22:00</p>
-                <p>Non-members are not allowed on site during burn week, that is from Monday to Sunday when the event is taking place (except for emergency personnel)</p>
-                <p>Wristbands are how we tell that members have registered properly</p>
-                <p>Wristbands must be worn on the WRIST</p>
-                <p>Wristbands that go missing CANNOT BE REPLACED</p>
-                <p>The full name and date of birth should match the physical ID (national ID card/passport/driver’s licence, NO COPIES).</p>
-                <p>Sleeper vehicles are the only non-emergency vehicles allowed into the event. They should be registered in the membership platform and they should be decorated.</p>
-                <p>Speed limit when going to park is 10 km/h. NO PARKING EVER ON ROADS. The traffic must flow!</p>
-                <p>NO DRIVING during the event (except emergencies)</p>
-                <p>All vehicles (sleeper vehicles in the event and cars in the parking lot) should have a filled out form on their dashboard at all times.</p>
-                <p>Children 0-13 must be registered under a membership in the membership platform.</p>
-                <p>Children 14-17 must have their OWN membership</p>
-                <p>Pets must be registered in the membership platform</p>
+
+                <p>For any questions about the below, contact the watcher via radio or phone at <a href="tel:+4672216381" className="text-blue-500 underline">+46 72 216 3831</a></p>
+                <p><a href="https://docs.google.com/document/d/1cNYwpLhixDr5XQAVDMSrAtncT_8N49Q6NofBk8HTK9E/edit?tab=t.0" className="text-blue-500 underline" target="_blank">The full gatekeeper handbook</a></p>
+                <p>Encourage people to refer to the QR code (available at the gate) for the membership platform and useful information.</p>
+
+                <p className="font-bold">Gate opening hours: 9:00 - 22:00</p>
+
+                <p>After Sun July 19 22:00 we only allow the following on site:</p>
+                <ul className="list-disc pl-6">
+                  <li>Registered members with wristbands</li>
+                  <li>Registered cars with filled in vehicle cards for 1 hour</li>
+                  <li>Registered sleeper vehicles with filled in vehicle cards to park and stay put. Gently ask about decoration of those.</li>
+                  <li>For exceptions refer to <a href="https://docs.google.com/document/d/1cNYwpLhixDr5XQAVDMSrAtncT_8N49Q6NofBk8HTK9E/edit?tab=t.0" className="text-blue-500 underline" target="_blank">gatekeeper handbook</a> or contact Watcher.</li>
+                </ul>
+
+                <p className="font-bold">Check-in procedure:</p>
+                <ol className="list-decimal pl-6 flex flex-col gap-2">
+                  <li>Ask for a physical <strong>ID</strong> (official government ID, Passport, Driving License) - <strong>NO COPIES/PHOTOS OR DIGITAL IDs</strong></li>
+                  <li>Ask for <strong>Membership QR</strong> code.</li>
+                  <li>Check if name and date of birth on <strong>both match EXACTLY</strong>.</li>
+                  <li>
+                    <strong>If yes, scan QR</strong> code and confirm check-in.
+                    <ol className="list-[lower-alpha] pl-6 mt-1 flex flex-col gap-1">
+                      <li>Place wristband on wrist (with consent) - <strong>NO EXCEPTIONS</strong></li>
+                      <li><strong>Check that it is secure</strong>, offer cutting and burning ends of wristband. If it is lost, we <strong>CAN NOT</strong> replace it.</li>
+
+                      <li>
+                        <p><strong>Children 0-13</strong> must be attached to a membership in the membership platform (you should see them when scanning the member's QR code)</p>
+                        <p><strong>Children 14-17</strong> must have their OWN membership.</p>
+                      </li>
+                      <li>
+                        <strong>Pets must be registered</strong> in the membership platform (you should see them when scanning the member's QR code).
+                      </li>
+
+                      <li>If they are responsible for a vehicle it must have a <strong>a Vehicle Card</strong>. Tell them to place it on dashboard visibly and be available on the phone at all times. There are two kinds of cards:</li>
+                      <ul>
+                        <li>If they are <strong>sleeping in their vehicle</strong> they should fill out information in the membership platform. They might have a card printed from the member platform or they can fill it out at the gate (but they still must put the information into the portal)</li>
+                        <li>If they are <strong>not sleeping in their vehicle</strong> they can simply fill out the long-term parking form.</li>
+                      </ul>
+                    </ol>
+                  </li>
+                  <li><strong>If not, contact the Watcher</strong></li>
+                </ol>
+
+                <p className="font-bold">Important info for drivers:</p>
+                <ol className="list-decimal pl-6 flex flex-col gap-1">
+                  <li><strong>Speed limit 10km/h</strong></li>
+                  <li>Vehicle <strong>registration card visible</strong> at all times, phone number on it reachable at all times</li>
+                  <li>No driving during the event except emergencies.</li>
+                  <li>No parking on roads.</li>
+                  <li>Regular cars have <strong>1hr to unload</strong> and move to permanent parking.</li>
+                  <li>Sleeper vehicles need <strong>registration</strong> in membership platform, should be <strong>decorated</strong>, parked with <strong>tow hitch facing fire road.</strong></li>
+                </ol>
+
                 <div className="mt-4">
                   <Button color="primary" onPress={onClose}>Close</Button>
                 </div>
               </ModalBody>
             </>
           )}
-        </ModalContent>
-      </Modal>
+        </ModalContent >
+      </Modal >
 
       <div className="flex flex-col gap-4">
         <video
