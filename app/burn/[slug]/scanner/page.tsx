@@ -244,7 +244,7 @@ export default function ScannerPage() {
                     <strong>If yes, scan QR</strong> code and confirm check-in.
                     <ol className="list-[lower-alpha] pl-6 mt-1 flex flex-col gap-1">
                       <li>Place wristband on wrist (with consent) - <strong>NO EXCEPTIONS</strong></li>
-                      <li><strong>Check that it is secure</strong>, offer cutting and burning ends of wristband. If it is lost, we <strong>CAN NOT</strong> replace it.</li>
+                      <li><strong>Check that it is secure</strong>, offer cutting and burning ends of wristband. <strong>The wristband is their proof of membership once checked in!</strong> If it is lost, we <strong>CAN NOT</strong> replace it.</li>
 
                       <li>
                         <p><strong>Children 0-13</strong> must be attached to a membership in the membership platform (you should see them when scanning the member's QR code)</p>
@@ -266,6 +266,7 @@ export default function ScannerPage() {
 
                 <p className="font-bold">Important info for drivers:</p>
                 <ol className="list-decimal pl-6 flex flex-col gap-1">
+                  <li><strong>Drivers must always be sober!! Sweden has a zero-tolerance policy on driving under the influence</strong></li>
                   <li><strong>Speed limit 10km/h</strong></li>
                   <li>Vehicle <strong>registration card visible</strong> at all times, phone number on it reachable at all times</li>
                   <li>No driving during the event except emergencies.</li>
