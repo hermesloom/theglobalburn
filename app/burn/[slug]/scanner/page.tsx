@@ -29,6 +29,13 @@ interface Pet {
   chip_code: string;
 }
 
+interface CarRegistration {
+  phone_number?: string;
+  alt_contact?: string;
+  camp_or_area?: string;
+  registration_plate?: string;
+}
+
 interface ScannedMember {
   id: string;
   first_name: string;
@@ -38,6 +45,7 @@ interface ScannedMember {
   metadata: {
     children: Child[];
     pets: Pet[];
+    car_registration: CarRegistration | null;
   };
 }
 
@@ -248,7 +256,7 @@ export default function ScannerPage() {
 
                       <li>
                         <p><strong>Children 0-13</strong> must be attached to a membership in the membership platform (you should see them when scanning the member's QR code)</p>
-                        <p><strong>Children 14-17</strong> must have their OWN membership.</p>
+                        <p><strong>Children 14-17</strong> must have their OWN membership and <strong>they get a special wristband</strong> as they are not allowed in certain spaces.</p>
                       </li>
                       <li>
                         <strong>Pets must be registered</strong> in the membership platform (you should see them when scanning the member's QR code).
@@ -328,6 +336,20 @@ export default function ScannerPage() {
                         ))}
                       </div>
                     </div>
+                  )}
+
+                  {scannedMember.metadata?.car_registration && (
+                    Object.values(scannedMember.metadata.car_registration).some(v => v) && (
+                      <div className="mt-4">
+                        <h4 className="font-semibold mb-2">Sleeper Vehicle</h4>
+                        <div className="pl-4 border-l-2 border-gray-200 flex flex-col gap-1">
+                          {scannedMember.metadata.car_registration.registration_plate && <p><strong>Plate:</strong> {scannedMember.metadata.car_registration.registration_plate}</p>}
+                          {scannedMember.metadata.car_registration.phone_number && <p><strong>Phone:</strong> {scannedMember.metadata.car_registration.phone_number}</p>}
+                          {scannedMember.metadata.car_registration.alt_contact && <p><strong>Alt Contact:</strong> {scannedMember.metadata.car_registration.alt_contact}</p>}
+                          {scannedMember.metadata.car_registration.camp_or_area && <p><strong>Camp/Area:</strong> {scannedMember.metadata.car_registration.camp_or_area}</p>}
+                        </div>
+                      </div>
+                    )
                   )}
                 </div>
               </CardBody>
