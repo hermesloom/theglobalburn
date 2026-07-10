@@ -264,7 +264,7 @@ export default function ScannerPage() {
 
                       <li>If they are responsible for a vehicle it must have a <strong>a Vehicle Card</strong>. Tell them to place it on dashboard visibly and be available on the phone at all times. There are two kinds of cards:</li>
                       <ul>
-                        <li>If they are <strong>sleeping in their vehicle</strong> they should fill out information in the membership platform. They might have a card printed from the member platform or they can fill it out at the gate (but they still must put the information into the portal)</li>
+                        <li>If they are <strong>sleeping in their vehicle</strong> they should fill out information in the membership platform. They might have a card printed from the member platform or they can fill it out at the gate (but they still must put the information into the platform)</li>
                         <li>If they are <strong>not sleeping in their vehicle</strong> they can simply fill out the long-term parking form.</li>
                       </ul>
                     </ol>
