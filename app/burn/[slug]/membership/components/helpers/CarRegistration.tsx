@@ -22,7 +22,7 @@ async function printPermit(
 ) {
   const blank = `<span style="display:inline-block;width:100%;border-bottom:1.5px solid #000;min-width:120px">&nbsp;</span>`;
   const field = (label: string, value: string | undefined) =>
-    `<div style="margin-bottom:12px"><div style="font-weight:bold;font-size:16px;color:#555">${label}</div><div style="font-size:22px;text-align:right;margin-top:10px">${value || blank}</div></div>`;
+    `<div style="margin-bottom:12px"><div style="font-weight:bold;font-size:16px;color:#555">${label}</div><div style="font-size:22px;text-align:right;margin-top:10px">${blank}</div></div>`;
 
   let qrCode = "";
   if (info.phone_number) {
@@ -57,11 +57,14 @@ async function printPermit(
 <body>
   <h1>${eventName} Sleeper Vehicle Permit</h1>
 
+  <p style="font-weight: bold">PUT THIS INFORMATION IN THE MEMBERSHIP PLATFORM AT</p>
+  <p style="font-weight: bold">https://members.theborderland.se</p>
+
   <p>Valid for vehicles a person is sleeping in. Non-sleeper vehicles must be in the long-term parking lot (outside of the event).</p>
 
   <div class="details" style="display:flex;align-items:flex-start;gap:24px;">
     <div style="flex:1;min-width:0">
-      ${field("Name", memberName)}
+      ${field("Name", " ")}
       ${field("Phone Number", info.phone_number)}
       ${field("Alternative Name/Phone", info.alt_contact)}
       ${field("Camp Name / Neighborhood", info.camp_or_area)}
@@ -86,9 +89,14 @@ async function printPermit(
       <li>Keep this card visible at all times.</li>
     </ul>
 
+    <ul>
+      <li>
+        Please also help make the Borderland even more beautiful by pimping your vehicle!
+      </li>
+    </ul>
+
     <h2>MANDATORY</h2>
     <ul class="mandatory">
-      <li>Pimp your vehicle so it does not look like a default-world one.</li>
       <li>4 metres fire perimeter to other structures.</li>
     </ul>
   </div>
@@ -161,7 +169,7 @@ export default function CarRegistration({
       </p>
 
       <p className="text-sm text-default-500 mb-4">
-        Please also make the Borderland even more beautiful by pimping your vehicle! Turning your vehicle into art is a tradition, and we love it when cars, vans and caravans leave the default world behind.
+        Please also help make the Borderland even more beautiful by pimping your vehicle! Turning your vehicle into art is a tradition, and we love it when cars, vans and caravans leave the default world behind.
       </p>
 
       {hasAnyValue && (
