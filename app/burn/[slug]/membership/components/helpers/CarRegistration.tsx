@@ -22,7 +22,7 @@ async function printPermit(
 ) {
   const blank = `<span style="display:inline-block;width:100%;border-bottom:1.5px solid #000;min-width:120px">&nbsp;</span>`;
   const field = (label: string, value: string | undefined) =>
-    `<div style="margin-bottom:12px"><div style="font-weight:bold;font-size:16px;color:#555">${label}</div><div style="font-size:22px;text-align:right;margin-top:10px">${blank}</div></div>`;
+    `<div style="margin-bottom:12px"><div style="font-weight:bold;font-size:16px;color:#555">${label}</div><div style="font-size:22px;text-align:right;margin-top:10px">${value || blank}</div></div>`;
 
   let qrCode = "";
   if (info.phone_number) {
