@@ -72,10 +72,11 @@ async function printPermit(
     </div>
     ${qrCode ? `<div style="flex-shrink:0;width:210px">${qrCode}</div>` : ""}
   </div>
-  <div class="rules">
+  <div class="rules">/
     <ul>
-      <li>Gate closed 22:00–09:00, July 20–25: no entry or exit.</li>
-      <li>Once you leave, you cannot re-enter. No grocery runs.</li>
+      <li>Gate closed 22:00–09:00.</li>
+      <li>Only Sleeper Vehicles can enter during the burn days when the gate is open.</li>
+      <li>Once a Sleeper Vehicle leaves it cannot re-enter. No grocery runs.</li>
       <li>Gate opens for exodus on Sunday, July 26, at 06:00</li>
     </ul>
 
