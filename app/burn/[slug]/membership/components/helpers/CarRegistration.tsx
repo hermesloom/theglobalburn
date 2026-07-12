@@ -72,7 +72,7 @@ async function printPermit(
     </div>
     ${qrCode ? `<div style="flex-shrink:0;width:210px">${qrCode}</div>` : ""}
   </div>
-  <div class="rules">/
+  <div class="rules">
     <ul>
       <li>Gate closed 22:00–09:00.</li>
       <li>Only Sleeper Vehicles can enter during the burn days when the gate is open.</li>
