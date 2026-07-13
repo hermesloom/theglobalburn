@@ -58,12 +58,22 @@ export const POST = requestWithProject(
       );
     }
 
+    const specialNotes = await query(() =>
+      supabase
+        .from("burn_membership_notes")
+        .select("id")
+        .eq("membership_id", foundMembership.id)
+        .eq("special_circumstances", true)
+        .limit(1)
+    );
+
     return {
       id: foundMembership.id,
       first_name: foundMembership.first_name,
       last_name: foundMembership.last_name,
       birthdate: foundMembership.birthdate,
       checked_in_at: foundMembership.checked_in_at,
+      has_special_circumstances: specialNotes.length > 0,
       metadata: {
         children: foundMembership.metadata.children,
         pets: foundMembership.metadata.pets,

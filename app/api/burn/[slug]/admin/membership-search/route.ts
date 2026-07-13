@@ -171,7 +171,7 @@ export const POST = requestWithProject(
         ? supabase.rpc("get_transfer_chains", { p_owner_ids: allOwnerIds, p_project_id: project!.id })
         : Promise.resolve({ data: [], error: null }),
       supabase.from("burn_membership_checkin_events").select("membership_id, actor_profile_id, event_type, created_at").eq("project_id", project!.id).in("membership_id", allMembershipIds).order("created_at", { ascending: true }),
-      supabase.from("burn_membership_notes").select("membership_id, actor_profile_id, note, created_at").eq("project_id", project!.id).in("membership_id", allMembershipIds).order("created_at", { ascending: true }),
+      supabase.from("burn_membership_notes").select("membership_id, actor_profile_id, note, created_at, special_circumstances").eq("project_id", project!.id).in("membership_id", allMembershipIds).order("created_at", { ascending: true }),
     ]);
     console.log(`[timing] transferChains + eventsResult + notesResult: ${Date.now() - t}ms`);
 
@@ -253,13 +253,14 @@ export const POST = requestWithProject(
       });
     }
 
-    const notesByMembershipId: Record<string, { note: string; created_at: string; actor_display_name: string }[]> = {};
+    const notesByMembershipId: Record<string, { note: string; created_at: string; actor_display_name: string; special_circumstances: boolean }[]> = {};
     for (const n of notes) {
       if (!notesByMembershipId[n.membership_id]) notesByMembershipId[n.membership_id] = [];
       notesByMembershipId[n.membership_id].push({
         note: n.note,
         created_at: n.created_at,
         actor_display_name: resolveActorDisplayName(n.actor_profile_id),
+        special_circumstances: n.special_circumstances ?? false,
       });
     }
 

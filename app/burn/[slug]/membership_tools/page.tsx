@@ -2,6 +2,7 @@
 
 import {
   Button,
+  Checkbox,
   Input,
   Modal,
   ModalContent,
@@ -88,6 +89,7 @@ export type MemberSearchResult = {
     note: string;
     created_at: string;
     actor_display_name: string;
+    special_circumstances: boolean;
   }[];
 };
 
@@ -126,6 +128,7 @@ export default function ScannerManagerPage() {
   const [_searchError, setSearchError] = useState<string | null>(null);
   const [notesModal, setNotesModal] = useState<{ membershipId: string } | null>(null);
   const [notesText, setNotesText] = useState("");
+  const [specialCircumstances, setSpecialCircumstances] = useState(false);
   const [isSavingNotes, setIsSavingNotes] = useState(false);
 
   const memberQueryRef = useRef<HTMLInputElement>(null);
@@ -205,22 +208,26 @@ export default function ScannerManagerPage() {
         </Button>
       </div>
 
-      <Modal isOpen={!!notesModal} onClose={() => { if (!isSavingNotes) setNotesModal(null); }} isDismissable={!isSavingNotes} hideCloseButton={isSavingNotes}>
+      <Modal isOpen={!!notesModal} onClose={() => { if (!isSavingNotes) { setNotesModal(null); setSpecialCircumstances(false); } }} isDismissable={!isSavingNotes} hideCloseButton={isSavingNotes}>
         <ModalContent>
           <ModalHeader>Add Note</ModalHeader>
           <ModalBody>
             <p className="text-red-600 font-semibold">⚠ These notes are for facts, not opinions (REMEMBER: any member can request their data via GDPR) </p>
             <Textarea value={notesText} onValueChange={setNotesText} placeholder="Enter note..." minRows={3} />
+            <Checkbox isSelected={specialCircumstances} onValueChange={setSpecialCircumstances}>
+              Inform gate of special circumstances (they will not see the note)
+            </Checkbox>
           </ModalBody>
           <ModalFooter>
-            <Button variant="light" onPress={() => setNotesModal(null)} isDisabled={isSavingNotes}>Cancel</Button>
+            <Button variant="light" onPress={() => { setNotesModal(null); setSpecialCircumstances(false); }} isDisabled={isSavingNotes}>Cancel</Button>
             <Button color="primary" isLoading={isSavingNotes} onPress={async () => {
               if (!notesText.trim()) return;
               setIsSavingNotes(true);
-              await apiPost(`/burn/${project!.slug}/admin/memberships/${notesModal!.membershipId}/notes`, { note: notesText });
+              await apiPost(`/burn/${project!.slug}/admin/memberships/${notesModal!.membershipId}/notes`, { note: notesText, special_circumstances: specialCircumstances });
               setIsSavingNotes(false);
               setNotesModal(null);
               setNotesText("");
+              setSpecialCircumstances(false);
               await searchForMember();
             }}>Add</Button>
           </ModalFooter>
@@ -332,6 +339,9 @@ export default function ScannerManagerPage() {
                                 {membership.notes.map((n, i) => (
                                   <div key={i} className="mb-2 last:mb-0">
                                     <p className="text-xs text-gray-500">{formatSwedishDateTime(n.created_at)} — {n.actor_display_name}</p>
+                                    {n.special_circumstances && (
+                                      <span className="inline-block text-xs font-semibold text-orange-700 bg-orange-100 border border-orange-300 rounded px-2 py-0.5 mb-1">Gate will be informed of special circumstances</span>
+                                    )}
                                     <p className="text-sm whitespace-pre-wrap">{n.note}</p>
                                   </div>
                                 ))}
