@@ -18,5 +18,5 @@ export const POST = requestWithProject(
     );
   },
   NoteSchema,
-  BurnRole.MembershipManager,
+  BurnRole.MembershipLead,
 );
