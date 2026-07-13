@@ -46,7 +46,7 @@ export const POST = requestWithProject(
 
     for (const m of memberships) {
       // Generate QR code as PNG buffer
-      const qrPngBuffer = await QRCode.toBuffer(m.id, { type: "png" });
+      const qrPngBuffer = await QRCode.toBuffer(m.id, { type: "png", margin: 1.5 });
       const qrDataUri = `data:image/png;base64,${qrPngBuffer.toString("base64")}`;
 
       const meta = m.metadata || {};
@@ -122,12 +122,12 @@ export const POST = requestWithProject(
   </head>
   <body style="font-family: Arial, sans-serif; background: #fff; color: #222; margin: 0; padding: 0;">
     <div style="max-width: 600px; margin: 40px auto; padding: 24px; background: #fafafa; border-radius: 8px; border: 1px solid #eee;">
-      <h2 style="color: #222;">Hi fellow Borderling!</h2>
+      <h2 style="color: #222;">Hello fellow Borderling,</h2>
       <p style="font-size: 16px; line-height: 1.5;">
         Here's your personal QR code. Pair it with your <strong>physical government ID</strong> (driver's license/passport/national ID - physical only: no digital/scans/photos) and you've got your passage from default world to the dream.
       </p>
-      <div style="text-align: center; margin: 32px 0;">
-        <img src="${qrDataUri}" alt="Your QR Code" style="width: 200px; height: 200px; border: 1px solid #ccc; padding: 8px; background: #fff;" />
+      <div style="text-align: center; margin: 12px 0;">
+        <img src="${qrDataUri}" alt="Your QR Code" style="width: 270px; height: 270px; border: 1px solid #ccc; padding: 8px; background: #fff;" />
       </div>
       <p style="font-size: 16px; line-height: 1.5;">
         <strong>Please print or download this in advance of arriving</strong> since internet connectivity is really bad at the Borderland.<br><br>
