@@ -45,6 +45,7 @@ interface ScannedMember {
   last_name: string;
   birthdate: string;
   checked_in_at: string | null;
+  has_special_circumstances: boolean;
   metadata: {
     children: Child[];
     pets: Pet[];
@@ -308,6 +309,7 @@ export default function ScannerPage() {
               <CardBody className="flex flex-col justify-between">
                 <div className="flex flex-col gap-2">
                   {scannedMember.checked_in_at != null && <h2 className="text-2xl font-semibold mb-4">!!!ALREADY CHECKED IN!!!</h2>}
+                  {scannedMember.has_special_circumstances && <p className="font-bold text-lg">Special circumstances, contact Watcher</p>}
                   <p><strong>Name:</strong> {scannedMember.first_name} {scannedMember.last_name}</p>
                   <p><strong>Birthdate:</strong> {formatDOBJSX(scannedMember.birthdate, true)}</p>
                   <p><strong>Checked in:</strong> {scannedMember.checked_in_at == null ? 'Just now' : formatRelativeDateTime(new Date(scannedMember.checked_in_at))}</p>

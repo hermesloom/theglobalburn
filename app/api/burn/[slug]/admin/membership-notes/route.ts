@@ -24,7 +24,7 @@ export const GET = requestWithProject(
     const notes: any[] = await query(() =>
       supabase
         .from("burn_membership_notes")
-        .select("id, created_at, membership_id, actor_profile_id, note")
+        .select("id, created_at, membership_id, actor_profile_id, note, special_circumstances")
         .eq("project_id", project!.id)
         .order("created_at", { ascending: false }),
     );
@@ -82,6 +82,7 @@ export const GET = requestWithProject(
         emailById[n.actor_profile_id] ||
         n.actor_profile_id,
       note: n.note,
+      special_circumstances: n.special_circumstances ?? false,
     }));
   },
   undefined,

@@ -15,6 +15,7 @@ interface NoteEntry {
   member_name: string | null;
   actor_name: string;
   note: string;
+  special_circumstances: boolean;
 }
 
 function formatNoteDate(dateStr: string): string {
@@ -143,6 +144,9 @@ export default function NoteLogPage() {
                   <div className="text-xs text-gray-400">by {n.actor_name}</div>
                 </div>
               </div>
+              {n.special_circumstances && (
+                <span className="inline-block text-xs font-semibold text-orange-700 bg-orange-100 border border-orange-300 rounded px-2 py-0.5 mb-2">Gate will be informed of special circumstances</span>
+              )}
               <div className="flex items-start gap-2">
                 <p className="text-gray-700 whitespace-pre-wrap flex-1">{n.note}</p>
                 <CopyButton text={n.member_name ? `${n.member_name}:\n${n.note}\n— ${n.actor_name}` : `${n.note}\n— ${n.actor_name}`} />
