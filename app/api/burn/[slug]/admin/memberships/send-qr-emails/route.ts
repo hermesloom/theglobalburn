@@ -150,7 +150,7 @@ export const POST = requestWithProject(
 </html>`
 
       if (body.dry_run) {
-        console.log(`[dry_run] end-qr-emails | membership=${m.id} email=${owners[m.owner_id].email}`);
+        console.log(`[end-qr-emails] DRY_RUN | membership=${m.id} email=${owners[m.owner_id].email}`);
       } else {
         await sendEmail(
           owners[m.owner_id].email,
@@ -160,6 +160,7 @@ export const POST = requestWithProject(
             isHtml: true,
           },
         );
+        console.log(`[end-qr-emails] membership=${m.id} email=${owners[m.owner_id].email}`);
       }
     }
     return { success: true };
