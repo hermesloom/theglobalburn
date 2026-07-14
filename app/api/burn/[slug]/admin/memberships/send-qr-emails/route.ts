@@ -6,6 +6,7 @@ import QRCode from "qrcode";
 
 const SendQrEmailsSchema = s.object({
   membership_ids: s.array(s.string()),
+  dry_run: s.boolean().optional(),
 });
 
 export const POST = requestWithProject(
@@ -113,7 +114,7 @@ export const POST = requestWithProject(
 </div>`
         : "";
 
-      let body = `<!DOCTYPE html>
+      let emailBody = `<!DOCTYPE html>
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -148,17 +149,18 @@ export const POST = requestWithProject(
   </body>
 </html>`
 
-      console.log(body)
-
-
-      // await sendEmail(
-      //   owners[m.owner_id].email,
-      //   "Your Borderland QR code - print or download now!",
-      //   body,
-      //   {
-      //     isHtml: true,
-      //   },
-      // );
+      if (body.dry_run) {
+        console.log(`[dry_run] end-qr-emails | membership=${m.id} email=${owners[m.owner_id].email}`);
+      } else {
+        await sendEmail(
+          owners[m.owner_id].email,
+          "Your Borderland QR code - print or download now!",
+          emailBody,
+          {
+            isHtml: true,
+          },
+        );
+      }
     }
     return { success: true };
   },
