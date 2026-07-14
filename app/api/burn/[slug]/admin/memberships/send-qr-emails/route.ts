@@ -48,7 +48,6 @@ export const POST = requestWithProject(
     for (const m of memberships) {
       // Generate QR code as PNG buffer
       const qrPngBuffer = await QRCode.toBuffer(m.id, { type: "png", margin: 1.5 });
-      const qrDataUri = `data:image/png;base64,${qrPngBuffer.toString("base64")}`;
 
       const meta = m.metadata || {};
       const children: any[] = meta.children || [];
@@ -128,7 +127,7 @@ export const POST = requestWithProject(
         Here's your personal QR code. Pair it with your <strong>physical government ID</strong> (driver's license/passport/national ID - physical only: no digital/scans/photos) and you've got your passage from default world to the dream.
       </p>
       <div style="text-align: center; margin: 12px 0;">
-        <img src="${qrDataUri}" alt="Your QR Code" style="width: 270px; height: 270px; border: 1px solid #ccc; padding: 8px; background: #fff;" />
+        <img src="cid:qrcode" alt="Your QR Code" style="width: 270px; height: 270px; border: 1px solid #ccc; padding: 8px; background: #fff;" />
         <p style="margin: 8px 0 2px; font-size: 16px; font-weight: bold;">${m.first_name} ${m.last_name}</p>
         <p style="margin: 0; font-size: 14px; color: #555;">${m.birthdate}</p>
       </div>
@@ -140,7 +139,7 @@ export const POST = requestWithProject(
         Know what to expect when arriving by reading the <a href="https://docs.superhuman.com/d/_ddTvwEwgvJw/Arriving_su_mGxe1?highlightBlockId=cl-QiYKdirLHo#_ludirLHo">Checking in</a> section of the survival guide (new information this year!)
       </p>
       <p style="font-size: 16px; line-height: 1.5;">
-        Lastly, please add/verify information about children, pets, and sleeper vehicles in the membership platform (and optionally you can provide emergency contact information)! See below for the current information.
+        Lastly, please add/verify information about children, pets, and sleeper vehicles in the membership platform (and optionally you can provide emergency contact information)!${memberInfoHtml ? " See below for the current information." : ""}
       </p>
       <p style="font-size: 16px; line-height: 1.5; margin-top: 32px;">
         See you soon!<br><br>
@@ -160,6 +159,14 @@ export const POST = requestWithProject(
           emailBody,
           {
             isHtml: true,
+            attachments: [
+              {
+                filename: "qrcode.png",
+                content: qrPngBuffer,
+                contentType: "image/png",
+                cid: "qrcode",
+              },
+            ],
           },
         );
         console.log(`[end-qr-emails] membership=${m.id} email=${owners[m.owner_id].email}`);
