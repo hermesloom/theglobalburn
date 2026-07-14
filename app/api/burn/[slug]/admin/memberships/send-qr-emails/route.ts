@@ -129,6 +129,8 @@ export const POST = requestWithProject(
       </p>
       <div style="text-align: center; margin: 12px 0;">
         <img src="${qrDataUri}" alt="Your QR Code" style="width: 270px; height: 270px; border: 1px solid #ccc; padding: 8px; background: #fff;" />
+        <p style="margin: 8px 0 2px; font-size: 16px; font-weight: bold;">${owners[m.owner_id].first_name} ${owners[m.owner_id].last_name}</p>
+        <p style="margin: 0; font-size: 14px; color: #555;">${owners[m.owner_id].birthdate}</p>
       </div>
       <p style="font-size: 16px; line-height: 1.5;">
         <strong>Please print or download this in advance of arriving</strong> since internet connectivity is really bad at the Borderland.<br><br>
