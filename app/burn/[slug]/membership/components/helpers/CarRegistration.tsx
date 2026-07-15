@@ -101,14 +101,29 @@ async function printPermit(
       <li>4 metres fire perimeter to other structures.</li>
     </ul>
   </div>
-  <script>window.onload = function() { window.print(); }; window.onafterprint = function() { window.close(); };<\/script>
 </body>
 </html>`;
 
-  const win = window.open("", "_blank");
-  if (!win) return;
-  win.document.write(html);
-  win.document.close();
+  // Use hidden iframe to avoid popup blockers (e.g. Brave on mobile)
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:0';
+  document.body.appendChild(iframe);
+
+  const cleanup = () => {
+    if (document.body.contains(iframe)) document.body.removeChild(iframe);
+  };
+
+  iframe.addEventListener('load', () => {
+    iframe.contentWindow?.focus();
+    iframe.contentWindow?.print();
+    setTimeout(cleanup, 60_000);
+  });
+
+  const doc = iframe.contentDocument ?? iframe.contentWindow?.document;
+  if (!doc) { cleanup(); return; }
+  doc.open();
+  doc.write(html);
+  doc.close();
 }
 
 export default function CarRegistration({
