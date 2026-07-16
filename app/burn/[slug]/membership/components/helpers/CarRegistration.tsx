@@ -24,6 +24,10 @@ async function printPermit(
   const field = (label: string, value: string | undefined) =>
     `<div style="margin-bottom:12px"><div style="font-weight:bold;font-size:16px;color:#555">${label}</div><div style="font-size:22px;text-align:right;margin-top:10px">${value || blank}</div></div>`;
 
+  // Open window synchronously before any await to preserve user gesture —
+  // Brave blocks window.open called after an await.
+  const win = window.open("", "_blank");
+
   let qrCode = "";
   if (info.phone_number) {
     const dataUrl = await QRCode.toDataURL(`tel:${info.phone_number}`, {
@@ -34,6 +38,8 @@ async function printPermit(
     qrCode = `<img src="${dataUrl}" width="200" height="200" alt="QR code" style="display:block" />
       <div style="font-size:11px;color:#555;margin-top:4px;text-align:center">scan to call</div>`;
   }
+
+  if (!win) return;
 
   const html = `<!DOCTYPE html>
 <html>
@@ -101,29 +107,12 @@ async function printPermit(
       <li>4 metres fire perimeter to other structures.</li>
     </ul>
   </div>
+  <script>window.onload = function() { window.print(); }; window.onafterprint = function() { window.close(); };<\/script>
 </body>
 </html>`;
 
-  // Use hidden iframe to avoid popup blockers (e.g. Brave on mobile)
-  const iframe = document.createElement('iframe');
-  iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:0';
-  document.body.appendChild(iframe);
-
-  const cleanup = () => {
-    if (document.body.contains(iframe)) document.body.removeChild(iframe);
-  };
-
-  iframe.addEventListener('load', () => {
-    iframe.contentWindow?.focus();
-    iframe.contentWindow?.print();
-    setTimeout(cleanup, 60_000);
-  });
-
-  const doc = iframe.contentDocument ?? iframe.contentWindow?.document;
-  if (!doc) { cleanup(); return; }
-  doc.open();
-  doc.write(html);
-  doc.close();
+  win.document.write(html);
+  win.document.close();
 }
 
 export default function CarRegistration({
