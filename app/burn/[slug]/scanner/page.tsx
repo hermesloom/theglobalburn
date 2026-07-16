@@ -419,21 +419,6 @@ export default function ScannerPage() {
             </Button>
           </div>)}
 
-        {!currentlyScanning && scannedMember && scannedMember.checked_in_at == null &&
-          <div className="mt-12 w-full h-full flex items-center justify-center">
-            <Button
-              color="danger"
-              size="sm"
-              onPress={() => {
-                if (confirm("Are you sure you want to undo the member's check-in?")) {
-                  undoCheckInMember()
-                }
-              }}
-            >
-              Undo
-            </Button>
-          </div>}
-
       </div >
     </>
   );
