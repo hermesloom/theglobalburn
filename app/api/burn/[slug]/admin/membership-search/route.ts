@@ -2,6 +2,7 @@
 // Focused on returning memberships rather than memberships + profiles
 
 import { requestWithProject } from "@/app/api/_common/endpoints";
+import { enrichMembershipSearchResults } from "@/app/api/_common/enrichMembershipSearchResults";
 import { BurnRole } from "@/utils/types";
 import s from "ajv-ts";
 const SearchSchema = s.object({
@@ -161,133 +162,18 @@ export const POST = requestWithProject(
       }
     }
 
-    // All membership owner IDs now known — fetch transfer chains, events, and notes concurrently
-    const allOwnerIds = (membershipResult.data || []).map((m) => m.owner_id);
-    const allMembershipIds = (membershipResult.data || []).map((m) => m.id);
+    const allMemberships = (membershipResult.data || []).sort(
+      (a, b) => countOfTermsMatched(b as any) - countOfTermsMatched(a as any)
+    );
 
-    t = Date.now();
-    const [transferChainsResult, eventsResult, notesResult] = await Promise.all([
-      allOwnerIds.length > 0
-        ? supabase.rpc("get_transfer_chains", { p_owner_ids: allOwnerIds, p_project_id: project!.id })
-        : Promise.resolve({ data: [], error: null }),
-      supabase.from("burn_membership_checkin_events").select("membership_id, actor_profile_id, event_type, created_at").eq("project_id", project!.id).in("membership_id", allMembershipIds).order("created_at", { ascending: true }),
-      supabase.from("burn_membership_notes").select("membership_id, actor_profile_id, note, created_at, special_circumstances").eq("project_id", project!.id).in("membership_id", allMembershipIds).order("created_at", { ascending: true }),
-    ]);
-    console.log(`[timing] transferChains + eventsResult + notesResult: ${Date.now() - t}ms`);
+    const enriched = await enrichMembershipSearchResults(
+      supabase,
+      allMemberships,
+      project!.id,
+      profileEmailsById,
+    );
 
-    const allTransfers: any[] = transferChainsResult.data || [];
-    for (const tr of allTransfers) {
-      if (tr.from_email) profileEmailsById[tr.from_owner_id] = tr.from_email;
-      if (tr.to_email) profileEmailsById[tr.to_owner_id] = tr.to_email;
-    }
-
-    // Fetch emails for extra membership owners not yet known
-    const newOwnerIds = allOwnerIds.filter((id: string) => !profileEmailsById[id]);
-    if (newOwnerIds.length > 0) {
-      const newProfilesResult = await supabase.from("profiles").select("id, email").in("id", newOwnerIds);
-      for (const p of newProfilesResult.data || []) profileEmailsById[p.id] = p.email;
-    }
-
-    const events = eventsResult.data || [];
-    const notes = notesResult.data || [];
-
-    // Resolve actor emails and actor memberships concurrently
-    const allActorProfileIds = [...new Set([
-      ...events.map((e) => e.actor_profile_id),
-      ...notes.map((n) => n.actor_profile_id),
-    ])];
-    const missingActorEmailIds = allActorProfileIds.filter((id) => !profileEmailsById[id]);
-    t = Date.now();
-    const [actorEmailsResult, actorMembershipsResult] = await Promise.all([
-      missingActorEmailIds.length > 0
-        ? supabase.from("profiles").select("id, email").in("id", missingActorEmailIds)
-        : Promise.resolve({ data: [] }),
-      allActorProfileIds.length > 0
-        ? supabase.from("burn_memberships").select("owner_id, first_name, last_name").eq("project_id", project!.id).in("owner_id", allActorProfileIds)
-        : Promise.resolve({ data: [] }),
-    ]);
-    console.log(`[timing] actorEmails + actorMemberships: ${Date.now() - t}ms`);
-    for (const p of actorEmailsResult.data || []) profileEmailsById[p.id] = p.email;
-
-    const actorNameByProfileId: Record<string, string> = {};
-    for (const m of actorMembershipsResult.data || []) {
-      actorNameByProfileId[m.owner_id] = `${m.first_name} ${m.last_name}`;
-    }
-
-    const resolveActorDisplayName = (profileId: string): string =>
-      actorNameByProfileId[profileId] || profileEmailsById[profileId] || profileId;
-
-    // Build transfer chain lookup maps
-    const transferByRecipient = new Map<string, any>();
-    for (const transfer of allTransfers) {
-      if (!transferByRecipient.has(transfer.to_owner_id)) transferByRecipient.set(transfer.to_owner_id, transfer);
-    }
-
-    const buildTransferChain = (ownerId: string, visited = new Set<string>()): object[] => {
-      if (visited.has(ownerId)) return [];
-      visited.add(ownerId);
-      const transfer = transferByRecipient.get(ownerId);
-      if (!transfer) return [];
-      const prior = buildTransferChain(transfer.from_owner_id, visited);
-      return [
-        ...prior,
-        {
-          created_at: transfer.created_at,
-          from_owner_id: transfer.from_owner_id,
-          from_first_name: (transfer.original_membership_json as any)?.first_name,
-          from_last_name: (transfer.original_membership_json as any)?.last_name,
-          from_email: profileEmailsById[transfer.from_owner_id],
-          to_owner_id: transfer.to_owner_id,
-          to_email: profileEmailsById[transfer.to_owner_id],
-        },
-      ];
-    };
-
-    const eventsByMembershipId: Record<string, { event_type: string; created_at: string; actor_display_name: string }[]> = {};
-    for (const event of events) {
-      if (!eventsByMembershipId[event.membership_id]) eventsByMembershipId[event.membership_id] = [];
-      eventsByMembershipId[event.membership_id].push({
-        event_type: event.event_type,
-        created_at: event.created_at,
-        actor_display_name: resolveActorDisplayName(event.actor_profile_id),
-      });
-    }
-
-    const notesByMembershipId: Record<string, { note: string; created_at: string; actor_display_name: string; special_circumstances: boolean }[]> = {};
-    for (const n of notes) {
-      if (!notesByMembershipId[n.membership_id]) notesByMembershipId[n.membership_id] = [];
-      notesByMembershipId[n.membership_id].push({
-        note: n.note,
-        created_at: n.created_at,
-        actor_display_name: resolveActorDisplayName(n.actor_profile_id),
-        special_circumstances: n.special_circumstances ?? false,
-      });
-    }
-
-    return {
-      data: (membershipResult.data || []).sort((a, b) => {
-        return (
-          countOfTermsMatched(b as any) - countOfTermsMatched(a as any)
-        )
-      }).map((membership) => ({
-        ...membership,
-        metadata: {
-          children: membership.children,
-          pets: membership.pets,
-          camp_name: membership.camp_name,
-          phone_number: membership.phone_number,
-          emergency_contact_onsite: membership.emergency_contact_onsite,
-          emergency_contact_other: membership.emergency_contact_other,
-          car_registration: membership.car_registration,
-        },
-        profile: {
-          email: profileEmailsById[membership.owner_id]
-        },
-        transfer_history: buildTransferChain(membership.owner_id),
-        check_in_events: eventsByMembershipId[membership.id] || [],
-        notes: notesByMembershipId[membership.id] || [],
-      })),
-    };
+    return { data: enriched };
   },
   SearchSchema,
   [BurnRole.MembershipManager, BurnRole.MembershipLead],
