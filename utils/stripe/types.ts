@@ -13,6 +13,8 @@ export type MembershipPaymentRow = {
   payment_intent_id: string | null;
   paid_at: string; // ISO 8601
   project_id: string | null;
+  /** The profile that bought this membership, via its purchase right. */
+  owner_id: string | null;
   currency: string; // upper case, e.g. "SEK"
   amount_total: number;
   /** Fee on the charge's balance transaction. Positive. */
@@ -54,6 +56,25 @@ export type SaleTotals = {
   payments: number;
   refunds: number;
   transfers: number;
+  /**
+   * What the burn gained (or lost) because these transfers happened, versus the
+   * original holders simply keeping their memberships:
+   *   (B paid - B's net fee) - what was refunded to A - A's refunded fee
+   * The A-leg terms of the counterfactual cancel out. Goes negative when the
+   * incoming payment's Stripe fee exceeds the retained transfer fee, which the
+   * 3% era made routine.
+   */
+  transferSurplus: number;
+};
+
+/** One transfer, as the aggregator needs it to price the surplus. */
+export type TransferInput = {
+  /** Payment intent of the membership that was given up. */
+  fromPaymentIntentId: string | null;
+  /** Profile that received the membership. */
+  toOwnerId: string | null;
+  /** When the transfer completed, for pairing with the incoming payment. */
+  at: string;
 };
 
 /** Account-wide totals for the reconciliation block. */
