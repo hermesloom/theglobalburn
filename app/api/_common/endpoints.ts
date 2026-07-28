@@ -1,6 +1,6 @@
 import { s } from "ajv-ts";
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { createAdminClient, createClient } from "@/utils/supabase/server";
 import { SupabaseClient } from "@supabase/supabase-js";
 import {
   Profile,
@@ -33,7 +33,7 @@ export function requestWithAPIKey<T = any>(
 ) {
   return async (req: NextRequest) => {
     const startTime = Date.now();
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       const response = NextResponse.json(
@@ -132,8 +132,12 @@ export function requestWithAuth<T = any>(
 ) {
   return async (req: NextRequest) => {
     const startTime = Date.now();
-    const supabase = await createClient();
-    const { data: getUserData } = await supabase.auth.getUser();
+    // The cookie-backed client is only for reading the session. Data access uses
+    // the admin client, because the cookie client sends the user's token and so
+    // runs as `authenticated`, where RLS silently yields zero rows.
+    const authClient = await createClient();
+    const { data: getUserData } = await authClient.auth.getUser();
+    const supabase = createAdminClient();
 
     const userId = getUserData?.user?.id;
     if (!userId) {

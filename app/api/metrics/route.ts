@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/server";
 import { query } from "@/app/api/_common/endpoints";
 import { getProjectBySlug } from "@/app/api/_common/profile";
 
@@ -49,7 +49,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = await createClient();
+  // Data access must not run as `authenticated`; see createAdminClient.
+  const supabase = createAdminClient();
 
   try {
     // Get the project
