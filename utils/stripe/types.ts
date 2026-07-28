@@ -72,7 +72,12 @@ export type FinancesPayload = {
   total: SaleTotals;
   reconciliation: {
     saleRowsNet: number;
-    unattributedPayments: { count: number; amount: number };
+    /**
+     * Payments in the mirror belonging to another burn or with no resolvable
+     * purchase right. `amount` is gross; `net` is after their own refunds,
+     * disputes and fees, and is what the residual arithmetic uses.
+     */
+    unattributedPayments: { count: number; amount: number; net: number };
     disputes: { count: number; amount: number; fees: number };
     otherBalanceTransactions: { count: number; amount: number };
     balanceNetExcludingPayouts: number;

@@ -124,10 +124,11 @@ export default function FinancesSection() {
           </tr>
           <tr className="border-b">
             <td className="py-1 pr-4">
-              Payments not belonging to this burn ({r.unattributedPayments.count})
+              Payments not belonging to this burn ({r.unattributedPayments.count}
+              ), net
             </td>
             <td className="py-1 text-right">
-              {money(r.unattributedPayments.amount)}
+              {money(r.unattributedPayments.net)}
             </td>
           </tr>
           <tr className="border-b">
