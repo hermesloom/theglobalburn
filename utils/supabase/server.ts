@@ -1,5 +1,9 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { SupabaseClient, User } from "@supabase/supabase-js";
+import {
+  createClient as createSupabaseClient,
+  SupabaseClient,
+  User,
+} from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -49,6 +53,27 @@ export async function createClient() {
         },
       },
     }
+  );
+}
+
+/**
+ * A service role client with no user session attached.
+ *
+ * createClient() is built from cookies, so once a user is signed in @supabase/ssr
+ * sends their access token as the Authorization header. PostgREST then runs the
+ * query as `authenticated` rather than `service_role`, and row level security
+ * applies - which for tables with RLS enabled and no policies means every query
+ * silently returns zero rows. That is a trap: it looks like missing data, not a
+ * permissions error.
+ *
+ * Use this for data access in API routes. Authorization is enforced by the
+ * requestWith* wrappers in app/api/_common/endpoints.ts, not by RLS.
+ */
+export function createAdminClient(): SupabaseClient {
+  return createSupabaseClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false, autoRefreshToken: false } },
   );
 }
 

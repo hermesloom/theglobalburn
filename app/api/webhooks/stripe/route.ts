@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/server";
 import {
   BurnConfig,
   BurnMembership,
@@ -16,7 +16,8 @@ import {
 import { sendEmail } from "@/app/_components/email";
 
 export async function POST(req: Request) {
-  const supabase = await createClient();
+  // Data access must not run as `authenticated`; see createAdminClient.
+  const supabase = createAdminClient();
   const allProjects = await query(() =>
     supabase.from("projects").select("*, burn_config(*)"),
   );
