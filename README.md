@@ -66,6 +66,13 @@ For next year my dream is to have something like self-hosted Vercel, but instead
 
 ## Operations
 
+### Releasing
+
+`production` is the branch Vercel serves live; merging into `main` only builds a
+preview. Promote with `npm run release:status` then `npm run release:promote`.
+See [docs/RELEASING.md](docs/RELEASING.md) — in particular why `git log` is not a
+reliable guide to what is unreleased in this repo.
+
 To investigate Stripe webhook delivery failures (e.g. after seeing failed events in the Stripe Dashboard), run `npm run webhook:investigate` (optionally with `-- 14` for the last 14 days). This fetches both Stripe’s failed deliveries and Vercel runtime logs into `misc/`.
 
 ## Supabase
