@@ -24,7 +24,7 @@ export default function REAPage() {
     // Fetch JWT token for REA authentication
     const fetchToken = async () => {
       try {
-        const response = await fetch(`/api/auth/rea-token?burn=${encodeURIComponent(slug)}`);
+        const response = await fetch(`/api/auth/rea-token?burn=${encodeURIComponent(slug)}&service=rea`);
         if (!response.ok) {
           throw new Error("Failed to generate authentication token");
         }

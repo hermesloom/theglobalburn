@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Heading from "@/app/_components/Heading";
 import ActionButton from "@/app/_components/ActionButton";
 import BasicTable from "@/app/_components/BasicTable";
@@ -33,7 +33,9 @@ const PET_TYPES = ["Dog", "Cat", "Other"];
 
 export default function ListOfPets({ data }: { data: Pet[] }) {
   const [pets, setPets] = useState(data);
-  const { project } = useProject();
+  const { project, refreshProfile } = useProject();
+
+  useEffect(() => { setPets(data); }, [data]);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -91,6 +93,7 @@ export default function ListOfPets({ data }: { data: Pet[] }) {
       const newPets = [...pets, { key: petKey, ...addForm, ...(photo_url ? { photo_url } : {}) }];
       await apiPatch(`/burn/${project!.slug}/pets`, { pets: newPets });
       setPets(newPets);
+      refreshProfile();
       setAddModalOpen(false);
     } finally {
       setIsSubmitting(false);
@@ -120,6 +123,7 @@ export default function ListOfPets({ data }: { data: Pet[] }) {
     );
     await apiPatch(`/burn/${project!.slug}/pets`, { pets: newPets });
     setPets(newPets);
+    refreshProfile();
   };
 
   const columns = [
@@ -186,6 +190,7 @@ export default function ListOfPets({ data }: { data: Pet[] }) {
       pets: newPets,
     });
     setPets(newPets);
+    refreshProfile();
   };
 
   return (

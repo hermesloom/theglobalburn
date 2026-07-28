@@ -27,6 +27,9 @@ interface Pet {
   name: string;
   type: string;
   chip_code: string;
+  description?: string;
+  other_information?: string;
+  photo_url?: string;
 }
 
 interface CarRegistration {
@@ -46,7 +49,7 @@ interface ScannedMember {
   metadata: {
     children: Child[];
     pets: Pet[];
-    car_registration: CarRegistration | null;
+    car_registration?: CarRegistration;
   };
 }
 
@@ -325,15 +328,48 @@ export default function ScannerPage() {
                     </div>
                   )}
 
+                  {scannedMember.metadata?.car_registration && (
+                    Object.values(scannedMember.metadata.car_registration).some(Boolean) && (
+                      <div className="mt-4">
+                        <h4 className="font-semibold mb-2">Sleeper Vehicle</h4>
+                        <div className="pl-4 border-l-2 border-gray-200 flex flex-col gap-1">
+                          {scannedMember.metadata.car_registration.registration_plate && (
+                            <p><strong>Plate:</strong> {scannedMember.metadata.car_registration.registration_plate}</p>
+                          )}
+                          {scannedMember.metadata.car_registration.phone_number && (
+                            <p><strong>Phone:</strong> {scannedMember.metadata.car_registration.phone_number}</p>
+                          )}
+                          {scannedMember.metadata.car_registration.alt_contact && (
+                            <p><strong>Alt Contact:</strong> {scannedMember.metadata.car_registration.alt_contact}</p>
+                          )}
+                          {scannedMember.metadata.car_registration.camp_or_area && (
+                            <p><strong>Camp / Area:</strong> {scannedMember.metadata.car_registration.camp_or_area}</p>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  )}
+
                   {scannedMember.metadata?.pets?.length > 0 && (
                     <div className="mt-4">
                       <h4 className="font-semibold mb-2">Pets</h4>
                       <div className="flex flex-col gap-2">
                         {scannedMember.metadata.pets.map((pet) => (
-                          <div key={pet.key} className="pl-4 border-l-2 border-gray-200">
-                            <p><strong>Name:</strong> {pet.name}</p>
-                            <p><strong>Type:</strong> {pet.type}</p>
-                            <p><strong>Chip Code:</strong> {pet.chip_code}</p>
+                          <div key={pet.key} className="pl-4 border-l-2 border-gray-200 flex gap-3">
+                            {pet.photo_url && (
+                              <img
+                                src={pet.photo_url}
+                                alt={pet.name}
+                                className="w-20 h-20 object-cover rounded flex-shrink-0"
+                              />
+                            )}
+                            <div>
+                              <p><strong>Name:</strong> {pet.name}</p>
+                              <p><strong>Type:</strong> {pet.type}</p>
+                              {pet.chip_code && <p><strong>Chip Code:</strong> {pet.chip_code}</p>}
+                              {pet.description && <p><strong>Description:</strong> {pet.description}</p>}
+                              {pet.other_information && <p><strong>Other Info:</strong> {pet.other_information}</p>}
+                            </div>
                           </div>
                         ))}
                       </div>
