@@ -193,6 +193,7 @@ function aggregate(
     eventEndDate: EVENT_END,
     currency: "SEK",
     transfers: [],
+    memberships: [],
     balanceSummary: EMPTY_BALANCE,
     lastSyncedAt: "2026-07-28T10:00:00Z",
     ...over,
@@ -448,6 +449,55 @@ describe("aggregateFinances", () => {
       },
     );
     expect(p.spring.transferSurplus).toBe(0);
+  });
+
+  it("counts memberships against the sale their payment falls in", () => {
+    const p = aggregate(
+      [
+        row({ payment_intent_id: "pi_fall", paid_at: "2025-11-20T09:00:00Z" }),
+        row({ payment_intent_id: "pi_spring", paid_at: "2026-03-20T09:00:00Z" }),
+      ],
+      {
+        memberships: [
+          { paymentIntentId: "pi_fall", checkedIn: true },
+          { paymentIntentId: "pi_spring", checkedIn: false },
+        ],
+      },
+    );
+    expect(p.fall.memberships).toBe(1);
+    expect(p.fall.checkedIn).toBe(1);
+    expect(p.spring.memberships).toBe(1);
+    expect(p.spring.checkedIn).toBe(0);
+    expect(p.total.memberships).toBe(2);
+    expect(p.total.checkedIn).toBe(1);
+  });
+
+  it("dates a transferred membership by the payment that acquired it", () => {
+    // The new holder paid in spring for a membership first sold in fall. It is a
+    // spring membership: that is the payment which put this person on site, and
+    // it keeps the counts consistent with the payment rows above.
+    const p = aggregate(
+      [
+        row({ payment_intent_id: "pi_original", paid_at: "2025-11-20T09:00:00Z" }),
+        row({ payment_intent_id: "pi_acquired", paid_at: "2026-06-20T09:00:00Z" }),
+      ],
+      { memberships: [{ paymentIntentId: "pi_acquired", checkedIn: true }] },
+    );
+    expect(p.fall.memberships).toBe(0);
+    expect(p.spring.memberships).toBe(1);
+    expect(p.spring.checkedIn).toBe(1);
+  });
+
+  it("reports memberships it cannot date rather than dropping them", () => {
+    const p = aggregate([row({ payment_intent_id: "pi_known" })], {
+      memberships: [
+        { paymentIntentId: "pi_known", checkedIn: false },
+        { paymentIntentId: null, checkedIn: true },
+        { paymentIntentId: "pi_not_in_mirror", checkedIn: false },
+      ],
+    });
+    expect(p.total.memberships).toBe(1);
+    expect(p.reconciliation.unclassifiedMemberships).toBe(2);
   });
 
   it("returns zeros for an empty mirror", () => {

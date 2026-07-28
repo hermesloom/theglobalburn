@@ -1,6 +1,7 @@
 import {
   BalanceSummary,
   FinancesPayload,
+  MembershipCountInput,
   MembershipPaymentRow,
   PaymentSplit,
   SaleKey,
@@ -94,6 +95,8 @@ function emptyTotals(): SaleTotals {
     refunds: 0,
     transfers: 0,
     transferSurplus: 0,
+    memberships: 0,
+    checkedIn: 0,
   };
 }
 
@@ -107,6 +110,8 @@ function addInto(target: SaleTotals, source: SaleTotals) {
   target.refunds += source.refunds;
   target.transfers += source.transfers;
   target.transferSurplus += source.transferSurplus;
+  target.memberships += source.memberships;
+  target.checkedIn += source.checkedIn;
 }
 
 /** Total refunded on a payment. */
@@ -132,6 +137,7 @@ export function aggregateFinances(input: {
   eventEndDate: Date;
   currency: string;
   transfers: TransferInput[];
+  memberships: MembershipCountInput[];
   balanceSummary: BalanceSummary;
   lastSyncedAt: string | null;
 }): FinancesPayload {
@@ -231,6 +237,25 @@ export function aggregateFinances(input: {
       .transferSurplus += surplus;
   }
 
+  // Memberships currently held, counted against the sale they were bought in.
+  // A membership acquired by transfer is dated by the payment that acquired it,
+  // not by the original holder's purchase, which is what makes the counts add up
+  // against the payments above.
+  let unclassifiedMemberships = 0;
+  for (const membership of input.memberships) {
+    const payment = membership.paymentIntentId
+      ? byPaymentIntent.get(membership.paymentIntentId)
+      : undefined;
+    if (!payment) {
+      unclassifiedMemberships++;
+      continue;
+    }
+    const totals =
+      sales[classifySale(new Date(payment.paid_at), input.eventEndDate)];
+    totals.memberships++;
+    if (membership.checkedIn) totals.checkedIn++;
+  }
+
   const total = emptyTotals();
   addInto(total, sales.fall);
   addInto(total, sales.spring);
@@ -264,6 +289,7 @@ export function aggregateFinances(input: {
       balanceNetExcludingPayouts: input.balanceSummary.netExcludingPayouts,
       residual: input.balanceSummary.netExcludingPayouts - accountedFor,
       payouts: input.balanceSummary.payouts,
+      unclassifiedMemberships,
     },
     lastSyncedAt: input.lastSyncedAt,
   };

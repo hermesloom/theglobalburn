@@ -56,6 +56,10 @@ export type SaleTotals = {
   payments: number;
   refunds: number;
   transfers: number;
+  /** Memberships currently held that were bought in this sale. */
+  memberships: number;
+  /** How many of those memberships were checked in at the gate. */
+  checkedIn: number;
   /**
    * What the burn gained (or lost) because these transfers happened, versus the
    * original holders simply keeping their memberships:
@@ -65,6 +69,13 @@ export type SaleTotals = {
    * 3% era made routine.
    */
   transferSurplus: number;
+};
+
+/** One currently-held membership, for counting by the sale it was bought in. */
+export type MembershipCountInput = {
+  /** Identifies the payment, and so the sale. Null for pre-Stripe memberships. */
+  paymentIntentId: string | null;
+  checkedIn: boolean;
 };
 
 /** One transfer, as the aggregator needs it to price the surplus. */
@@ -105,6 +116,8 @@ export type FinancesPayload = {
     /** balanceNetExcludingPayouts − everything accounted for above. Should be 0. */
     residual: number;
     payouts: { count: number; amount: number };
+    /** Memberships whose payment is not in the mirror, so cannot be dated. */
+    unclassifiedMemberships: number;
   };
   lastSyncedAt: string | null;
 };

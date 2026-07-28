@@ -56,6 +56,14 @@ export default function FinancesSection() {
     },
     { label: "Stripe fees", get: (t) => money(t.stripeFees) },
     { label: "Net after fees", get: (t) => money(t.netAfterFees) },
+    { label: "Memberships", get: (t) => String(t.memberships) },
+    {
+      label: "Checked in",
+      get: (t) =>
+        t.memberships > 0
+          ? `${t.checkedIn} (${Math.round((t.checkedIn / t.memberships) * 100)}%)`
+          : String(t.checkedIn),
+    },
     { label: "Payments", get: (t) => String(t.payments) },
     { label: "Refunds", get: (t) => String(t.refunds) },
     { label: "Membership transfers", get: (t) => String(t.transfers) },
@@ -174,6 +182,17 @@ export default function FinancesSection() {
               {money(r.payouts.amount)}
             </td>
           </tr>
+          {r.unclassifiedMemberships > 0 && (
+            <tr>
+              <td className="py-1 pr-4 text-gray-500">
+                Memberships with no matching payment, excluded from the counts
+                above
+              </td>
+              <td className="py-1 text-right text-gray-500">
+                {r.unclassifiedMemberships}
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
 
