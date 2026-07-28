@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { SYNC_RESOURCES, SYNC_START_ISO } from "@/utils/stripe/sync";
+import {
+  runSyncSlice,
+  SYNC_RESOURCES,
+  SYNC_START_ISO,
+  SyncResource,
+} from "@/utils/stripe/sync";
 
 const ACCOUNT = "acct_19mA4pEuBjGnolU2";
 const resource = (name: string) => SYNC_RESOURCES.find((r) => r.name === name)!;
@@ -183,5 +188,156 @@ describe("sync resources", () => {
     expect(names.indexOf("refunds")).toBeLessThan(
       names.indexOf("balance_transactions"),
     );
+  });
+});
+
+/** A resource backed by an in-memory list, paginating 2 at a time. */
+function fakeResource(
+  name: string,
+  objects: any[],
+  calls: string[][],
+): SyncResource {
+  return {
+    name: name as any,
+    table: `t_${name}`,
+    list: async (_stripe, params: any) => {
+      calls.push([name, params.starting_after ?? "start"]);
+      const from = params.starting_after
+        ? objects.findIndex((o) => o.id === params.starting_after) + 1
+        : 0;
+      const data = objects.slice(from, from + 2);
+      return { data, has_more: from + 2 < objects.length };
+    },
+    map: (o) => ({ id: o.id }),
+  };
+}
+
+const objs = (prefix: string, n: number) =>
+  Array.from({ length: n }, (_, i) => ({ id: `${prefix}_${i}` }));
+
+describe("runSyncSlice", () => {
+  it("syncs everything and reports done when the budget is ample", async () => {
+    const calls: string[][] = [];
+    const written: Record<string, any[]> = {};
+    const result = await runSyncSlice({
+      stripe: {} as any,
+      accountId: "acct_1",
+      createdGteIso: SYNC_START_ISO,
+      cursors: {},
+      counts: {},
+      upsert: async (table, rows) => {
+        (written[table] ??= []).push(...rows);
+      },
+      budgetMs: 10_000,
+      now: () => 0,
+      resources: [fakeResource("a", objs("a", 5), calls)],
+    });
+    expect(result.done).toBe(true);
+    expect(result.counts.a).toBe(5);
+    expect(written.t_a).toHaveLength(5);
+  });
+
+  it("stops when the budget runs out and resumes from the saved cursor", async () => {
+    const calls: string[][] = [];
+    const all = objs("a", 6);
+    let clock = 0;
+    const upsert = async () => {};
+    const first = await runSyncSlice({
+      stripe: {} as any,
+      accountId: "acct_1",
+      createdGteIso: SYNC_START_ISO,
+      cursors: {},
+      counts: {},
+      upsert,
+      budgetMs: 100,
+      // one page costs 60ms of budget, so it stops after the first page
+      now: () => (clock += 60),
+      resources: [fakeResource("a", all, calls)],
+    });
+    expect(first.done).toBe(false);
+    expect(first.counts.a).toBe(2);
+    expect(first.cursors.a.startingAfter).toBe("a_1");
+
+    clock = 0;
+    const second = await runSyncSlice({
+      stripe: {} as any,
+      accountId: "acct_1",
+      createdGteIso: SYNC_START_ISO,
+      cursors: first.cursors,
+      counts: first.counts,
+      upsert,
+      budgetMs: 10_000,
+      now: () => 0,
+      resources: [fakeResource("a", all, calls)],
+    });
+    expect(second.done).toBe(true);
+    expect(second.counts.a).toBe(6);
+    // resumed rather than restarted
+    expect(calls.some(([, after]) => after === "a_1")).toBe(true);
+  });
+
+  it("moves to the next resource once one is exhausted", async () => {
+    const calls: string[][] = [];
+    const result = await runSyncSlice({
+      stripe: {} as any,
+      accountId: "acct_1",
+      createdGteIso: SYNC_START_ISO,
+      cursors: {},
+      counts: {},
+      upsert: async () => {},
+      budgetMs: 10_000,
+      now: () => 0,
+      resources: [
+        fakeResource("a", objs("a", 3), calls),
+        fakeResource("b", objs("b", 1), calls),
+      ],
+    });
+    expect(result.done).toBe(true);
+    expect(result.counts).toEqual({ a: 3, b: 1 });
+  });
+
+  it("does not re-list a resource already marked done", async () => {
+    const calls: string[][] = [];
+    await runSyncSlice({
+      stripe: {} as any,
+      accountId: "acct_1",
+      createdGteIso: SYNC_START_ISO,
+      cursors: { a: { done: true } },
+      counts: { a: 3 },
+      upsert: async () => {},
+      budgetMs: 10_000,
+      now: () => 0,
+      resources: [fakeResource("a", objs("a", 3), calls)],
+    });
+    expect(calls).toHaveLength(0);
+  });
+
+  it("passes the created filter to Stripe", async () => {
+    let seen: any = null;
+    await runSyncSlice({
+      stripe: {} as any,
+      accountId: "acct_1",
+      createdGteIso: "2025-02-01T00:00:00.000Z",
+      cursors: {},
+      counts: {},
+      upsert: async () => {},
+      budgetMs: 10_000,
+      now: () => 0,
+      resources: [
+        {
+          name: "a" as any,
+          table: "t_a",
+          list: async (_s, params) => {
+            seen = params;
+            return { data: [], has_more: false };
+          },
+          map: (o) => ({ id: o.id }),
+        },
+      ],
+    });
+    expect(seen.created.gte).toBe(
+      Math.floor(Date.parse("2025-02-01T00:00:00.000Z") / 1000),
+    );
+    expect(seen.limit).toBe(100);
   });
 });

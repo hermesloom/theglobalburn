@@ -159,3 +159,69 @@ export const SYNC_RESOURCES: SyncResource[] = [
     }),
   },
 ];
+
+export type SyncCursors = Record<
+  string,
+  { startingAfter?: string; done?: boolean }
+>;
+export type SyncCounts = Record<string, number>;
+
+/**
+ * Works through the resources for at most `budgetMs`, then returns its cursors so
+ * the caller can persist them and resume in a later request. Rows are upserted page
+ * by page, so an interrupted slice never loses work it already fetched.
+ */
+export async function runSyncSlice(input: {
+  stripe: Stripe;
+  accountId: string;
+  createdGteIso: string;
+  cursors: SyncCursors;
+  counts: SyncCounts;
+  upsert: (table: string, rows: Record<string, any>[]) => Promise<void>;
+  budgetMs: number;
+  now: () => number;
+  resources?: SyncResource[];
+}): Promise<{ done: boolean; cursors: SyncCursors; counts: SyncCounts }> {
+  const resources = input.resources ?? SYNC_RESOURCES;
+  const cursors: SyncCursors = { ...input.cursors };
+  const counts: SyncCounts = { ...input.counts };
+  const createdGte = Math.floor(Date.parse(input.createdGteIso) / 1000);
+  const startedAt = input.now();
+
+  for (const resource of resources) {
+    const cursor = cursors[resource.name] ?? {};
+    if (cursor.done) continue;
+
+    for (;;) {
+      if (input.now() - startedAt >= input.budgetMs) {
+        cursors[resource.name] = cursor;
+        return { done: false, cursors, counts };
+      }
+
+      const page = await resource.list(input.stripe, {
+        limit: 100,
+        created: { gte: createdGte },
+        ...(resource.params ?? {}),
+        ...(cursor.startingAfter ? { starting_after: cursor.startingAfter } : {}),
+      });
+
+      if (page.data.length > 0) {
+        await input.upsert(
+          resource.table,
+          page.data.map((object) => resource.map(object, input.accountId)),
+        );
+        counts[resource.name] = (counts[resource.name] ?? 0) + page.data.length;
+        cursor.startingAfter = page.data[page.data.length - 1].id;
+      }
+
+      if (!page.has_more || page.data.length === 0) {
+        cursor.done = true;
+        cursors[resource.name] = cursor;
+        break;
+      }
+      cursors[resource.name] = cursor;
+    }
+  }
+
+  return { done: true, cursors, counts };
+}
