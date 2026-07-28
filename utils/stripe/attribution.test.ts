@@ -256,10 +256,8 @@ describe("aggregateFinances", () => {
       row({ paid_at: "2026-03-03T09:00:00Z", amount_total: 3_000, project_id: "other" }),
     ]);
     expect(p.total.operatingIncome).toBe(222_200);
-    expect(p.reconciliation.unattributedPayments).toEqual({
-      count: 2,
-      amount: 4_000,
-    });
+    expect(p.reconciliation.unattributedPayments.count).toBe(2);
+    expect(p.reconciliation.unattributedPayments.amount).toBe(4_000);
   });
 
   it("counts transfers against the sale of the original membership", () => {
@@ -302,6 +300,33 @@ describe("aggregateFinances", () => {
       },
     );
     expect(p.reconciliation.residual).toBe(50_000);
+  });
+
+  it("reconciles other burns' payments net, not gross", () => {
+    // A payment from another burn, half refunded, with a fee. Only its NET may
+    // enter the residual arithmetic - counting it gross silently unbalances the
+    // whole reconciliation block.
+    const p = aggregate(
+      [
+        row({
+          paid_at: "2026-03-01T09:00:00Z",
+          project_id: "other-burn",
+          amount_total: 200_000,
+          fee: 3_000,
+          refunds: [{ amount: 100_000 }],
+        }),
+      ],
+      {
+        balanceSummary: {
+          netExcludingPayouts: 200_000 - 100_000 - 3_000,
+          payouts: { count: 0, amount: 0 },
+          other: { count: 0, amount: 0 },
+        },
+      },
+    );
+    expect(p.reconciliation.unattributedPayments.amount).toBe(200_000);
+    expect(p.reconciliation.unattributedPayments.net).toBe(97_000);
+    expect(p.reconciliation.residual).toBe(0);
   });
 
   it("returns zeros for an empty mirror", () => {

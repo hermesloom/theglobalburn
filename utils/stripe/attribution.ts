@@ -130,6 +130,7 @@ export function aggregateFinances(input: {
 
   let unattributedCount = 0;
   let unattributedAmount = 0;
+  let unattributedNet = 0;
   let disputeCount = 0;
   let disputeAmount = 0;
   let disputeFees = 0;
@@ -144,6 +145,15 @@ export function aggregateFinances(input: {
     if (row.project_id !== input.projectId) {
       unattributedCount++;
       unattributedAmount += row.amount_total;
+      // Net on the same basis as the sale rows, so the residual compares like
+      // with like. The Alversjö split is irrelevant here — it redistributes
+      // within a payment without changing its net.
+      const refunded = row.refunds.reduce((a, r) => a + r.amount, 0);
+      unattributedNet +=
+        row.amount_total -
+        refunded -
+        row.disputed_amount -
+        (row.fee + row.fee_refunded + row.dispute_fee);
       continue;
     }
 
@@ -173,7 +183,7 @@ export function aggregateFinances(input: {
   // not subtracted again here.
   const saleRowsNet = total.netAfterFees;
   const accountedFor =
-    saleRowsNet + unattributedAmount + input.balanceSummary.other.amount;
+    saleRowsNet + unattributedNet + input.balanceSummary.other.amount;
 
   return {
     currency: input.currency,
@@ -185,6 +195,7 @@ export function aggregateFinances(input: {
       unattributedPayments: {
         count: unattributedCount,
         amount: unattributedAmount,
+        net: unattributedNet,
       },
       disputes: {
         count: disputeCount,

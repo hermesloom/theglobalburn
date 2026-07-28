@@ -60,7 +60,7 @@ export const GET = requestWithMembership(
     const balanceTransactions = await query(() =>
       supabase
         .from("stripe_balance_transactions")
-        .select("type, amount")
+        .select("type, amount, net, reporting_category")
         .eq("stripe_account_id", lastRun.stripe_account_id),
     );
 
@@ -75,10 +75,20 @@ export const GET = requestWithMembership(
         balanceSummary.payouts.amount += bt.amount;
         continue;
       }
-      balanceSummary.netExcludingPayouts += bt.amount;
-      if (bt.type !== "charge" && bt.type !== "refund") {
+      // `net` (amount minus the fee Stripe took), not `amount`: the sale rows are
+      // reported net of fees, so summing gross here would leave the whole fee bill
+      // sitting in the residual.
+      balanceSummary.netExcludingPayouts += bt.net;
+      // Dispute entries stay in the balance total — the money really did leave —
+      // but must not enter `other`, because the sale rows already deduct the
+      // disputed amount and its fee. Counting them here would subtract twice.
+      if (
+        bt.type !== "charge" &&
+        bt.type !== "refund" &&
+        bt.reporting_category !== "dispute"
+      ) {
         balanceSummary.other.count++;
-        balanceSummary.other.amount += bt.amount;
+        balanceSummary.other.amount += bt.net;
       }
     }
 
