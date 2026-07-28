@@ -7,6 +7,7 @@ import {
   TransferInput,
 } from "@/utils/stripe/types";
 import { stripeCurrenciesWithoutDecimals } from "@/app/api/_common/stripe";
+import { BurnRole } from "@/utils/types";
 
 export const GET = requestWithMembership(
   async (supabase, profile, request, body, project) => {
@@ -49,6 +50,7 @@ export const GET = requestWithMembership(
         eventEndDate: new Date(burnConfig.event_end_date ?? Date.now()),
         currency,
         transfers: [],
+        memberships: [],
         balanceSummary: emptyBalance,
         lastSyncedAt: null,
       });
@@ -109,6 +111,15 @@ export const GET = requestWithMembership(
       at: t.created_at,
     }));
 
+    // Memberships currently held, with their check-in state, so the table can
+    // show how many people each sale actually put on site.
+    const memberships = await query(() =>
+      supabase
+        .from("burn_memberships")
+        .select("stripe_payment_intent_id, checked_in_at")
+        .eq("project_id", project!.id),
+    );
+
     return aggregateFinances({
       rows,
       projectId: project!.id,
@@ -116,8 +127,15 @@ export const GET = requestWithMembership(
       eventEndDate: new Date(burnConfig.event_end_date ?? Date.now()),
       currency,
       transfers: transferInputs,
+      memberships: memberships.map((m: any) => ({
+        paymentIntentId: m.stripe_payment_intent_id ?? null,
+        checkedIn: !!m.checked_in_at,
+      })),
       balanceSummary,
       lastSyncedAt: lastRun.finished_at,
     });
   },
+  undefined,
+  // Organisers do not necessarily hold a membership, but do need the numbers.
+  BurnRole.Admin,
 );

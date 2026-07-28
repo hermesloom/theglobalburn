@@ -7,6 +7,7 @@ import { apiGet } from "@/app/_components/api";
 import { Spinner } from "@nextui-org/react";
 import Heading from "@/app/_components/Heading";
 import FinancesSection from "./FinancesSection";
+import { BurnRole } from "@/utils/types";
 import {
   BarChart,
   Bar,
@@ -38,7 +39,12 @@ const COLORS = {
 export default function StatisticsPage() {
   const { project } = useProject();
 
-  if (project && !project.membership) {
+  // Organisers do not necessarily hold a membership, but do need the numbers.
+  if (
+    project &&
+    !project.membership &&
+    !project.roles.includes(BurnRole.Admin)
+  ) {
     redirect(`/burn/${project.slug}/membership`);
   }
 

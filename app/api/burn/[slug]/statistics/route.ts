@@ -1,4 +1,5 @@
 import { requestWithMembership, query } from "@/app/api/_common/endpoints";
+import { BurnRole } from "@/utils/types";
 
 export const GET = requestWithMembership(
   async (supabase, profile, request, body, project) => {
@@ -54,6 +55,9 @@ export const GET = requestWithMembership(
       alversjo,
       total: memberships.length,
     };
-  }
+  },
+  undefined,
+  // Organisers do not necessarily hold a membership, but do need the numbers.
+  BurnRole.Admin,
 );
 

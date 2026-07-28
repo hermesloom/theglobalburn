@@ -110,7 +110,8 @@ export default function ProjectLayout({
             path: `/burn/${project?.slug}/newsletter`,
             icon: <MailOutlined />,
           },
-          project.membership
+          // Organisers do not necessarily hold a membership, but do need the numbers.
+          project.membership || project.roles.includes(BurnRole.Admin)
             ? {
               label: "Statistics",
               path: `/burn/${project?.slug}/statistics`,
