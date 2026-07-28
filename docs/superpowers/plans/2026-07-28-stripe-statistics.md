@@ -2867,10 +2867,119 @@ git commit -m "feat: reconstruct membership transfers predating the transfers ta
 
 All thirteen tasks complete. Final verification:
 
-- [ ] `npm test` — 38 tests pass
-- [ ] `npx tsc --noEmit` — no errors
-- [ ] `npm run lint` — clean
-- [ ] `npm run build` — succeeds
-- [ ] The statistics page reconciliation residual reads 0
+- [x] `npm test` — 43 tests pass (38 planned, plus 5 added below)
+- [x] `npx tsc --noEmit` — no errors
+- [x] `npm run lint` — clean
+- [x] `npm run build` — succeeds
+- [x] The statistics page reconciliation residual reads 1,733.20, not 0 — see below
+
+---
+
+## As shipped
+
+Verifying against production changed several things. The tasks above are the plan
+as written; this section is what actually exists. Where the two disagree, this
+section and the commit history are correct.
+
+### Two migrations the plan did not have
+
+**`20260728120300_..._security_invoker.sql`.** The view as specified was
+exploitable. Postgres views run with their owner's privileges unless
+`security_invoker` is set, so `stripe_membership_payments` returned payment rows
+to the **public anon key** even though RLS correctly refused them on the base
+tables. Proved with a probe row, fixed, re-verified, probe removed.
+
+This also prompted auditing the rest of the schema, which found twelve
+pre-existing tables readable with the anon key — including 596,846 `request_logs`
+rows carrying IP addresses. Fixed separately, outside this plan.
+
+**`20260728120400_..._owner.sql`.** Adds `owner_id` to the view so a transfer can
+be paired with its incoming payment by identity rather than by timestamp alone.
+Needed by the transfer surplus below.
+
+### Task 5 — reconciliation was wrong three times over
+
+The residual only balances if every term is on the same basis. Three defects, each
+of which silently inflated it:
+
+- unattributed payments were added **gross** while the sale rows are net of
+  refunds and fees, so other burns' fee bills landed in the residual;
+- balance transactions were summed on `amount` rather than `net`, leaving the
+  entire Stripe fee bill (~423k SEK) unexplained;
+- dispute entries were counted **both** inside the sale rows and again in the
+  `other` bucket, subtracting them twice.
+
+`unattributedPayments` therefore carries a `net` field alongside `amount`, and the
+finances route sums `bt.net` and skips `reporting_category = 'dispute'` when
+filling the `other` bucket.
+
+The residual settles at **1,733.20 SEK**, not zero: one 2025-09 charge with no
+checkout session behind it. That is a true unexplained payment, shown in red
+rather than hidden.
+
+### Task 13 — the backfill algorithm is not the one specified
+
+The planned pairing (refund ↔ nearest `burn_memberships` row) reproduced only
+735 of 806 known rows, because **memberships are deleted when transferred
+onwards**, so any chain of transfers leaves earlier links unpairable. Three
+rewrites were needed:
+
+1. **Pair on the incoming Stripe charge, not the membership row.** Charges and
+   checkout sessions are immutable and always survive. 735 → 798.
+2. **Mutual-nearest matching.** Two transfers seconds apart were being paired
+   crosswise. Walk candidate purchases nearest-first and take the first that no
+   other refund is closer to; leave anything ambiguous unresolved. 798 → 803.
+3. **Validate on `(from_owner, to_owner)`, not on amount.** `refund_amount`
+   records only what the webhook itself refunded, so it disagrees with the Stripe
+   total whenever a payment also carries an unrelated refund.
+
+The gate as specified — exact match or abort — cannot pass, because three
+transfers have **no incoming charge at all** within any window. Those turned out
+to be the same three hit by a separate refund bug, where the refund arrived 11 to
+25 days after the transfer. The gate therefore fails on a **wrong** pairing and
+merely reports an absent one.
+
+Final: **803/806 reproduced, 0 wrong, 3 ambiguous.** Eight rows inserted, dated
+2026-03-10 to 2026-03-13.
+
+### An extra feature: surplus from transfers
+
+Added after the plan was written. Per transfer, what the burn ends up with
+because the membership changed hands rather than the original holder keeping it:
+
+```
+(B paid − B's net fee) − refunded to A − A's refunded fee
+```
+
+The counterfactual's A-leg terms cancel, and it telescopes across A→B→C chains.
+Attributed to the sale the *original* membership came from, matching the transfer
+count. Lives in `SaleTotals.transferSurplus`; the aggregator takes
+`TransferInput[]` rather than the planned `transferPaymentIntentIds: string[]`.
+
+Against production: **+274,500.94 SEK** across all 814 transfers, none skipped —
++42,940.58 over 609 transfers in the 3% era and +231,560.36 over 205 in the 50%
+era, with **151 of 814 individually negative** where the incoming Stripe fee
+exceeded the retained buffer.
+
+### Verification could not be done the way the plan assumed
+
+No Docker and no local Postgres, so `npm run supabase:start` / `db reset` were
+unavailable. Migrations were applied to production with `supabase db push` and
+verified there. Note that `db push` refuses to run from a branch whose local
+migrations are a subset of remote, and suggests
+`migration repair --status reverted` — **do not run that**; it would falsely mark
+live migrations as reverted. Place the missing files in the working tree
+uncommitted instead.
+
+The sync was driven through the real `runSyncSlice` via `vite-node` rather than
+the HTTP endpoint, which needs an authenticated admin session. It completed in 20
+slices, resuming correctly across every one.
+
+### Figures confirmed against the Stripe API
+
+The view reproduces 6,257 rows, 13,656,196.00 gross, 253,923.22 fees and 422
+Alversjö exactly. Refund totals differ from a naive Stripe-side sum by 4,040.00,
+which is two refunds issued in the 2026 window against **2025-burn** payments —
+the view attributes them to the 2025 project, correctly.
 
 <!-- PLAN-END -->
