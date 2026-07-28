@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
+    "release:status": "bash scripts/release.sh status",
+    "release:promote": "bash scripts/release.sh promote",
     "test:watch": "vitest",
     "prettier-fix": "prettier --write .",
     "stripe:login": "stripe login",
