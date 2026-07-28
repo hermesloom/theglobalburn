@@ -71,7 +71,9 @@ async function rest(path, init = {}) {
     },
   });
   if (!res.ok) throw new Error(`${path}: ${res.status} ${await res.text()}`);
-  return res.status === 204 ? null : res.json();
+  // Prefer: return=minimal answers 201 with an empty body, which JSON.parse rejects.
+  const body = await res.text();
+  return body ? JSON.parse(body) : null;
 }
 
 /** Fetches every row of a table, paging past PostgREST's default limit. */
