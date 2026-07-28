@@ -8,7 +8,12 @@ import {
 } from "@/utils/types";
 import { query } from "@/app/api/_common/endpoints";
 import { stripeCurrenciesWithoutDecimals } from "@/app/api/_common/stripe";
-import { transferRefundAmount } from "@/utils/stripe/transfers";
+import {
+  buildRefundFailureEmail,
+  REFUND_FAILURE_ALERT_EMAIL,
+  transferRefundAmount,
+} from "@/utils/stripe/transfers";
+import { sendEmail } from "@/app/_components/email";
 
 export async function POST(req: Request) {
   const supabase = await createClient();
@@ -191,6 +196,7 @@ export async function POST(req: Request) {
         // rejected it, and the member went unpaid until someone noticed by hand.
         let refundedMinorUnits = 0;
         let refundError: string | null = null;
+        let intendedMinorUnits: number | null = null;
 
         if (revokedMembership.stripe_payment_intent_id) {
           try {
@@ -206,6 +212,7 @@ export async function POST(req: Request) {
               charge.amount - charge.amount_refunded,
               burnConfig.transfer_fee_percentage ?? 0,
             );
+            intendedMinorUnits = amount;
             if (amount > 0) {
               const refund = await stripe.refunds.create({
                 payment_intent: revokedMembership.stripe_payment_intent_id,
@@ -241,6 +248,43 @@ export async function POST(req: Request) {
               : null,
           }),
         );
+
+        // Someone is now owed money and only a human can fix it, so tell them.
+        // Wrapped because a mail outage must not take the transfer down with it -
+        // the row above is already the durable record.
+        if (refundError) {
+          try {
+            const owner = await query(() =>
+              supabase
+                .from("profiles")
+                .select("email")
+                .eq("id", revokedMembership.owner_id)
+                .maybeSingle(),
+            );
+            const { subject, text } = buildRefundFailureEmail({
+              projectName: suitableProjects[0].name,
+              memberName:
+                `${revokedMembership.first_name ?? ""} ${revokedMembership.last_name ?? ""}`.trim() ||
+                "unknown",
+              memberEmail: owner?.email ?? null,
+              membershipId: revokedMembership.id,
+              paymentIntentId: revokedMembership.stripe_payment_intent_id ?? null,
+              intendedAmount:
+                intendedMinorUnits === null
+                  ? null
+                  : intendedMinorUnits / minorUnitFactor,
+              currency: revokedMembership.price_currency,
+              error: refundError,
+            });
+            await sendEmail(REFUND_FAILURE_ALERT_EMAIL, subject, text);
+          } catch (e) {
+            console.error(
+              "[ERROR] could not send the refund-failure alert; the failure is " +
+                "still recorded on the burn_membership_transfers row",
+              e,
+            );
+          }
+        }
 
         // Delete the original membership since it's been transferred
         await query(() =>

@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { transferRefundAmount } from "@/utils/stripe/transfers";
+import {
+  buildRefundFailureEmail,
+  REFUND_FAILURE_ALERT_EMAIL,
+  transferRefundAmount,
+} from "@/utils/stripe/transfers";
 
 describe("transferRefundAmount", () => {
   it("keeps the transfer fee on a normal membership", () => {
@@ -40,5 +44,54 @@ describe("transferRefundAmount", () => {
 
   it("rounds to whole minor units", () => {
     expect(Number.isInteger(transferRefundAmount(123_401, 3))).toBe(true);
+  });
+});
+
+describe("buildRefundFailureEmail", () => {
+  const base = {
+    projectName: "The Borderland 2026",
+    memberName: "Ida Björses",
+    memberEmail: "ida@example.com",
+    membershipId: "e2c9f1ce-de6f-406a-819a-afef7351aadb",
+    paymentIntentId: "pi_3T9THOEuBjGnolU21apcAVYQ",
+    intendedAmount: 2155.34,
+    currency: "SEK",
+    error: "Refund amount exceeds the remaining charge amount.",
+  };
+
+  it("names the burn and the member in the subject", () => {
+    const { subject } = buildRefundFailureEmail(base);
+    expect(subject).toContain("The Borderland 2026");
+    expect(subject).toContain("Ida Björses");
+    expect(subject).toContain("FAILED");
+  });
+
+  it("carries everything needed to refund by hand", () => {
+    const { text } = buildRefundFailureEmail(base);
+    expect(text).toContain("ida@example.com");
+    expect(text).toContain("2155.34 SEK");
+    expect(text).toContain("pi_3T9THOEuBjGnolU21apcAVYQ");
+    expect(text).toContain(base.membershipId);
+    expect(text).toContain("Refund amount exceeds the remaining charge amount.");
+  });
+
+  it("says plainly that the member has lost their membership and not been paid", () => {
+    const { text } = buildRefundFailureEmail(base);
+    expect(text).toContain("NOT been paid");
+  });
+
+  it("copes with a member whose email or amount is unknown", () => {
+    const { text } = buildRefundFailureEmail({
+      ...base,
+      memberEmail: null,
+      intendedAmount: null,
+      paymentIntentId: null,
+    });
+    expect(text).toContain("unknown");
+    expect(text).toContain("none recorded");
+  });
+
+  it("alerts tech@theborderland.se", () => {
+    expect(REFUND_FAILURE_ALERT_EMAIL).toBe("tech@theborderland.se");
   });
 });
