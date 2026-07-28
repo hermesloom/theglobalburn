@@ -207,34 +207,38 @@ function pair(cands) {
     // refund as its own closest. Two transfers seconds apart otherwise get paired
     // crosswise by plain greedy matching. Anything ambiguous is left unresolved
     // rather than guessed.
-    const nearestPurchase = (refundedAt, excludePi) => {
-      let best = null;
-      let bestDelta = Infinity;
-      for (const p of purchases) {
-        if (used.has(p.chargeId)) continue;
-        if (p.paymentIntentId === excludePi) continue; // the refunded payment
-        const delta = Math.abs(p.at - refundedAt);
-        if (delta < bestDelta) {
-          bestDelta = delta;
-          best = p;
-        }
-      }
-      return { best, bestDelta };
-    };
+    // Walk candidate purchases nearest-first and take the first one that is
+    // *mutually* nearest: no other refund is closer to it than this one. Two
+    // transfers seconds apart otherwise pair crosswise. If none qualifies, leave
+    // it unresolved rather than guess.
+    const inWindow = purchases
+      .filter(
+        (p) =>
+          !used.has(p.chargeId) &&
+          p.paymentIntentId !== c.paymentIntentId &&
+          Math.abs(p.at - c.refundedAt) <= PAIRING_WINDOW_MS,
+      )
+      .sort(
+        (a, b) =>
+          Math.abs(a.at - c.refundedAt) - Math.abs(b.at - c.refundedAt),
+      );
 
-    const { best, bestDelta } = nearestPurchase(c.refundedAt, c.paymentIntentId);
-    let matched = best && bestDelta <= PAIRING_WINDOW_MS ? best : null;
-
-    if (matched) {
-      // Is this purchase closer to some other unmatched candidate?
+    let matched = null;
+    let bestDelta = null;
+    for (const p of inWindow) {
+      const myDelta = Math.abs(p.at - c.refundedAt);
       let rivalDelta = Infinity;
       for (const other of cands) {
         if (other === c) continue;
-        if (other.paymentIntentId === matched.paymentIntentId) continue;
-        const d = Math.abs(matched.at - other.refundedAt);
+        if (other.paymentIntentId === p.paymentIntentId) continue;
+        const d = Math.abs(p.at - other.refundedAt);
         if (d < rivalDelta) rivalDelta = d;
       }
-      if (rivalDelta < bestDelta) matched = null; // ambiguous - do not guess
+      if (rivalDelta >= myDelta) {
+        matched = p;
+        bestDelta = myDelta;
+        break;
+      }
     }
     if (matched) used.add(matched.chargeId);
 
