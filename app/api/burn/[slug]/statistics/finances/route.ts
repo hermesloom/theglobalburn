@@ -4,6 +4,7 @@ import {
   ALVERSJO_ADDON_ID,
   BalanceSummary,
   MembershipPaymentRow,
+  TransferInput,
 } from "@/utils/stripe/types";
 import { stripeCurrenciesWithoutDecimals } from "@/app/api/_common/stripe";
 
@@ -47,7 +48,7 @@ export const GET = requestWithMembership(
         alversjoPrice,
         eventEndDate: new Date(burnConfig.event_end_date ?? Date.now()),
         currency,
-        transferPaymentIntentIds: [],
+        transfers: [],
         balanceSummary: emptyBalance,
         lastSyncedAt: null,
       });
@@ -98,12 +99,15 @@ export const GET = requestWithMembership(
     const transfers = await query(() =>
       supabase
         .from("burn_membership_transfers")
-        .select("original_membership_json")
+        .select("original_membership_json, to_owner_id, created_at")
         .eq("project_id", project!.id),
     );
-    const transferPaymentIntentIds = transfers
-      .map((t: any) => t.original_membership_json?.stripe_payment_intent_id)
-      .filter(Boolean);
+    const transferInputs: TransferInput[] = transfers.map((t: any) => ({
+      fromPaymentIntentId:
+        t.original_membership_json?.stripe_payment_intent_id ?? null,
+      toOwnerId: t.to_owner_id ?? null,
+      at: t.created_at,
+    }));
 
     return aggregateFinances({
       rows,
@@ -111,7 +115,7 @@ export const GET = requestWithMembership(
       alversjoPrice,
       eventEndDate: new Date(burnConfig.event_end_date ?? Date.now()),
       currency,
-      transferPaymentIntentIds,
+      transfers: transferInputs,
       balanceSummary,
       lastSyncedAt: lastRun.finished_at,
     });

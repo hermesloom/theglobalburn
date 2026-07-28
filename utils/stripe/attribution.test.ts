@@ -15,6 +15,7 @@ function row(over: Partial<MembershipPaymentRow> = {}): MembershipPaymentRow {
     payment_intent_id: "pi_test",
     paid_at: "2026-03-15T12:00:00Z",
     project_id: "06101baf-5991-42b1-b2f5-caa9fd6b90e2",
+    owner_id: "owner-default",
     currency: "SEK",
     amount_total: 222_200,
     fee: 3_513,
@@ -191,7 +192,7 @@ function aggregate(
     alversjoPrice: ALVERSJO,
     eventEndDate: EVENT_END,
     currency: "SEK",
-    transferPaymentIntentIds: [],
+    transfers: [],
     balanceSummary: EMPTY_BALANCE,
     lastSyncedAt: "2026-07-28T10:00:00Z",
     ...over,
@@ -266,7 +267,15 @@ describe("aggregateFinances", () => {
         row({ payment_intent_id: "pi_fall", paid_at: "2025-11-20T09:00:00Z" }),
         row({ payment_intent_id: "pi_spring", paid_at: "2026-03-20T09:00:00Z" }),
       ],
-      { transferPaymentIntentIds: ["pi_spring"] },
+      {
+        transfers: [
+          {
+            fromPaymentIntentId: "pi_spring",
+            toOwnerId: null,
+            at: "2026-06-01T00:00:00Z",
+          },
+        ],
+      },
     );
     expect(p.fall.transfers).toBe(0);
     expect(p.spring.transfers).toBe(1);
@@ -327,6 +336,118 @@ describe("aggregateFinances", () => {
     expect(p.reconciliation.unattributedPayments.amount).toBe(200_000);
     expect(p.reconciliation.unattributedPayments.net).toBe(97_000);
     expect(p.reconciliation.residual).toBe(0);
+  });
+
+  it("prices the transfer surplus against the no-transfer counterfactual", () => {
+    // Real 3% era shape: A paid 2222 (fee 35.13), refunded 2155.34; B paid 2222
+    // (fee 35.13). The burn keeps the 66.66 buffer less B's fee = 31.53.
+    const p = aggregate(
+      [
+        row({
+          payment_intent_id: "pi_A",
+          owner_id: "alice",
+          paid_at: "2026-03-01T09:00:00Z",
+          amount_total: 222_200,
+          fee: 3_513,
+          refunds: [{ amount: 215_534 }],
+        }),
+        row({
+          payment_intent_id: "pi_B",
+          owner_id: "bob",
+          paid_at: "2026-06-01T09:00:00Z",
+          amount_total: 222_200,
+          fee: 3_513,
+        }),
+      ],
+      {
+        transfers: [
+          {
+            fromPaymentIntentId: "pi_A",
+            toOwnerId: "bob",
+            at: "2026-06-01T09:00:00Z",
+          },
+        ],
+      },
+    );
+    expect(p.spring.transferSurplus).toBe(222_200 - 3_513 - 215_534);
+    expect(p.spring.transferSurplus).toBe(3_153);
+  });
+
+  it("reports a negative surplus when the incoming fee exceeds the buffer", () => {
+    // B pays with an international card: 74.02 fee against a 66.66 buffer.
+    const p = aggregate(
+      [
+        row({
+          payment_intent_id: "pi_A",
+          owner_id: "alice",
+          paid_at: "2026-03-01T09:00:00Z",
+          amount_total: 222_200,
+          fee: 3_513,
+          refunds: [{ amount: 215_534 }],
+        }),
+        row({
+          payment_intent_id: "pi_B",
+          owner_id: "bob",
+          paid_at: "2026-06-01T09:00:00Z",
+          amount_total: 222_200,
+          fee: 7_402,
+        }),
+      ],
+      {
+        transfers: [
+          { fromPaymentIntentId: "pi_A", toOwnerId: "bob", at: "2026-06-01T09:00:00Z" },
+        ],
+      },
+    );
+    expect(p.spring.transferSurplus).toBe(-736); // -7.36 SEK
+  });
+
+  it("credits the surplus to the sale the original membership came from", () => {
+    const p = aggregate(
+      [
+        row({
+          payment_intent_id: "pi_A",
+          owner_id: "alice",
+          paid_at: "2025-11-20T09:00:00Z", // fall
+          amount_total: 222_200,
+          fee: 3_513,
+          refunds: [{ amount: 215_534 }],
+        }),
+        row({
+          payment_intent_id: "pi_B",
+          owner_id: "bob",
+          paid_at: "2026-06-01T09:00:00Z", // spring
+          amount_total: 222_200,
+          fee: 3_513,
+        }),
+      ],
+      {
+        transfers: [
+          { fromPaymentIntentId: "pi_A", toOwnerId: "bob", at: "2026-06-01T09:00:00Z" },
+        ],
+      },
+    );
+    expect(p.fall.transferSurplus).toBe(3_153);
+    expect(p.spring.transferSurplus).toBe(0);
+  });
+
+  it("ignores a transfer whose incoming payment cannot be identified", () => {
+    const p = aggregate(
+      [
+        row({
+          payment_intent_id: "pi_A",
+          owner_id: "alice",
+          paid_at: "2026-03-01T09:00:00Z",
+          refunds: [{ amount: 215_534 }],
+        }),
+      ],
+      {
+        transfers: [
+          { fromPaymentIntentId: "pi_A", toOwnerId: "ghost", at: "2026-06-01T09:00:00Z" },
+        ],
+      },
+    );
+    expect(p.spring.transferSurplus).toBe(0);
   });
 
   it("returns zeros for an empty mirror", () => {

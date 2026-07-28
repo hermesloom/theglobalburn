@@ -59,6 +59,10 @@ export default function FinancesSection() {
     { label: "Payments", get: (t) => String(t.payments) },
     { label: "Refunds", get: (t) => String(t.refunds) },
     { label: "Membership transfers", get: (t) => String(t.transfers) },
+    {
+      label: "Surplus from transfers",
+      get: (t) => money(t.transferSurplus),
+    },
   ];
 
   const stale =
@@ -72,7 +76,10 @@ export default function FinancesSection() {
       <h2 className="text-base sm:text-lg font-semibold mb-1">Finances</h2>
       <p className="text-xs sm:text-sm text-gray-500 mb-4">
         Taken directly from Stripe. Gross and net are both shown: operating income
-        is payments less refunds, before fees.
+        is payments less refunds, before fees. Surplus from transfers is what the
+        burn gained because memberships changed hands rather than the original
+        holders keeping them — the retained transfer fee less the Stripe fee on the
+        incoming payment, so it can be negative.
       </p>
 
       <div className="overflow-x-auto">

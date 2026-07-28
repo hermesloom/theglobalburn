@@ -5,6 +5,7 @@ import {
   PaymentSplit,
   SaleKey,
   SaleTotals,
+  TransferInput,
 } from "@/utils/stripe/types";
 
 const TIMEZONE = "Europe/Stockholm";
@@ -92,6 +93,7 @@ function emptyTotals(): SaleTotals {
     payments: 0,
     refunds: 0,
     transfers: 0,
+    transferSurplus: 0,
   };
 }
 
@@ -104,6 +106,17 @@ function addInto(target: SaleTotals, source: SaleTotals) {
   target.payments += source.payments;
   target.refunds += source.refunds;
   target.transfers += source.transfers;
+  target.transferSurplus += source.transferSurplus;
+}
+
+/** Total refunded on a payment. */
+function refundedTotal(row: MembershipPaymentRow) {
+  return row.refunds.reduce((a, r) => a + r.amount, 0);
+}
+
+/** fee + fee refunds + dispute fee. */
+function netFeeOf(row: MembershipPaymentRow) {
+  return row.fee + row.fee_refunded + row.dispute_fee;
 }
 
 /**
@@ -118,7 +131,7 @@ export function aggregateFinances(input: {
   alversjoPrice: number;
   eventEndDate: Date;
   currency: string;
-  transferPaymentIntentIds: string[];
+  transfers: TransferInput[];
   balanceSummary: BalanceSummary;
   lastSyncedAt: string | null;
 }): FinancesPayload {
@@ -126,7 +139,19 @@ export function aggregateFinances(input: {
     fall: emptyTotals(),
     spring: emptyTotals(),
   };
-  const transfers = new Set(input.transferPaymentIntentIds);
+  const byPaymentIntent = new Map<string, MembershipPaymentRow>();
+  const byOwner = new Map<string, MembershipPaymentRow[]>();
+  for (const row of input.rows) {
+    if (row.payment_intent_id) byPaymentIntent.set(row.payment_intent_id, row);
+    if (row.owner_id) {
+      const list = byOwner.get(row.owner_id) ?? [];
+      list.push(row);
+      byOwner.set(row.owner_id, list);
+    }
+  }
+  const transfers = new Set(
+    input.transfers.map((t) => t.fromPaymentIntentId).filter(Boolean) as string[],
+  );
 
   let unattributedCount = 0;
   let unattributedAmount = 0;
@@ -171,6 +196,39 @@ export function aggregateFinances(input: {
     if (row.payment_intent_id && transfers.has(row.payment_intent_id)) {
       totals.transfers++;
     }
+  }
+
+  // Transfer surplus: what the burn ends up with because the transfer happened,
+  // against the counterfactual of the original holder simply keeping the
+  // membership. The A-leg gross and fee cancel between the two scenarios, leaving
+  // the incoming payment net of its fee, less everything given back to A.
+  // Attributed to the sale the *original* membership was bought in, matching the
+  // transfer count above.
+  for (const transfer of input.transfers) {
+    if (!transfer.fromPaymentIntentId || !transfer.toOwnerId) continue;
+    const from = byPaymentIntent.get(transfer.fromPaymentIntentId);
+    if (!from || from.project_id !== input.projectId) continue;
+
+    // The incoming payment is identified by who received the membership, then by
+    // which of their payments sits closest to the transfer. Identity first means a
+    // busy minute of unrelated sales cannot mispair it.
+    const at = Date.parse(transfer.at);
+    let to: MembershipPaymentRow | null = null;
+    let bestDelta = Infinity;
+    for (const candidate of byOwner.get(transfer.toOwnerId) ?? []) {
+      if (candidate.payment_intent_id === transfer.fromPaymentIntentId) continue;
+      const delta = Math.abs(Date.parse(candidate.paid_at) - at);
+      if (delta < bestDelta) {
+        bestDelta = delta;
+        to = candidate;
+      }
+    }
+    if (!to) continue;
+
+    const surplus =
+      to.amount_total - netFeeOf(to) - refundedTotal(from) - from.fee_refunded;
+    sales[classifySale(new Date(from.paid_at), input.eventEndDate)]
+      .transferSurplus += surplus;
   }
 
   const total = emptyTotals();
