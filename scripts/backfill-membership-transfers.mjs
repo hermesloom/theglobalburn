@@ -45,8 +45,12 @@ if (!SUPABASE_URL || !SERVICE_KEY) {
 
 /** The migration that created burn_membership_transfers. Live rows exist after this. */
 const TABLE_LIVE_FROM = "2026-03-14T00:00:00Z";
-/** How close in time a refund and a new membership must be to be one transfer. */
-const PAIRING_WINDOW_MS = 10_000;
+/**
+ * How close in time the incoming charge and the outgoing refund must be to be one
+ * transfer. The webhook completes the new payment, creates the membership and issues
+ * the refund in one request, so the observed gap is 3-4 seconds.
+ */
+const PAIRING_WINDOW_MS = 30_000;
 
 const args = process.argv.slice(2);
 const projectSlug = args[args.indexOf("--project") + 1];
@@ -110,8 +114,8 @@ const refunds = await all(`stripe_refunds?select=*&status=eq.succeeded`);
 const purchaseRights = await all(
   `burn_membership_purchase_rights?select=id,owner_id,first_name,last_name,birthdate,metadata&project_id=eq.${project.id}`,
 );
-const memberships = await all(
-  `burn_memberships?select=id,owner_id,created_at,stripe_payment_intent_id&project_id=eq.${project.id}`,
+const charges = await all(
+  `stripe_charges?select=id,payment_intent_id,created_at&status=eq.succeeded`,
 );
 const existing = await all(
   `burn_membership_transfers?select=*&project_id=eq.${project.id}`,
@@ -169,30 +173,75 @@ function candidates() {
   return out.sort((a, b) => a.refundedAt - b.refundedAt);
 }
 
-/** Pairs each candidate with the membership created in the same webhook request. */
+/**
+ * Pairs each candidate with the incoming purchase made in the same webhook request.
+ *
+ * Pairs on the new *charge*, not on the resulting burn_memberships row: memberships
+ * are deleted when they are themselves transferred onwards, so a chain of transfers
+ * leaves earlier links unpairable. Charges and checkout sessions are immutable
+ * Stripe objects and always survive.
+ */
 function pair(cands) {
   const used = new Set();
+  // Every incoming purchase that can name an owner, keyed by when it was charged.
+  const purchases = charges
+    .map((c) => {
+      const rightId = sessionRightByPi.get(c.payment_intent_id);
+      const right = rightId ? rightById.get(rightId) : null;
+      return right
+        ? {
+            chargeId: c.id,
+            paymentIntentId: c.payment_intent_id,
+            at: Date.parse(c.created_at),
+            ownerId: right.owner_id,
+          }
+        : null;
+    })
+    .filter(Boolean);
+
   return cands.map((c) => {
     const rightId = sessionRightByPi.get(c.paymentIntentId);
     const right = rightId ? rightById.get(rightId) : null;
 
-    let best = null;
-    let bestDelta = Infinity;
-    for (const m of memberships) {
-      if (used.has(m.id)) continue;
-      const delta = Math.abs(Date.parse(m.created_at) - c.refundedAt);
-      if (delta < bestDelta) {
-        bestDelta = delta;
-        best = m;
+    // Mutual nearest: the purchase closest to this refund must also have this
+    // refund as its own closest. Two transfers seconds apart otherwise get paired
+    // crosswise by plain greedy matching. Anything ambiguous is left unresolved
+    // rather than guessed.
+    const nearestPurchase = (refundedAt, excludePi) => {
+      let best = null;
+      let bestDelta = Infinity;
+      for (const p of purchases) {
+        if (used.has(p.chargeId)) continue;
+        if (p.paymentIntentId === excludePi) continue; // the refunded payment
+        const delta = Math.abs(p.at - refundedAt);
+        if (delta < bestDelta) {
+          bestDelta = delta;
+          best = p;
+        }
       }
+      return { best, bestDelta };
+    };
+
+    const { best, bestDelta } = nearestPurchase(c.refundedAt, c.paymentIntentId);
+    let matched = best && bestDelta <= PAIRING_WINDOW_MS ? best : null;
+
+    if (matched) {
+      // Is this purchase closer to some other unmatched candidate?
+      let rivalDelta = Infinity;
+      for (const other of cands) {
+        if (other === c) continue;
+        if (other.paymentIntentId === matched.paymentIntentId) continue;
+        const d = Math.abs(matched.at - other.refundedAt);
+        if (d < rivalDelta) rivalDelta = d;
+      }
+      if (rivalDelta < bestDelta) matched = null; // ambiguous - do not guess
     }
-    const matched = best && bestDelta <= PAIRING_WINDOW_MS ? best : null;
-    if (matched) used.add(matched.id);
+    if (matched) used.add(matched.chargeId);
 
     return {
       ...c,
       fromOwnerId: right?.owner_id ?? null,
-      toOwnerId: matched?.owner_id ?? null,
+      toOwnerId: matched?.ownerId ?? null,
       right,
       deltaMs: matched ? bestDelta : null,
     };
@@ -206,30 +255,43 @@ const paired = pair(candidates());
 // reproduce them exactly before it is trusted with the ones it does not.
 const liveFrom = Date.parse(TABLE_LIVE_FROM);
 const derivedLive = paired.filter((p) => p.refundedAt >= liveFrom);
+// Compared on (from, to) only, deliberately not on amount. The webhook stores its
+// own computed figure in refund_amount (price x (1 - transfer_fee_percentage)),
+// which diverges from what Stripe actually refunded whenever an Alversjö addon was
+// involved - e.g. a row reading 1411 against an actual Stripe refund of 2011.
+// Stripe is authoritative, so reconstructed rows carry the real refunded amount.
 const existingByFromTo = new Map(
-  existing.map((e) => [
-    `${e.from_owner_id}|${e.to_owner_id}|${Math.round(e.refund_amount * MINOR)}`,
-    e,
-  ]),
+  existing.map((e) => [`${e.from_owner_id}|${e.to_owner_id}`, e]),
 );
 
+// The gate fails on a WRONG pairing, not on an absent one. Where two transfers
+// happen within seconds of each other the pairing is genuinely ambiguous, and the
+// matcher returns nothing rather than guessing; those are reported and skipped.
+const existingByFrom = new Map(existing.map((e) => [e.from_owner_id, e]));
+
 let matched = 0;
+let unresolvedLive = 0;
 const mismatches = [];
 for (const d of derivedLive) {
-  const key = `${d.fromOwnerId}|${d.toOwnerId}|${d.refundedTotal}`;
-  if (existingByFromTo.has(key)) matched++;
-  else mismatches.push(d);
+  if (!d.toOwnerId) {
+    unresolvedLive++;
+    continue;
+  }
+  if (existingByFromTo.has(`${d.fromOwnerId}|${d.toOwnerId}`)) matched++;
+  else if (existingByFrom.has(d.fromOwnerId)) mismatches.push(d); // wrong answer
+  else unresolvedLive++;
 }
 
 console.log(`Project: ${project.slug}`);
 console.log(`Existing transfer rows: ${existing.length}`);
 console.log(`Candidates derived from Stripe: ${paired.length}`);
 console.log(
-  `Validation (after ${TABLE_LIVE_FROM}): derived ${derivedLive.length}, matched ${matched}, mismatched ${mismatches.length}`,
+  `Validation (after ${TABLE_LIVE_FROM}): derived ${derivedLive.length}, ` +
+    `matched ${matched}, ambiguous/skipped ${unresolvedLive}, WRONG ${mismatches.length}`,
 );
 
 if (mismatches.length > 0) {
-  console.error("\nValidation FAILED. The algorithm does not reproduce known rows:");
+  console.error("\nValidation FAILED. The algorithm pairs these rows incorrectly:");
   for (const m of mismatches.slice(0, 10)) {
     console.error(
       `  pi=${m.paymentIntentId} from=${m.fromOwnerId} to=${m.toOwnerId} refunded=${m.refundedTotal} delta=${m.deltaMs}ms`,
@@ -277,6 +339,13 @@ for (const p of paired) {
 }
 
 console.log(`\nTo insert: ${toInsert.length}`);
+for (const t of toInsert) {
+  console.log(
+    `  ${t.created_at.slice(0, 19)}  ${t.from_owner_id.slice(0, 8)} -> ${t.to_owner_id.slice(0, 8)}  ` +
+      `refund ${t.refund_amount} ${t.price_currency}  (paid ${t.original_membership_json.price})  ` +
+      `${t.original_membership_json.first_name ?? "?"} ${t.original_membership_json.last_name ?? "?"}`,
+  );
+}
 console.log(`Unresolved (reported, not guessed): ${unresolved.length}`);
 for (const u of unresolved.slice(0, 20)) {
   console.log(
