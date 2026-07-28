@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { classifySale, splitPayment } from "@/utils/stripe/attribution";
-import { MembershipPaymentRow } from "@/utils/stripe/types";
+import {
+  aggregateFinances,
+  classifySale,
+  splitPayment,
+} from "@/utils/stripe/attribution";
+import { BalanceSummary, MembershipPaymentRow } from "@/utils/stripe/types";
 
 const EVENT_END = new Date("2026-07-26T12:00:00Z"); // The Borderland 2026
 const ALVERSJO = 60_000; // 600 SEK in öre
@@ -167,5 +171,143 @@ describe("splitPayment", () => {
     const s = splitPayment(row({ amount_total: 0, fee: 0 }), ALVERSJO);
     expect(s.baseNet).toBe(0);
     expect(s.alversjoNet).toBe(0);
+  });
+});
+
+const PROJECT = "06101baf-5991-42b1-b2f5-caa9fd6b90e2";
+const EMPTY_BALANCE: BalanceSummary = {
+  netExcludingPayouts: 0,
+  payouts: { count: 0, amount: 0 },
+  other: { count: 0, amount: 0 },
+};
+
+function aggregate(
+  rows: MembershipPaymentRow[],
+  over: Partial<Parameters<typeof aggregateFinances>[0]> = {},
+) {
+  return aggregateFinances({
+    rows,
+    projectId: PROJECT,
+    alversjoPrice: ALVERSJO,
+    eventEndDate: EVENT_END,
+    currency: "SEK",
+    transferPaymentIntentIds: [],
+    balanceSummary: EMPTY_BALANCE,
+    lastSyncedAt: "2026-07-28T10:00:00Z",
+    ...over,
+  });
+}
+
+describe("aggregateFinances", () => {
+  it("separates fall from spring by payment date", () => {
+    const p = aggregate([
+      row({ paid_at: "2025-11-17T16:00:00Z", amount_total: 222_200, fee: 3_513 }),
+      row({ paid_at: "2026-03-01T09:00:00Z", amount_total: 123_400, fee: 2_031 }),
+    ]);
+    expect(p.fall.operatingIncome).toBe(222_200);
+    expect(p.spring.operatingIncome).toBe(123_400);
+    expect(p.total.operatingIncome).toBe(345_600);
+    expect(p.fall.payments).toBe(1);
+    expect(p.spring.payments).toBe(1);
+  });
+
+  it("reports Alversjö as a slice that sums back into operating income", () => {
+    const p = aggregate([
+      row({
+        paid_at: "2026-03-01T09:00:00Z",
+        amount_total: 282_200,
+        has_alversjo: true,
+        fee: 4_413,
+      }),
+    ]);
+    expect(p.spring.alversjoIncome).toBe(60_000);
+    expect(p.spring.membershipIncome).toBe(222_200);
+    expect(p.spring.membershipIncome + p.spring.alversjoIncome).toBe(
+      p.spring.operatingIncome,
+    );
+  });
+
+  it("nets refunds out of the sale the original payment belongs to", () => {
+    const p = aggregate([
+      row({
+        paid_at: "2026-03-01T09:00:00Z",
+        amount_total: 222_200,
+        fee: 3_513,
+        refunds: [{ amount: 111_100 }],
+      }),
+    ]);
+    expect(p.spring.operatingIncome).toBe(111_100);
+    expect(p.spring.refunds).toBe(1);
+  });
+
+  it("shows gross and net separately", () => {
+    const p = aggregate([
+      row({ paid_at: "2026-03-01T09:00:00Z", amount_total: 222_200, fee: 3_513 }),
+    ]);
+    expect(p.spring.operatingIncome).toBe(222_200);
+    expect(p.spring.stripeFees).toBe(3_513);
+    expect(p.spring.netAfterFees).toBe(222_200 - 3_513);
+  });
+
+  it("excludes payments belonging to another project and counts them as unattributed", () => {
+    const p = aggregate([
+      row({ paid_at: "2026-03-01T09:00:00Z", amount_total: 222_200 }),
+      row({ paid_at: "2026-03-02T09:00:00Z", amount_total: 1_000, project_id: null }),
+      row({ paid_at: "2026-03-03T09:00:00Z", amount_total: 3_000, project_id: "other" }),
+    ]);
+    expect(p.total.operatingIncome).toBe(222_200);
+    expect(p.reconciliation.unattributedPayments).toEqual({
+      count: 2,
+      amount: 4_000,
+    });
+  });
+
+  it("counts transfers against the sale of the original membership", () => {
+    const p = aggregate(
+      [
+        row({ payment_intent_id: "pi_fall", paid_at: "2025-11-20T09:00:00Z" }),
+        row({ payment_intent_id: "pi_spring", paid_at: "2026-03-20T09:00:00Z" }),
+      ],
+      { transferPaymentIntentIds: ["pi_spring"] },
+    );
+    expect(p.fall.transfers).toBe(0);
+    expect(p.spring.transfers).toBe(1);
+    expect(p.total.transfers).toBe(1);
+  });
+
+  it("reconciles to zero when every movement is accounted for", () => {
+    const p = aggregate(
+      [row({ paid_at: "2026-03-01T09:00:00Z", amount_total: 222_200, fee: 3_513 })],
+      {
+        balanceSummary: {
+          netExcludingPayouts: 222_200 - 3_513,
+          payouts: { count: 1, amount: -200_000 },
+          other: { count: 0, amount: 0 },
+        },
+      },
+    );
+    expect(p.reconciliation.residual).toBe(0);
+    expect(p.reconciliation.payouts).toEqual({ count: 1, amount: -200_000 });
+  });
+
+  it("surfaces a non-zero residual rather than hiding it", () => {
+    const p = aggregate(
+      [row({ paid_at: "2026-03-01T09:00:00Z", amount_total: 222_200, fee: 3_513 })],
+      {
+        balanceSummary: {
+          netExcludingPayouts: 222_200 - 3_513 + 50_000,
+          payouts: { count: 0, amount: 0 },
+          other: { count: 0, amount: 0 },
+        },
+      },
+    );
+    expect(p.reconciliation.residual).toBe(50_000);
+  });
+
+  it("returns zeros for an empty mirror", () => {
+    const p = aggregate([], { lastSyncedAt: null });
+    expect(p.total.operatingIncome).toBe(0);
+    expect(p.total.payments).toBe(0);
+    expect(p.lastSyncedAt).toBeNull();
   });
 });
