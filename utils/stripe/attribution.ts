@@ -64,14 +64,7 @@ export function splitPayment(
   alversjoRefunded = Math.min(alversjoRefunded, alversjoGross);
   const baseRefunded = refundedTotal - alversjoRefunded;
 
-  const alversjoDisputed = alversjoShare(
-    row.disputed_amount,
-    alversjoGross,
-    total,
-  );
-  const baseDisputed = row.disputed_amount - alversjoDisputed;
-
-  const netFee = row.fee + row.fee_refunded + row.dispute_fee;
+  const netFee = row.fee + row.fee_refunded;
   const alversjoFee = alversjoShare(netFee, alversjoGross, total);
   const baseFee = netFee - alversjoFee;
 
@@ -80,11 +73,14 @@ export function splitPayment(
     alversjoGross,
     baseRefunded,
     alversjoRefunded,
-    baseNet: baseGross - baseRefunded - baseDisputed,
-    alversjoNet: alversjoGross - alversjoRefunded - alversjoDisputed,
+    // Disputes are not deducted here. They are money taken back after the fact,
+    // reported on their own line so income does not quietly absorb them.
+    baseNet: baseGross - baseRefunded,
+    alversjoNet: alversjoGross - alversjoRefunded,
     baseFee,
     alversjoFee,
     netFee,
+    chargeback: row.disputed_amount + row.dispute_fee,
   };
 }
 
@@ -94,7 +90,8 @@ function emptyTotals(): SaleTotals {
     alversjoIncome: 0,
     operatingIncome: 0,
     stripeFees: 0,
-    netAfterFees: 0,
+    chargebacks: 0,
+    netKept: 0,
     payments: 0,
     refunds: 0,
     transfers: 0,
@@ -109,7 +106,8 @@ function addInto(target: SaleTotals, source: SaleTotals) {
   target.alversjoIncome += source.alversjoIncome;
   target.operatingIncome += source.operatingIncome;
   target.stripeFees += source.stripeFees;
-  target.netAfterFees += source.netAfterFees;
+  target.chargebacks += source.chargebacks;
+  target.netKept += source.netKept;
   target.payments += source.payments;
   target.refunds += source.refunds;
   target.transfers += source.transfers;
@@ -200,7 +198,9 @@ export function aggregateFinances(input: {
     totals.alversjoIncome += split.alversjoNet;
     totals.operatingIncome += split.baseNet + split.alversjoNet;
     totals.stripeFees += split.netFee;
-    totals.netAfterFees += split.baseNet + split.alversjoNet - split.netFee;
+    totals.chargebacks += split.chargeback;
+    totals.netKept +=
+      split.baseNet + split.alversjoNet - split.netFee - split.chargeback;
     totals.payments++;
     if (row.refunds.length > 0) totals.refunds++;
     if (row.payment_intent_id && transfers.has(row.payment_intent_id)) {
@@ -268,7 +268,7 @@ export function aggregateFinances(input: {
   // kept, less the fees paid on it. Dispute amounts and fees are already inside the
   // sale rows (splitPayment deducts them), so they are reported for visibility but
   // not subtracted again here.
-  const saleRowsNet = total.netAfterFees;
+  const saleRowsNet = total.netKept;
   const accountedFor =
     saleRowsNet + unattributedNet + input.balanceSummary.other.amount;
 

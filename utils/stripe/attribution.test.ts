@@ -138,18 +138,20 @@ describe("splitPayment", () => {
     expect(s.baseNet + s.alversjoNet).toBe(282_200 - 201_100);
   });
 
-  it("nets fee refunds and dispute fees into the fee", () => {
-    const s = splitPayment(
-      row({ fee: 3_513, fee_refunded: -1_200, dispute_fee: 20_000 }),
-      ALVERSJO,
-    );
-    expect(s.netFee).toBe(3_513 - 1_200 + 20_000);
+  it("nets fee refunds into the fee", () => {
+    const s = splitPayment(row({ fee: 3_513, fee_refunded: -1_200 }), ALVERSJO);
+    expect(s.netFee).toBe(3_513 - 1_200);
   });
 
-  it("deducts disputed amounts from net income", () => {
-    // Real case: the one disputed 2222 SEK charge
-    const s = splitPayment(row({ disputed_amount: 222_200 }), ALVERSJO);
-    expect(s.baseNet).toBe(0);
+  it("reports a chargeback separately instead of hiding it in income", () => {
+    // Real case: the one disputed 2222 SEK charge, plus its 200 SEK dispute fee.
+    const s = splitPayment(
+      row({ disputed_amount: 222_200, dispute_fee: 20_000 }),
+      ALVERSJO,
+    );
+    expect(s.baseNet).toBe(222_200); // income untouched
+    expect(s.netFee).toBe(3_513); // dispute fee not folded into the fee
+    expect(s.chargeback).toBe(242_200); // amount plus fee
   });
 
   it("treats multiple refunds on one payment independently", () => {
@@ -270,7 +272,7 @@ describe("aggregateFinances", () => {
     ]);
     expect(p.spring.operatingIncome).toBe(222_200);
     expect(p.spring.stripeFees).toBe(3_513);
-    expect(p.spring.netAfterFees).toBe(222_200 - 3_513);
+    expect(p.spring.netKept).toBe(222_200 - 3_513);
   });
 
   it("excludes payments belonging to another project and counts them as unattributed", () => {
@@ -520,6 +522,22 @@ describe("aggregateFinances", () => {
     });
     expect(p.total.memberships).toBe(1);
     expect(p.reconciliation.unclassifiedMemberships).toBe(2);
+  });
+
+  it("subtracts chargebacks after income rather than inside it", () => {
+    const p = aggregate([
+      row({
+        paid_at: "2026-03-01T09:00:00Z",
+        amount_total: 222_200,
+        fee: 3_513,
+        disputed_amount: 222_200,
+        dispute_fee: 20_000,
+      }),
+    ]);
+    expect(p.spring.operatingIncome).toBe(222_200);
+    expect(p.spring.stripeFees).toBe(3_513);
+    expect(p.spring.chargebacks).toBe(242_200);
+    expect(p.spring.netKept).toBe(222_200 - 3_513 - 242_200);
   });
 
   it("returns zeros for an empty mirror", () => {

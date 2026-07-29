@@ -55,7 +55,7 @@ export default function FinancesSection() {
       strong: true,
     },
     { label: "Stripe fees", get: (t) => money(t.stripeFees) },
-    { label: "Net after fees", get: (t) => money(t.netAfterFees) },
+    { label: "Net kept", get: (t) => money(t.netKept) },
     { label: "Memberships", get: (t) => String(t.memberships) },
     {
       label: "Checked in",

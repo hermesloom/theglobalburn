@@ -40,8 +40,10 @@ export type PaymentSplit = {
   alversjoNet: number;
   baseFee: number;
   alversjoFee: number;
-  /** fee + fee_refunded + dispute_fee. */
+  /** fee + fee_refunded. */
   netFee: number;
+  /** Money the cardholder's bank took back, plus Stripe's dispute fee. */
+  chargeback: number;
 };
 
 export type SaleTotals = {
@@ -52,7 +54,10 @@ export type SaleTotals = {
   operatingIncome: number;
   /** Net of fee refunds, including dispute fees. */
   stripeFees: number;
-  netAfterFees: number;
+  /** Money taken back by cardholders, including Stripe's dispute fees. */
+  chargebacks: number;
+  /** operatingIncome − stripeFees − chargebacks. */
+  netKept: number;
   payments: number;
   refunds: number;
   transfers: number;
