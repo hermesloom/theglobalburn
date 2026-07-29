@@ -1,5 +1,10 @@
 import { requestWithMembership, query } from "@/app/api/_common/endpoints";
 import { BurnRole } from "@/utils/types";
+import {
+  getEventStartDate,
+  ageAt,
+  toAgeDistribution,
+} from "@/app/api/_common/age";
 
 export const GET = requestWithMembership(
   async (supabase, profile, request, body, project) => {
@@ -8,7 +13,7 @@ export const GET = requestWithMembership(
     const memberships = await query(() =>
       supabase
         .from("burn_memberships")
-        .select("price, is_low_income, metadata")
+        .select("price, is_low_income, metadata, birthdate")
         .eq("project_id", project!.id)
     );
 
@@ -23,6 +28,9 @@ export const GET = requestWithMembership(
     let mediumIncome = 0;
     let highIncome = 0;
     let alversjo = 0;
+
+    const eventStart = getEventStartDate(project!);
+    const ageMap: Record<number, number> = {};
 
     for (const membership of memberships) {
       // Calculate base price (price minus addons)
@@ -46,6 +54,13 @@ export const GET = requestWithMembership(
       if (enabledAddons.includes("alversjo-membership")) {
         alversjo++;
       }
+
+      // birthdate is NOT NULL, so this is only null if a stored value fails to
+      // parse; those memberships are skipped rather than bucketed.
+      const age = ageAt(membership.birthdate, eventStart);
+      if (age !== null) {
+        ageMap[age] = (ageMap[age] || 0) + 1;
+      }
     }
 
     return {
@@ -54,6 +69,8 @@ export const GET = requestWithMembership(
       highIncome,
       alversjo,
       total: memberships.length,
+      ageDistribution: toAgeDistribution(ageMap),
+      eventStartDate: eventStart ? eventStart.toISOString().slice(0, 10) : null,
     };
   },
   undefined,
