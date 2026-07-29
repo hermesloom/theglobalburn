@@ -65,6 +65,12 @@ export type SaleTotals = {
   memberships: number;
   /** How many of those memberships were checked in at the gate. */
   checkedIn: number;
+  /** Alversjö addon sold, before refunds. */
+  alversjoGross: number;
+  /** Alversjö's share of refunds, capped at what it received. */
+  alversjoRefunded: number;
+  /** Alversjö's share of Stripe fees, prorated by amount. */
+  alversjoFee: number;
   /**
    * What the burn gained (or lost) because these transfers happened, versus the
    * original holders simply keeping their memberships:
@@ -93,13 +99,26 @@ export type TransferInput = {
   at: string;
 };
 
-/** Account-wide totals for the reconciliation block. */
-export type BalanceSummary = {
-  /** Net across all balance transactions in the period, excluding payouts. */
-  netExcludingPayouts: number;
-  payouts: { count: number; amount: number };
-  /** Balance transactions that are neither charge, refund nor payout. */
-  other: { count: number; amount: number };
+/** Swedish VAT on the land membership supply. Does not vary. */
+export const ALVERSJO_VAT_RATE = 0.25;
+
+/**
+ * The invoice Alversjö sends BL for land memberships. Covers the spring
+ * memberships only - fall was already invoiced gross - but both sales' Stripe
+ * fees, because fall's were never deducted. All amounts in minor units.
+ */
+export type AlversjoInvoice = {
+  quantity: number;
+  unitPriceExclVat: number;
+  linesExclVat: number;
+  refundedUnits: number;
+  refundExclVat: number;
+  /** The real fee. Divided by 1 + VAT on the invoice so it comes off after VAT. */
+  feesInclVat: number;
+  feesExclVat: number;
+  subtotalExclVat: number;
+  vat: number;
+  totalInclVat: number;
 };
 
 export type FinancesPayload = {
@@ -107,22 +126,8 @@ export type FinancesPayload = {
   fall: SaleTotals;
   spring: SaleTotals;
   total: SaleTotals;
-  reconciliation: {
-    saleRowsNet: number;
-    /**
-     * Payments in the mirror belonging to another burn or with no resolvable
-     * purchase right. `amount` is gross; `net` is after their own refunds,
-     * disputes and fees, and is what the residual arithmetic uses.
-     */
-    unattributedPayments: { count: number; amount: number; net: number };
-    disputes: { count: number; amount: number; fees: number };
-    otherBalanceTransactions: { count: number; amount: number };
-    balanceNetExcludingPayouts: number;
-    /** balanceNetExcludingPayouts − everything accounted for above. Should be 0. */
-    residual: number;
-    payouts: { count: number; amount: number };
-    /** Memberships whose payment is not in the mirror, so cannot be dated. */
-    unclassifiedMemberships: number;
-  };
+  /** Free memberships with no Stripe payment, for carers. Counted in the total. */
+  carerMemberships: number;
+  alversjoInvoice: AlversjoInvoice;
   lastSyncedAt: string | null;
 };

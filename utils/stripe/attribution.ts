@@ -1,5 +1,6 @@
 import {
-  BalanceSummary,
+  AlversjoInvoice,
+  ALVERSJO_VAT_RATE,
   FinancesPayload,
   MembershipCountInput,
   MembershipPaymentRow,
@@ -98,6 +99,9 @@ function emptyTotals(): SaleTotals {
     transferSurplus: 0,
     memberships: 0,
     checkedIn: 0,
+    alversjoGross: 0,
+    alversjoRefunded: 0,
+    alversjoFee: 0,
   };
 }
 
@@ -114,6 +118,9 @@ function addInto(target: SaleTotals, source: SaleTotals) {
   target.transferSurplus += source.transferSurplus;
   target.memberships += source.memberships;
   target.checkedIn += source.checkedIn;
+  target.alversjoGross += source.alversjoGross;
+  target.alversjoRefunded += source.alversjoRefunded;
+  target.alversjoFee += source.alversjoFee;
 }
 
 /** Total refunded on a payment. */
@@ -140,7 +147,6 @@ export function aggregateFinances(input: {
   currency: string;
   transfers: TransferInput[];
   memberships: MembershipCountInput[];
-  balanceSummary: BalanceSummary;
   lastSyncedAt: string | null;
 }): FinancesPayload {
   const sales: Record<SaleKey, SaleTotals> = {
@@ -161,34 +167,11 @@ export function aggregateFinances(input: {
     input.transfers.map((t) => t.fromPaymentIntentId).filter(Boolean) as string[],
   );
 
-  let unattributedCount = 0;
-  let unattributedAmount = 0;
-  let unattributedNet = 0;
-  let disputeCount = 0;
-  let disputeAmount = 0;
-  let disputeFees = 0;
+  let carerMemberships = 0;
+  let carerCheckedIn = 0;
 
   for (const row of input.rows) {
-    if (row.disputed_amount > 0 || row.dispute_fee > 0) {
-      disputeCount++;
-      disputeAmount += row.disputed_amount;
-      disputeFees += row.dispute_fee;
-    }
-
-    if (row.project_id !== input.projectId) {
-      unattributedCount++;
-      unattributedAmount += row.amount_total;
-      // Net on the same basis as the sale rows, so the residual compares like
-      // with like. The Alversjö split is irrelevant here — it redistributes
-      // within a payment without changing its net.
-      const refunded = row.refunds.reduce((a, r) => a + r.amount, 0);
-      unattributedNet +=
-        row.amount_total -
-        refunded -
-        row.disputed_amount -
-        (row.fee + row.fee_refunded + row.dispute_fee);
-      continue;
-    }
+    if (row.project_id !== input.projectId) continue;
 
     const sale = classifySale(new Date(row.paid_at), input.eventEndDate);
     const split = splitPayment(row, input.alversjoPrice);
@@ -198,6 +181,9 @@ export function aggregateFinances(input: {
     totals.alversjoIncome += split.alversjoNet;
     totals.operatingIncome += split.baseNet + split.alversjoNet;
     totals.stripeFees += split.netFee;
+    totals.alversjoGross += split.alversjoGross;
+    totals.alversjoRefunded += split.alversjoRefunded;
+    totals.alversjoFee += split.alversjoFee;
     totals.chargebacks += split.chargeback;
     totals.netKept +=
       split.baseNet + split.alversjoNet - split.netFee - split.chargeback;
@@ -245,13 +231,13 @@ export function aggregateFinances(input: {
   // A membership acquired by transfer is dated by the payment that acquired it,
   // not by the original holder's purchase, which is what makes the counts add up
   // against the payments above.
-  let unclassifiedMemberships = 0;
   for (const membership of input.memberships) {
     const payment = membership.paymentIntentId
       ? byPaymentIntent.get(membership.paymentIntentId)
       : undefined;
     if (!payment) {
-      unclassifiedMemberships++;
+      carerMemberships++;
+      if (membership.checkedIn) carerCheckedIn++;
       continue;
     }
     const totals =
@@ -264,37 +250,47 @@ export function aggregateFinances(input: {
   addInto(total, sales.fall);
   addInto(total, sales.spring);
 
-  // Everything the sale rows account for, in balance-sheet terms: income actually
-  // kept, less the fees paid on it. Dispute amounts and fees are already inside the
-  // sale rows (splitPayment deducts them), so they are reported for visibility but
-  // not subtracted again here.
-  const saleRowsNet = total.netKept;
-  const accountedFor =
-    saleRowsNet + unattributedNet + input.balanceSummary.other.amount;
+  // Carer memberships are free and have no payment, so they cannot be dated to a
+  // sale. They are real people who were on site, so they count in the total -
+  // including their check-ins, or the checked-in percentage would be wrong.
+  total.memberships += carerMemberships;
+  total.checkedIn += carerCheckedIn;
+
+  const vatDivisor = 1 + ALVERSJO_VAT_RATE;
+  const exclVat = (n: number) => Math.round(n / vatDivisor);
+  const unitPriceExclVat = exclVat(input.alversjoPrice);
+  // Spring memberships only: fall was already invoiced gross at its full value.
+  const quantity = input.alversjoPrice
+    ? sales.spring.alversjoGross / input.alversjoPrice
+    : 0;
+  const linesExclVat = Math.round(quantity * unitPriceExclVat);
+  const refundExclVat = exclVat(sales.spring.alversjoRefunded);
+  // Both sales' fees: fall's were never deducted when fall was invoiced.
+  const feesInclVat = sales.fall.alversjoFee + sales.spring.alversjoFee;
+  const feesExclVat = exclVat(feesInclVat);
+  const subtotalExclVat = linesExclVat - refundExclVat - feesExclVat;
+  const vat = Math.round(subtotalExclVat * ALVERSJO_VAT_RATE);
+
+  const alversjoInvoice: AlversjoInvoice = {
+    quantity,
+    unitPriceExclVat,
+    linesExclVat,
+    refundedUnits: unitPriceExclVat ? refundExclVat / unitPriceExclVat : 0,
+    refundExclVat,
+    feesInclVat,
+    feesExclVat,
+    subtotalExclVat,
+    vat,
+    totalInclVat: subtotalExclVat + vat,
+  };
 
   return {
     currency: input.currency,
     fall: sales.fall,
     spring: sales.spring,
     total,
-    reconciliation: {
-      saleRowsNet,
-      unattributedPayments: {
-        count: unattributedCount,
-        amount: unattributedAmount,
-        net: unattributedNet,
-      },
-      disputes: {
-        count: disputeCount,
-        amount: disputeAmount,
-        fees: disputeFees,
-      },
-      otherBalanceTransactions: input.balanceSummary.other,
-      balanceNetExcludingPayouts: input.balanceSummary.netExcludingPayouts,
-      residual: input.balanceSummary.netExcludingPayouts - accountedFor,
-      payouts: input.balanceSummary.payouts,
-      unclassifiedMemberships,
-    },
+    carerMemberships,
+    alversjoInvoice,
     lastSyncedAt: input.lastSyncedAt,
   };
 }
