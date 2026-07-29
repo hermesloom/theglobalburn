@@ -100,6 +100,71 @@ memberships (free): 5"*.
 - `app/burn/[slug]/statistics/FinancesSection.tsx` — new row order, chargeback
   row, carer line, reconciliation block deleted.
 
+## Alversjö invoice block
+
+Alversjö invoices BL for the land memberships sold through BL. Christian has been
+assembling that invoice by hand from a Stripe spreadsheet each time. The page
+should produce its lines directly.
+
+One block, below the finances table, reproducing the line structure of the 2025
+invoice so it can be typed straight into Fortnox:
+
+```
+Landmedlemskap / Land memberships       234,00 pcs ×  480,00 =  112 320,00
+Refunds on Alversjö memberships         −53,71 pcs ×  480,00 =  −25 781,42
+Banking (Stripe) fees (fall + spring)    −1,00      3 782,54 =  − 3 782,54
+
+                                              Excl. VAT          82 756,04
+                                                 VAT 25%         20 689,01
+                                                   Total        103 445,05
+```
+
+### What the block covers, and why
+
+It is the invoice for what is **still outstanding**, not for the whole burn. The
+fall memberships were already invoiced and paid at 112,800.00, so they are
+excluded by simply not counting them — no "already paid" deduction line. But
+fall's Stripe fee was never deducted at the time, so it is carried here.
+
+- **Memberships**: spring sale only, priced at the addon price excl VAT.
+- **Refunds**: the Alversjö share of refunds, expressed as negative units so it
+  reads as a quantity rather than an unexplained deduction. All refunds fall in
+  the spring sale; fall had none.
+- **Stripe fees**: fall plus spring, prorated per payment by each payment's
+  Alversjö share of that payment's total.
+
+Cross-check: 108,173.22 spring net − 1,951.87 fall fee − 2,776.31 spring fee =
+103,445.04, matching the block total to the öre.
+
+### VAT
+
+The fee line is written as `fee ÷ 1.25` so that the full fee comes off the
+VAT-inclusive total, exactly as the 2025 invoice was constructed (`5,640.07 ÷
+1.25 = 4,512.06`, giving 310,500.00 − 5,640.07 = 304,860.00). VAT is 25%, a named
+constant — Swedish VAT on this supply does not vary, and a config field for it
+would be speculative.
+
+### Derived, not entered
+
+The unit price is the addon price from `burn_config` divided by 1.25, not the
+literal 480. Quantities, refunds and fees all come from figures the aggregator
+already computes per payment; the block adds no new data source.
+
+This requires exposing three values per sale that are currently computed and
+discarded: Alversjö gross, Alversjö refunded, and the Alversjö fee share. Today
+only the net survives into the payload.
+
+### Known divergence from the 2025 hand calculation
+
+Applying this method to BL 2025 gives 520.76 units and 5,871.61 in fees, against
+Christian's 517.50 and 5,640.07. Not an error on either side: he counted the 508
+surviving memberships plus 9.5 units for nineteen 50%-refund cases found by hand,
+whereas this attributes a proportional share of **every** refund, so the ~3%
+retained on 97%-refund transfers also lands with Alversjö. This method is ~1,954
+kr more favourable to Alversjö and does not depend on spotting special cases
+manually. Worth flagging to Christian, since it means BL 2026 is computed on a
+slightly different basis than BL 2025.
+
 ## Testing
 
 Existing tests covering the reconciliation block are removed rather than adapted;
@@ -110,7 +175,10 @@ the behaviour they described no longer exists. New tests cover:
 - `netKept` = operating income − fees − chargebacks;
 - carer memberships counting in the total but in neither sale column;
 - payments belonging to another burn being skipped silently, with no effect on
-  any figure.
+  any figure;
+- the Alversjö invoice block: quantities and refund units derived from the
+  addon price rather than a literal 480, the fee line carrying both sales, and
+  the block total equalling spring net less both sales' fees.
 
 Verified against production before shipping: operating income must equal today's
 figure plus 2,222.00, and the membership total must read 5,443.
