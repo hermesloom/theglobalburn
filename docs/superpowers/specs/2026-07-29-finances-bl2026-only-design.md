@@ -111,12 +111,12 @@ invoice so it can be typed straight into Fortnox:
 
 ```
 Landmedlemskap / Land memberships       234,00 pcs ×  480,00 =  112 320,00
-Refunds on Alversjö memberships         −53,71 pcs ×  480,00 =  −25 781,42
+Refunds on Alversjö memberships         −49,92 pcs ×  480,00 =  −23 961,60
 Banking (Stripe) fees (fall + spring)    −1,00      3 782,54 =  − 3 782,54
 
-                                              Excl. VAT          82 756,04
-                                                 VAT 25%         20 689,01
-                                                   Total        103 445,05
+                                              Excl. VAT          84 575,86
+                                                 VAT 25%         21 143,97
+                                                   Total        105 719,83
 ```
 
 ### What the block covers, and why
@@ -133,8 +133,8 @@ fall's Stripe fee was never deducted at the time, so it is carried here.
 - **Stripe fees**: fall plus spring, prorated per payment by each payment's
   Alversjö share of that payment's total.
 
-Cross-check: 108,173.22 spring net − 1,951.87 fall fee − 2,776.31 spring fee =
-103,445.04, matching the block total to the öre.
+Cross-check: 110,448.00 spring net − 1,951.87 fall fee − 2,776.31 spring fee =
+105,719.82, matching the block total to the öre.
 
 ### VAT
 
@@ -153,6 +153,38 @@ already computes per payment; the block adds no new data source.
 This requires exposing three values per sale that are currently computed and
 discarded: Alversjö gross, Alversjö refunded, and the Alversjö fee share. Today
 only the net survives into the payload.
+
+### Alversjö's share of a refund is capped at what it received
+
+A payment of 2,822 (2,222 membership + 600 addon) whose addon was cancelled and
+refunded separately, and which was later transferred, currently has the 600
+attributed wholly to Alversjö **and** a proportional slice of the transfer refund
+taken from Alversjö as well. Alversjö is charged twice and its net for that
+payment goes negative, which cannot be right: it can never give back more than it
+received.
+
+`splitPayment` therefore caps Alversjö's share of refunds at `alversjoGross`, with
+any excess falling to the base membership. Six BL 2026 payments are affected - the
+same six hit by the stale-price refund bug - and Alversjö is currently
+under-credited by 2,274.78 kr because of it. Spring net goes from 108,173.22 to
+110,448.00.
+
+A regression test covers exactly this shape: addon refunded in full, then a later
+partial refund, asserting the Alversjö net is zero rather than negative and that
+the base absorbs the remainder.
+
+### Retained transfer fees count towards Alversjö
+
+When a membership with the addon is transferred, BL keeps a transfer fee taken
+from the whole payment, so part of it comes out of the 600. That retained part is
+credited to Alversjö, on every refund, with no special cases.
+
+The alternative - credit it only when the person receiving the transfer did not
+themselves buy the addon - was put to Christian, who judged the amounts too small
+to matter (about 650 kr across BL 2026) and left the choice open. One
+unconditional rule is preferred because it does not depend on pairing each
+transfer to its replacement payment, and three BL 2026 transfers cannot be paired
+at all.
 
 ### Known divergence from the 2025 hand calculation
 
