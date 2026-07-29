@@ -2,7 +2,6 @@ import { requestWithMembership, query } from "@/app/api/_common/endpoints";
 import { aggregateFinances } from "@/utils/stripe/attribution";
 import {
   ALVERSJO_ADDON_ID,
-  BalanceSummary,
   MembershipPaymentRow,
   TransferInput,
 } from "@/utils/stripe/types";
@@ -28,19 +27,13 @@ export const GET = requestWithMembership(
     const lastRun = await query(() =>
       supabase
         .from("stripe_sync_runs")
-        .select("finished_at, stripe_account_id")
+        .select("finished_at")
         .eq("project_id", project!.id)
         .eq("status", "completed")
         .order("finished_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
     );
-
-    const emptyBalance: BalanceSummary = {
-      netExcludingPayouts: 0,
-      payouts: { count: 0, amount: 0 },
-      other: { count: 0, amount: 0 },
-    };
 
     if (!lastRun) {
       return aggregateFinances({
@@ -51,7 +44,6 @@ export const GET = requestWithMembership(
         currency,
         transfers: [],
         memberships: [],
-        balanceSummary: emptyBalance,
         lastSyncedAt: null,
       });
     }
@@ -60,40 +52,6 @@ export const GET = requestWithMembership(
       supabase.from("stripe_membership_payments").select("*"),
     );
 
-    const balanceTransactions = await query(() =>
-      supabase
-        .from("stripe_balance_transactions")
-        .select("type, amount, net, reporting_category")
-        .eq("stripe_account_id", lastRun.stripe_account_id),
-    );
-
-    const balanceSummary: BalanceSummary = {
-      netExcludingPayouts: 0,
-      payouts: { count: 0, amount: 0 },
-      other: { count: 0, amount: 0 },
-    };
-    for (const bt of balanceTransactions) {
-      if (bt.type === "payout") {
-        balanceSummary.payouts.count++;
-        balanceSummary.payouts.amount += bt.amount;
-        continue;
-      }
-      // `net` (amount minus the fee Stripe took), not `amount`: the sale rows are
-      // reported net of fees, so summing gross here would leave the whole fee bill
-      // sitting in the residual.
-      balanceSummary.netExcludingPayouts += bt.net;
-      // Dispute entries stay in the balance total — the money really did leave —
-      // but must not enter `other`, because the sale rows already deduct the
-      // disputed amount and its fee. Counting them here would subtract twice.
-      if (
-        bt.type !== "charge" &&
-        bt.type !== "refund" &&
-        bt.reporting_category !== "dispute"
-      ) {
-        balanceSummary.other.count++;
-        balanceSummary.other.amount += bt.net;
-      }
-    }
 
     // Transfers are counted against the sale the *original* membership was bought
     // in, which its payment intent identifies. Requires the backfill script for the
@@ -131,7 +89,6 @@ export const GET = requestWithMembership(
         paymentIntentId: m.stripe_payment_intent_id ?? null,
         checkedIn: !!m.checked_in_at,
       })),
-      balanceSummary,
       lastSyncedAt: lastRun.finished_at,
     });
   },
