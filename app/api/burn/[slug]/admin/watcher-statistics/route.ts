@@ -1,28 +1,10 @@
 import { requestWithProject, query } from "@/app/api/_common/endpoints";
-import { BurnRole, Project } from "@/utils/types";
-import { calculateAge } from "@/app/burn/[slug]/membership/components/helpers/date";
-
-const EVENT_START_DATES: Record<number, string> = {
-  2026: "2026-07-18",
-  2027: "2027-07-24",
-};
-
-function getEventStartDate(project: Project): Date | null {
-  const yearSource =
-    project.burn_config.event_end_date ||
-    project.burn_config.open_sale_general_starting_at;
-  if (!yearSource) return null;
-  const year = new Date(yearSource).getFullYear();
-  const dateStr = EVENT_START_DATES[year];
-  return dateStr ? new Date(dateStr) : null;
-}
-
-function ageAt(birthDateStr: string, referenceDate: Date | null): number | null {
-  if (!birthDateStr) return null;
-  const birth = new Date(birthDateStr);
-  if (isNaN(birth.getTime())) return null;
-  return calculateAge(birth, referenceDate ?? undefined);
-}
+import { BurnRole } from "@/utils/types";
+import {
+  getEventStartDate,
+  ageAt,
+  toAgeDistribution,
+} from "@/app/api/_common/age";
 
 export const GET = requestWithProject(
   async (supabase, profile, request, body, project) => {
@@ -109,11 +91,6 @@ export const GET = requestWithProject(
       }
     }
 
-    const toDistribution = (map: Record<number, number>) =>
-      Object.entries(map)
-        .map(([age, count]) => ({ age: parseInt(age), count }))
-        .sort((a, b) => a.age - b.age);
-
     const TZ = "Europe/Stockholm";
     const swParts = (date: Date) => {
       const parts = new Intl.DateTimeFormat("sv-SE", {
@@ -175,8 +152,8 @@ export const GET = requestWithProject(
       memberCount: memberships.length,
       sleeperVehicleCount,
       childrenCount,
-      memberAgeDistribution: toDistribution(memberAgeMap),
-      childrenAgeDistribution: toDistribution(childAgeMap),
+      memberAgeDistribution: toAgeDistribution(memberAgeMap),
+      childrenAgeDistribution: toAgeDistribution(childAgeMap),
       petCounts: { dogs, cats, other: otherPets },
       eventStartDate: eventStart ? eventStart.toISOString().slice(0, 10) : null,
       anomalies: {
