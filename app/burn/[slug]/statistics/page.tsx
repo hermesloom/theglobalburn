@@ -27,6 +27,8 @@ interface Statistics {
   highIncome: number;
   alversjo: number;
   total: number;
+  ageDistribution: { age: number; count: number }[];
+  eventStartDate: string | null;
 }
 
 const COLORS = {
@@ -236,6 +238,45 @@ export default function StatisticsPage() {
             </PieChart>
           </ResponsiveContainer>
         </div>
+      </div>
+
+      {/* Age Distribution */}
+      <div className="bg-white p-3 sm:p-4 md:p-6 rounded-lg shadow mb-4">
+        <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">
+          {statistics.eventStartDate
+            ? `Age Distribution at Event Start (${statistics.eventStartDate})`
+            : "Age Distribution"}
+        </h2>
+        {statistics.ageDistribution.length === 0 ? (
+          <div className="text-gray-500">No data</div>
+        ) : (
+          <ResponsiveContainer width="100%" height={isMobile ? 250 : 350}>
+            <BarChart
+              data={statistics.ageDistribution}
+              margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="age"
+                label={{ value: "Age", position: "insideBottom", offset: -2 }}
+                height={40}
+                tick={{ fontSize: isMobile ? 10 : 11 }}
+                interval={isMobile ? "preserveStartEnd" : 0}
+              />
+              <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+              <Tooltip
+                contentStyle={{
+                  fontSize: "14px",
+                  padding: "8px",
+                  borderRadius: "6px",
+                }}
+                labelFormatter={(age: any) => `Age ${age}`}
+                formatter={(value: any) => [value, "Members"]}
+              />
+              <Bar dataKey="count" fill="#8884d8" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
       </div>
 
       {/* Summary Cards */}
