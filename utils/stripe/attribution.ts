@@ -58,6 +58,10 @@ export function splitPayment(
         ? refund.amount
         : alversjoShare(refund.amount, alversjoGross, total);
   }
+  // Alversjö can never give back more than it received. A payment whose addon
+  // was refunded on its own and which was later transferred would otherwise be
+  // charged for the addon twice and go negative.
+  alversjoRefunded = Math.min(alversjoRefunded, alversjoGross);
   const baseRefunded = refundedTotal - alversjoRefunded;
 
   const alversjoDisputed = alversjoShare(

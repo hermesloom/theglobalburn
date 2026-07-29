@@ -161,11 +161,33 @@ describe("splitPayment", () => {
       }),
       ALVERSJO,
     );
-    // first is addon-sized -> all Alversjö; second splits proportionally
-    expect(s.alversjoRefunded).toBe(
-      60_000 + Math.round((111_100 * 60_000) / 282_200),
-    );
+    // The first refund is addon-sized, so it clears Alversjö's whole 600. The
+    // second cannot take any more from Alversjö - it has nothing left to give
+    // back - so it falls entirely to the base membership.
+    expect(s.alversjoRefunded).toBe(60_000);
+    expect(s.baseRefunded).toBe(111_100);
     expect(s.baseRefunded + s.alversjoRefunded).toBe(171_100);
+  });
+
+  it("never takes back more from Alversjö than it received", () => {
+    // Real shape: 2822 paid, the 600 addon cancelled and refunded on its own,
+    // then the membership transferred with a further partial refund. Alversjö
+    // must not be charged for the addon twice.
+    const s = splitPayment(
+      row({
+        amount_total: 282_200,
+        has_alversjo: true,
+        fee: 4_413,
+        refunds: [{ amount: 60_000 }, { amount: 141_100 }],
+      }),
+      ALVERSJO,
+    );
+    expect(s.alversjoRefunded).toBe(60_000);
+    expect(s.alversjoNet).toBe(0);
+    // the remainder belongs to the base membership
+    expect(s.baseRefunded).toBe(141_100);
+    expect(s.baseNet).toBe(222_200 - 141_100);
+    expect(s.baseRefunded + s.alversjoRefunded).toBe(201_100);
   });
 
   it("does not divide by zero on a zero-amount payment", () => {
