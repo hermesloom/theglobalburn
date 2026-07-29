@@ -116,7 +116,16 @@ page's `AgeChart`.
 
 ## Testing
 
-The repository has no test infrastructure for these routes, so verification is:
+Vitest is configured (`vitest.config.ts`, `npm test`) with an include glob of
+`["utils/**/*.test.ts", "app/**/*.test.ts"]`, so `app/api/_common/age.ts` is
+directly unit-testable and is built test-first: `ageAt` (valid date, empty
+string, garbage, reference-date null), `getEventStartDate` (known year, unknown
+year, missing config), and `toAgeDistribution` (empty map, single age, gap
+filling, unsorted keys).
+
+The route and the page are not unit-testable — there is no existing harness for
+Next.js route handlers or React components here, and building one is out of
+scope. They are verified by:
 
 1. `npx tsc --noEmit` passes.
 2. The page loads against real data and the age counts sum to a number no
