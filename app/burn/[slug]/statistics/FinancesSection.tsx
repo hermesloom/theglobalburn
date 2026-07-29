@@ -5,7 +5,11 @@ import { Spinner } from "@nextui-org/react";
 import { useProject } from "@/app/_components/SessionContext";
 import { apiGet } from "@/app/_components/api";
 import { formatMoney } from "@/app/_components/utils";
-import { FinancesPayload, SaleTotals } from "@/utils/stripe/types";
+import {
+  ALVERSJO_VAT_RATE,
+  FinancesPayload,
+  SaleTotals,
+} from "@/utils/stripe/types";
 import { stripeCurrenciesWithoutDecimals } from "@/app/api/_common/stripe";
 
 export default function FinancesSection() {
@@ -54,8 +58,9 @@ export default function FinancesSection() {
       get: (t) => money(t.operatingIncome),
       strong: true,
     },
-    { label: "Stripe fees", get: (t) => money(t.stripeFees) },
-    { label: "Net after fees", get: (t) => money(t.netAfterFees) },
+    { label: "Stripe fees", get: (t) => money(-t.stripeFees) },
+    { label: "Chargebacks", get: (t) => money(-t.chargebacks) },
+    { label: "Net kept", get: (t) => money(t.netKept), strong: true },
     { label: "Memberships", get: (t) => String(t.memberships) },
     {
       label: "Checked in",
@@ -77,17 +82,15 @@ export default function FinancesSection() {
     !data.lastSyncedAt ||
     Date.now() - Date.parse(data.lastSyncedAt) > 24 * 60 * 60 * 1000;
 
-  const r = data.reconciliation;
+  const inv = data.alversjoInvoice;
 
   return (
     <div className="bg-white p-4 sm:p-6 rounded-lg shadow mt-4">
       <h2 className="text-base sm:text-lg font-semibold mb-1">Finances</h2>
       <p className="text-xs sm:text-sm text-gray-500 mb-4">
-        Taken directly from Stripe. Gross and net are both shown: operating income
-        is payments less refunds, before fees. Surplus from transfers is what the
-        burn gained because memberships changed hands rather than the original
-        holders keeping them — the retained transfer fee less the Stripe fee on the
-        incoming payment, so it can be negative.
+        Taken directly from Stripe, for this burn only. Operating income is
+        payments less refunds, before fees. Chargebacks are payments reversed by
+        the cardholder&apos;s bank, including Stripe&apos;s fee for them.
       </p>
 
       <div className="overflow-x-auto">
@@ -127,74 +130,63 @@ export default function FinancesSection() {
         </table>
       </div>
 
-      <h3 className="text-sm font-semibold mt-6 mb-1">Reconciliation</h3>
+      {data.carerMemberships > 0 && (
+        <p className="text-xs text-gray-500 mt-2">
+          Of the total, {data.carerMemberships} are free carer memberships for
+          people supporting a person with a disability. They have no payment, so
+          they appear only in the total.
+        </p>
+      )}
+
+      <h3 className="text-sm font-semibold mt-6 mb-1">Alversjö invoice</h3>
       <p className="text-xs text-gray-500 mb-2">
-        Why the sale rows do not equal the bank statement.
+        What Alversjö should invoice BL for the land memberships. Covers the
+        spring memberships — the fall ones were already invoiced — and the Stripe
+        fees from both sales, since fall&apos;s were never deducted.
       </p>
-      <table className="w-full text-sm">
-        <tbody>
-          <tr className="border-b">
-            <td className="py-1 pr-4">Sale rows, net of fees</td>
-            <td className="py-1 text-right">{money(r.saleRowsNet)}</td>
-          </tr>
-          <tr className="border-b">
-            <td className="py-1 pr-4">
-              Payments not belonging to this burn ({r.unattributedPayments.count}
-              ), net
-            </td>
-            <td className="py-1 text-right">
-              {money(r.unattributedPayments.net)}
-            </td>
-          </tr>
-          <tr className="border-b">
-            <td className="py-1 pr-4">
-              Disputes ({r.disputes.count}), incl. {money(r.disputes.fees)} in fees
-            </td>
-            <td className="py-1 text-right">{money(r.disputes.amount)}</td>
-          </tr>
-          <tr className="border-b">
-            <td className="py-1 pr-4">
-              Other balance transactions ({r.otherBalanceTransactions.count})
-            </td>
-            <td className="py-1 text-right">
-              {money(r.otherBalanceTransactions.amount)}
-            </td>
-          </tr>
-          <tr className="border-b font-semibold">
-            <td className="py-1 pr-4">Stripe balance movement (excl. payouts)</td>
-            <td className="py-1 text-right">
-              {money(r.balanceNetExcludingPayouts)}
-            </td>
-          </tr>
-          <tr className="border-b">
-            <td className="py-1 pr-4">Unexplained residual</td>
-            <td
-              className={`py-1 text-right ${r.residual !== 0 ? "text-red-500 font-semibold" : ""}`}
-            >
-              {money(r.residual)}
-            </td>
-          </tr>
-          <tr>
-            <td className="py-1 pr-4 text-gray-500">
-              Paid out to bank ({r.payouts.count})
-            </td>
-            <td className="py-1 text-right text-gray-500">
-              {money(r.payouts.amount)}
-            </td>
-          </tr>
-          {r.unclassifiedMemberships > 0 && (
-            <tr>
-              <td className="py-1 pr-4 text-gray-500">
-                Memberships with no matching payment, excluded from the counts
-                above
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <tbody>
+            <tr className="border-b">
+              <td className="py-1 pr-4">Landmedlemskap / Land memberships</td>
+              <td className="py-1 px-4 text-right text-gray-500">
+                {inv.quantity.toFixed(2)} × {money(inv.unitPriceExclVat)}
               </td>
-              <td className="py-1 text-right text-gray-500">
-                {r.unclassifiedMemberships}
-              </td>
+              <td className="py-1 text-right">{money(inv.linesExclVat)}</td>
             </tr>
-          )}
-        </tbody>
-      </table>
+            <tr className="border-b">
+              <td className="py-1 pr-4">Refunds on Alversjö memberships</td>
+              <td className="py-1 px-4 text-right text-gray-500">
+                −{inv.refundedUnits.toFixed(2)} × {money(inv.unitPriceExclVat)}
+              </td>
+              <td className="py-1 text-right">{money(-inv.refundExclVat)}</td>
+            </tr>
+            <tr className="border-b">
+              <td className="py-1 pr-4">Banking (Stripe) fees</td>
+              <td className="py-1 px-4 text-right text-gray-500">
+                {money(inv.feesInclVat)} ÷ {1 + ALVERSJO_VAT_RATE}
+              </td>
+              <td className="py-1 text-right">{money(-inv.feesExclVat)}</td>
+            </tr>
+            <tr className="border-b">
+              <td className="py-1 pr-4">Excl. VAT</td>
+              <td />
+              <td className="py-1 text-right">{money(inv.subtotalExclVat)}</td>
+            </tr>
+            <tr className="border-b">
+              <td className="py-1 pr-4">VAT {ALVERSJO_VAT_RATE * 100}%</td>
+              <td />
+              <td className="py-1 text-right">{money(inv.vat)}</td>
+            </tr>
+            <tr className="font-semibold">
+              <td className="py-1 pr-4">Total</td>
+              <td />
+              <td className="py-1 text-right">{money(inv.totalInclVat)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
 
       <div className={`text-xs mt-4 ${stale ? "text-red-500" : "text-gray-500"}`}>
         {data.lastSyncedAt

@@ -4,7 +4,7 @@ import {
   classifySale,
   splitPayment,
 } from "@/utils/stripe/attribution";
-import { BalanceSummary, MembershipPaymentRow } from "@/utils/stripe/types";
+import { MembershipPaymentRow } from "@/utils/stripe/types";
 
 const EVENT_END = new Date("2026-07-26T12:00:00Z"); // The Borderland 2026
 const ALVERSJO = 60_000; // 600 SEK in öre
@@ -138,18 +138,20 @@ describe("splitPayment", () => {
     expect(s.baseNet + s.alversjoNet).toBe(282_200 - 201_100);
   });
 
-  it("nets fee refunds and dispute fees into the fee", () => {
-    const s = splitPayment(
-      row({ fee: 3_513, fee_refunded: -1_200, dispute_fee: 20_000 }),
-      ALVERSJO,
-    );
-    expect(s.netFee).toBe(3_513 - 1_200 + 20_000);
+  it("nets fee refunds into the fee", () => {
+    const s = splitPayment(row({ fee: 3_513, fee_refunded: -1_200 }), ALVERSJO);
+    expect(s.netFee).toBe(3_513 - 1_200);
   });
 
-  it("deducts disputed amounts from net income", () => {
-    // Real case: the one disputed 2222 SEK charge
-    const s = splitPayment(row({ disputed_amount: 222_200 }), ALVERSJO);
-    expect(s.baseNet).toBe(0);
+  it("reports a chargeback separately instead of hiding it in income", () => {
+    // Real case: the one disputed 2222 SEK charge, plus its 200 SEK dispute fee.
+    const s = splitPayment(
+      row({ disputed_amount: 222_200, dispute_fee: 20_000 }),
+      ALVERSJO,
+    );
+    expect(s.baseNet).toBe(222_200); // income untouched
+    expect(s.netFee).toBe(3_513); // dispute fee not folded into the fee
+    expect(s.chargeback).toBe(242_200); // amount plus fee
   });
 
   it("treats multiple refunds on one payment independently", () => {
@@ -161,11 +163,33 @@ describe("splitPayment", () => {
       }),
       ALVERSJO,
     );
-    // first is addon-sized -> all Alversjö; second splits proportionally
-    expect(s.alversjoRefunded).toBe(
-      60_000 + Math.round((111_100 * 60_000) / 282_200),
-    );
+    // The first refund is addon-sized, so it clears Alversjö's whole 600. The
+    // second cannot take any more from Alversjö - it has nothing left to give
+    // back - so it falls entirely to the base membership.
+    expect(s.alversjoRefunded).toBe(60_000);
+    expect(s.baseRefunded).toBe(111_100);
     expect(s.baseRefunded + s.alversjoRefunded).toBe(171_100);
+  });
+
+  it("never takes back more from Alversjö than it received", () => {
+    // Real shape: 2822 paid, the 600 addon cancelled and refunded on its own,
+    // then the membership transferred with a further partial refund. Alversjö
+    // must not be charged for the addon twice.
+    const s = splitPayment(
+      row({
+        amount_total: 282_200,
+        has_alversjo: true,
+        fee: 4_413,
+        refunds: [{ amount: 60_000 }, { amount: 141_100 }],
+      }),
+      ALVERSJO,
+    );
+    expect(s.alversjoRefunded).toBe(60_000);
+    expect(s.alversjoNet).toBe(0);
+    // the remainder belongs to the base membership
+    expect(s.baseRefunded).toBe(141_100);
+    expect(s.baseNet).toBe(222_200 - 141_100);
+    expect(s.baseRefunded + s.alversjoRefunded).toBe(201_100);
   });
 
   it("does not divide by zero on a zero-amount payment", () => {
@@ -176,12 +200,6 @@ describe("splitPayment", () => {
 });
 
 const PROJECT = "06101baf-5991-42b1-b2f5-caa9fd6b90e2";
-const EMPTY_BALANCE: BalanceSummary = {
-  netExcludingPayouts: 0,
-  payouts: { count: 0, amount: 0 },
-  other: { count: 0, amount: 0 },
-};
-
 function aggregate(
   rows: MembershipPaymentRow[],
   over: Partial<Parameters<typeof aggregateFinances>[0]> = {},
@@ -194,7 +212,6 @@ function aggregate(
     currency: "SEK",
     transfers: [],
     memberships: [],
-    balanceSummary: EMPTY_BALANCE,
     lastSyncedAt: "2026-07-28T10:00:00Z",
     ...over,
   });
@@ -248,21 +265,10 @@ describe("aggregateFinances", () => {
     ]);
     expect(p.spring.operatingIncome).toBe(222_200);
     expect(p.spring.stripeFees).toBe(3_513);
-    expect(p.spring.netAfterFees).toBe(222_200 - 3_513);
+    expect(p.spring.netKept).toBe(222_200 - 3_513);
   });
 
-  it("excludes payments belonging to another project and counts them as unattributed", () => {
-    const p = aggregate([
-      row({ paid_at: "2026-03-01T09:00:00Z", amount_total: 222_200 }),
-      row({ paid_at: "2026-03-02T09:00:00Z", amount_total: 1_000, project_id: null }),
-      row({ paid_at: "2026-03-03T09:00:00Z", amount_total: 3_000, project_id: "other" }),
-    ]);
-    expect(p.total.operatingIncome).toBe(222_200);
-    expect(p.reconciliation.unattributedPayments.count).toBe(2);
-    expect(p.reconciliation.unattributedPayments.amount).toBe(4_000);
-  });
-
-  it("counts transfers against the sale of the original membership", () => {
+    it("counts transfers against the sale of the original membership", () => {
     const p = aggregate(
       [
         row({ payment_intent_id: "pi_fall", paid_at: "2025-11-20T09:00:00Z" }),
@@ -283,98 +289,7 @@ describe("aggregateFinances", () => {
     expect(p.total.transfers).toBe(1);
   });
 
-  it("reconciles to zero when every movement is accounted for", () => {
-    const p = aggregate(
-      [row({ paid_at: "2026-03-01T09:00:00Z", amount_total: 222_200, fee: 3_513 })],
-      {
-        balanceSummary: {
-          netExcludingPayouts: 222_200 - 3_513,
-          payouts: { count: 1, amount: -200_000 },
-          other: { count: 0, amount: 0 },
-        },
-      },
-    );
-    expect(p.reconciliation.residual).toBe(0);
-    expect(p.reconciliation.payouts).toEqual({ count: 1, amount: -200_000 });
-  });
-
-  it("surfaces a non-zero residual rather than hiding it", () => {
-    const p = aggregate(
-      [row({ paid_at: "2026-03-01T09:00:00Z", amount_total: 222_200, fee: 3_513 })],
-      {
-        balanceSummary: {
-          netExcludingPayouts: 222_200 - 3_513 + 50_000,
-          payouts: { count: 0, amount: 0 },
-          other: { count: 0, amount: 0 },
-        },
-      },
-    );
-    expect(p.reconciliation.residual).toBe(50_000);
-  });
-
-  it("reconciles other burns' payments net, not gross", () => {
-    // A payment from another burn, half refunded, with a fee. Only its NET may
-    // enter the residual arithmetic - counting it gross silently unbalances the
-    // whole reconciliation block.
-    const p = aggregate(
-      [
-        row({
-          paid_at: "2026-03-01T09:00:00Z",
-          project_id: "other-burn",
-          amount_total: 200_000,
-          fee: 3_000,
-          refunds: [{ amount: 100_000 }],
-        }),
-      ],
-      {
-        balanceSummary: {
-          netExcludingPayouts: 200_000 - 100_000 - 3_000,
-          payouts: { count: 0, amount: 0 },
-          other: { count: 0, amount: 0 },
-        },
-      },
-    );
-    expect(p.reconciliation.unattributedPayments.amount).toBe(200_000);
-    expect(p.reconciliation.unattributedPayments.net).toBe(97_000);
-    expect(p.reconciliation.residual).toBe(0);
-  });
-
-  it("prices the transfer surplus against the no-transfer counterfactual", () => {
-    // Real 3% era shape: A paid 2222 (fee 35.13), refunded 2155.34; B paid 2222
-    // (fee 35.13). The burn keeps the 66.66 buffer less B's fee = 31.53.
-    const p = aggregate(
-      [
-        row({
-          payment_intent_id: "pi_A",
-          owner_id: "alice",
-          paid_at: "2026-03-01T09:00:00Z",
-          amount_total: 222_200,
-          fee: 3_513,
-          refunds: [{ amount: 215_534 }],
-        }),
-        row({
-          payment_intent_id: "pi_B",
-          owner_id: "bob",
-          paid_at: "2026-06-01T09:00:00Z",
-          amount_total: 222_200,
-          fee: 3_513,
-        }),
-      ],
-      {
-        transfers: [
-          {
-            fromPaymentIntentId: "pi_A",
-            toOwnerId: "bob",
-            at: "2026-06-01T09:00:00Z",
-          },
-        ],
-      },
-    );
-    expect(p.spring.transferSurplus).toBe(222_200 - 3_513 - 215_534);
-    expect(p.spring.transferSurplus).toBe(3_153);
-  });
-
-  it("reports a negative surplus when the incoming fee exceeds the buffer", () => {
+      it("reports a negative surplus when the incoming fee exceeds the buffer", () => {
     // B pays with an international card: 74.02 fee against a 66.66 buffer.
     const p = aggregate(
       [
@@ -488,7 +403,17 @@ describe("aggregateFinances", () => {
     expect(p.spring.checkedIn).toBe(1);
   });
 
-  it("reports memberships it cannot date rather than dropping them", () => {
+  it("ignores payments belonging to another burn entirely", () => {
+    const p = aggregate([
+      row({ paid_at: "2026-03-01T09:00:00Z", amount_total: 222_200 }),
+      row({ paid_at: "2026-03-02T09:00:00Z", amount_total: 1_000, project_id: null }),
+      row({ paid_at: "2026-03-03T09:00:00Z", amount_total: 3_000, project_id: "other" }),
+    ]);
+    expect(p.total.operatingIncome).toBe(222_200);
+    expect(p.total.payments).toBe(1);
+  });
+
+  it("counts carer memberships in the total but in neither sale", () => {
     const p = aggregate([row({ payment_intent_id: "pi_known" })], {
       memberships: [
         { paymentIntentId: "pi_known", checkedIn: false },
@@ -496,8 +421,60 @@ describe("aggregateFinances", () => {
         { paymentIntentId: "pi_not_in_mirror", checkedIn: false },
       ],
     });
-    expect(p.total.memberships).toBe(1);
-    expect(p.reconciliation.unclassifiedMemberships).toBe(2);
+    expect(p.fall.memberships).toBe(0);
+    expect(p.spring.memberships).toBe(1);
+    expect(p.total.memberships).toBe(3); // 1 payment-backed + 2 carers
+    expect(p.total.checkedIn).toBe(1); // the carer who checked in
+    expect(p.carerMemberships).toBe(2);
+  });
+
+  it("builds the Alversjö invoice from spring memberships and both sales' fees", () => {
+    const p = aggregate([
+      // fall: one addon, no refund
+      row({
+        paid_at: "2025-11-20T09:00:00Z",
+        amount_total: 282_200,
+        has_alversjo: true,
+        fee: 4_413,
+      }),
+      // spring: two addons, one of them refunded in full
+      row({
+        paid_at: "2026-03-01T09:00:00Z",
+        amount_total: 282_200,
+        has_alversjo: true,
+        fee: 4_413,
+      }),
+      row({
+        paid_at: "2026-03-02T09:00:00Z",
+        amount_total: 282_200,
+        has_alversjo: true,
+        fee: 4_413,
+        refunds: [{ amount: 60_000 }],
+      }),
+    ]);
+    const inv = p.alversjoInvoice;
+    expect(inv.unitPriceExclVat).toBe(48_000); // 60000 / 1.25
+    expect(inv.quantity).toBe(2); // spring only
+    expect(inv.refundedUnits).toBeCloseTo(1, 4);
+    // fees: 938 per payment (4413 * 60000/282200), three payments
+    expect(inv.feesInclVat).toBe(938 * 3);
+    expect(inv.totalInclVat).toBe(60_000 * 1 - 938 * 3);
+  });
+
+  it("subtracts chargebacks after income rather than inside it", () => {
+    const p = aggregate([
+      row({
+        paid_at: "2026-03-01T09:00:00Z",
+        amount_total: 222_200,
+        fee: 3_513,
+        disputed_amount: 222_200,
+        dispute_fee: 20_000,
+      }),
+    ]);
+    expect(p.spring.operatingIncome).toBe(222_200);
+    expect(p.spring.stripeFees).toBe(3_513);
+    expect(p.spring.chargebacks).toBe(242_200);
+    expect(p.spring.netKept).toBe(222_200 - 3_513 - 242_200);
   });
 
   it("returns zeros for an empty mirror", () => {
