@@ -56,9 +56,11 @@ export const GET = requestWithMembership(
       }
 
       // birthdate is NOT NULL, so this is only null if a stored value fails to
-      // parse; those memberships are skipped rather than bucketed.
+      // parse. Ages of 100+ are typos rather than real members, and including
+      // them stretches the chart's axis across ~100 empty columns, so both are
+      // skipped. The distribution therefore sums to less than `total`.
       const age = ageAt(membership.birthdate, eventStart);
-      if (age !== null) {
+      if (age !== null && age < 100) {
         ageMap[age] = (ageMap[age] || 0) + 1;
       }
     }

@@ -150,6 +150,29 @@ export default function StatisticsPage() {
 
   const pieData = incomeData.filter((item) => item.value > 0);
 
+  // Y axis steps by exactly 100, ending at the next hundred above the tallest
+  // bar. The floor of 100 keeps a two-tick axis on small burns.
+  const maxAgeCount = Math.max(
+    0,
+    ...statistics.ageDistribution.map((d) => d.count),
+  );
+  const ageYMax = Math.max(100, Math.ceil(maxAgeCount / 100) * 100);
+  const ageYTicks = Array.from(
+    { length: ageYMax / 100 + 1 },
+    (_, i) => i * 100,
+  );
+
+  // Label whole decades only, so ~50 columns never collide. A range narrower
+  // than a decade contains no multiple of 10, so fall back to its endpoints.
+  const ages = statistics.ageDistribution.map((d) => d.age);
+  const decadeTicks = ages.filter((age) => age % 10 === 0);
+  const ageXTicks =
+    decadeTicks.length > 0
+      ? decadeTicks
+      : ages.length > 0
+        ? [ages[0], ages[ages.length - 1]]
+        : [];
+
   return (
     <>
       <Heading>Statistics</Heading>
@@ -261,9 +284,14 @@ export default function StatisticsPage() {
                 label={{ value: "Age", position: "insideBottom", offset: -2 }}
                 height={40}
                 tick={{ fontSize: isMobile ? 10 : 11 }}
-                interval={isMobile ? "preserveStartEnd" : 0}
+                ticks={ageXTicks}
+                interval={0}
               />
-              <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+              <YAxis
+                tick={{ fontSize: 12 }}
+                domain={[0, ageYMax]}
+                ticks={ageYTicks}
+              />
               <Tooltip
                 contentStyle={{
                   fontSize: "14px",
