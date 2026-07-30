@@ -32,8 +32,8 @@ export default function MemberDetailsInput({
   );
   const isBirthdateValidDate = !isNaN(+new Date(birthdate));
   const isBirthdateRealistic = isBirthdateValidDate
-    ? calculateAge(birthdate) < 150
-    : false; // if someone is older than 150, they need to contact support
+    ? calculateAge(birthdate) < 120
+    : false; // if someone is older than 120, they need to contact support
   const isAgeValid =
     isBirthdateWellFormatted &&
     isBirthdateValidDate &&
