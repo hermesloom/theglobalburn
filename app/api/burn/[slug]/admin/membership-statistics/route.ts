@@ -11,7 +11,7 @@ export const GET = requestWithProject(
     const memberships = await query(() =>
       supabase
         .from("burn_memberships")
-        .select("id, first_name, last_name, birthdate, checked_in_at, metadata->children, metadata->pets, metadata->car_registration")
+        .select("id, first_name, last_name, birthdate, checked_in_at, is_non_transferable, metadata->children, metadata->pets, metadata->car_registration")
         .eq("project_id", project!.id)
     );
 
@@ -148,8 +148,19 @@ export const GET = requestWithProject(
     const checkInsByDay = windowDates.map((date) => ({ date, count: checkInDayMap[date] || 0 }));
     const checkInsByShift = windowDates.map((shiftStart) => ({ shiftStart, count: checkInShiftMap[shiftStart] || 0 }));
 
+    let notCheckedInTransferable = 0;
+    let notCheckedInNonTransferable = 0;
+    for (const m of memberships) {
+      if (!m.checked_in_at) {
+        if (m.is_non_transferable) notCheckedInNonTransferable++;
+        else notCheckedInTransferable++;
+      }
+    }
+
     return {
       memberCount: memberships.length,
+      notCheckedInTransferable,
+      notCheckedInNonTransferable,
       sleeperVehicleCount,
       childrenCount,
       memberAgeDistribution: toAgeDistribution(memberAgeMap),

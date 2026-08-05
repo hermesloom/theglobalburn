@@ -45,6 +45,8 @@ interface OldChild {
 
 interface MembershipStatistics {
   memberCount: number;
+  notCheckedInTransferable: number;
+  notCheckedInNonTransferable: number;
   sleeperVehicleCount: number;
   childrenCount: number;
   memberAgeDistribution: AgeEntry[];
@@ -216,6 +218,8 @@ export default function MembershipStatisticsPage() {
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         <StatCard label="Members" value={stats.memberCount} color="#8884d8" />
         <StatCard label="Check-ins" value={stats.checkInsByDay.reduce((s, d) => s + d.count, 0)} color="#4ade80" />
+        <StatCard label="Not checked-in (transferable)" value={stats.notCheckedInTransferable} color="#f97316" />
+        <StatCard label="Not checked-in (non-transferable)" value={stats.notCheckedInNonTransferable} color="#ef4444" />
         <StatCard label="Sleeper Vehicles" value={stats.sleeperVehicleCount} color="#6aa3d5" />
         <StatCard label="Children" value={stats.childrenCount} color="#82ca9d" />
         <StatCard label="Pets" value={`Dogs:${stats.petCounts.dogs} / Cats:${stats.petCounts.cats} / Other:${stats.petCounts.other}`} color="#ffc658" />
