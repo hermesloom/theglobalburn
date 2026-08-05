@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/server";
 import {
   BurnConfig,
   BurnMembership,
@@ -8,9 +8,16 @@ import {
 } from "@/utils/types";
 import { query } from "@/app/api/_common/endpoints";
 import { stripeCurrenciesWithoutDecimals } from "@/app/api/_common/stripe";
+import {
+  buildRefundFailureEmail,
+  REFUND_FAILURE_ALERT_EMAIL,
+  transferRefundAmount,
+} from "@/utils/stripe/transfers";
+import { sendEmail } from "@/app/_components/email";
 
 export async function POST(req: Request) {
-  const supabase = await createClient();
+  // Data access must not run as `authenticated`; see createAdminClient.
+  const supabase = createAdminClient();
   const allProjects = await query(() =>
     supabase.from("projects").select("*, burn_config(*)"),
   );
@@ -174,41 +181,111 @@ export async function POST(req: Request) {
       if (membershipsBeingTransferred.length > 0) {
         const revokedMembership: BurnMembership =
           membershipsBeingTransferred[0];
-        // refund the current membership via Stripe, minus the transfer fee
+
+        const minorUnitFactor = stripeCurrenciesWithoutDecimals.includes(
+          revokedMembership.price_currency.toUpperCase(),
+        )
+          ? 1
+          : 100;
+
+        // Refund the current membership via Stripe, minus the transfer fee.
+        //
+        // The amount is based on what Stripe still considers refundable, not on
+        // burn_memberships.price. That column is not reduced by refunds issued
+        // outside this flow, so after a manual addon refund it overstated what the
+        // member held; the resulting refund exceeded the refundable balance, Stripe
+        // rejected it, and the member went unpaid until someone noticed by hand.
+        let refundedMinorUnits = 0;
+        let refundError: string | null = null;
+        let intendedMinorUnits: number | null = null;
+
         if (revokedMembership.stripe_payment_intent_id) {
           try {
-            await stripe.refunds.create({
-              payment_intent: revokedMembership.stripe_payment_intent_id,
-              amount: Math.round(
-                revokedMembership.price *
-                (1 - (burnConfig.transfer_fee_percentage ?? 0) / 100) *
-                (stripeCurrenciesWithoutDecimals.includes(
-                  revokedMembership.price_currency.toUpperCase(),
-                )
-                  ? 1
-                  : 100),
-              ),
-            });
-          } catch (e) {
-            console.error("[WARNING] refund could not be created, see the following stack trace for details")
-            console.error(e);
+            const paymentIntent = await stripe.paymentIntents.retrieve(
+              revokedMembership.stripe_payment_intent_id,
+              { expand: ["latest_charge"] },
+            );
+            const charge = paymentIntent.latest_charge as Stripe.Charge | null;
+            if (!charge) {
+              throw new Error("payment intent has no charge to refund");
+            }
+            const amount = transferRefundAmount(
+              charge.amount - charge.amount_refunded,
+              burnConfig.transfer_fee_percentage ?? 0,
+            );
+            intendedMinorUnits = amount;
+            if (amount > 0) {
+              const refund = await stripe.refunds.create({
+                payment_intent: revokedMembership.stripe_payment_intent_id,
+                amount,
+              });
+              // Record what Stripe actually did, not what we asked for.
+              refundedMinorUnits = refund.amount;
+            }
+          } catch (e: any) {
+            refundError = e?.message ?? String(e);
+            console.error(
+              `[ERROR] transfer refund failed for membership ${revokedMembership.id} ` +
+                `(payment intent ${revokedMembership.stripe_payment_intent_id}); ` +
+                `the transfer will still complete and this member is owed money`,
+              e,
+            );
           }
         }
 
-        // Log the transfer before deleting the membership
-        const refundAmount =
-          revokedMembership.price *
-          (1 - (burnConfig.transfer_fee_percentage ?? 0) / 100);
+        // Log the transfer before deleting the membership. A failed refund is
+        // recorded on the row rather than left to a log line, so the people owed
+        // money can be found with a query.
         await query(() =>
           supabase.from("burn_membership_transfers").insert({
             project_id: projectId,
             from_owner_id: revokedMembership.owner_id,
             to_owner_id: membershipPurchaseRight.owner_id,
-            refund_amount: refundAmount,
+            refund_amount: refundedMinorUnits / minorUnitFactor,
             price_currency: revokedMembership.price_currency,
             original_membership_json: revokedMembership,
+            metadata: refundError
+              ? { refund_failed: true, refund_error: refundError }
+              : null,
           }),
         );
+
+        // Someone is now owed money and only a human can fix it, so tell them.
+        // Wrapped because a mail outage must not take the transfer down with it -
+        // the row above is already the durable record.
+        if (refundError) {
+          try {
+            const owner = await query(() =>
+              supabase
+                .from("profiles")
+                .select("email")
+                .eq("id", revokedMembership.owner_id)
+                .maybeSingle(),
+            );
+            const { subject, text } = buildRefundFailureEmail({
+              projectName: suitableProjects[0].name,
+              memberName:
+                `${revokedMembership.first_name ?? ""} ${revokedMembership.last_name ?? ""}`.trim() ||
+                "unknown",
+              memberEmail: owner?.email ?? null,
+              membershipId: revokedMembership.id,
+              paymentIntentId: revokedMembership.stripe_payment_intent_id ?? null,
+              intendedAmount:
+                intendedMinorUnits === null
+                  ? null
+                  : intendedMinorUnits / minorUnitFactor,
+              currency: revokedMembership.price_currency,
+              error: refundError,
+            });
+            await sendEmail(REFUND_FAILURE_ALERT_EMAIL, subject, text);
+          } catch (e) {
+            console.error(
+              "[ERROR] could not send the refund-failure alert; the failure is " +
+                "still recorded on the burn_membership_transfers row",
+              e,
+            );
+          }
+        }
 
         // Delete the original membership since it's been transferred
         await query(() =>

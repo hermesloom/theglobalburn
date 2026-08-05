@@ -6,7 +6,8 @@ import { useProject } from "@/app/_components/SessionContext";
 import { apiGet } from "@/app/_components/api";
 import { Spinner } from "@nextui-org/react";
 import Heading from "@/app/_components/Heading";
-import { formatMoney } from "@/app/_components/utils";
+import FinancesSection from "./FinancesSection";
+import { BurnRole } from "@/utils/types";
 import {
   BarChart,
   Bar,
@@ -26,6 +27,8 @@ interface Statistics {
   highIncome: number;
   alversjo: number;
   total: number;
+  ageDistribution: { age: number; count: number }[];
+  eventStartDate: string | null;
 }
 
 const COLORS = {
@@ -38,7 +41,12 @@ const COLORS = {
 export default function StatisticsPage() {
   const { project } = useProject();
 
-  if (project && !project.membership) {
+  // Organisers do not necessarily hold a membership, but do need the numbers.
+  if (
+    project &&
+    !project.membership &&
+    !project.roles.includes(BurnRole.Admin)
+  ) {
     redirect(`/burn/${project.slug}/membership`);
   }
 
@@ -142,6 +150,29 @@ export default function StatisticsPage() {
 
   const pieData = incomeData.filter((item) => item.value > 0);
 
+  // Y axis steps by exactly 100, ending at the next hundred above the tallest
+  // bar. The floor of 100 keeps a two-tick axis on small burns.
+  const maxAgeCount = Math.max(
+    0,
+    ...statistics.ageDistribution.map((d) => d.count),
+  );
+  const ageYMax = Math.max(100, Math.ceil(maxAgeCount / 100) * 100);
+  const ageYTicks = Array.from(
+    { length: ageYMax / 100 + 1 },
+    (_, i) => i * 100,
+  );
+
+  // Label whole decades only, so ~50 columns never collide. A range narrower
+  // than a decade contains no multiple of 10, so fall back to its endpoints.
+  const ages = statistics.ageDistribution.map((d) => d.age);
+  const decadeTicks = ages.filter((age) => age % 10 === 0);
+  const ageXTicks =
+    decadeTicks.length > 0
+      ? decadeTicks
+      : ages.length > 0
+        ? [ages[0], ages[ages.length - 1]]
+        : [];
+
   return (
     <>
       <Heading>Statistics</Heading>
@@ -232,6 +263,50 @@ export default function StatisticsPage() {
         </div>
       </div>
 
+      {/* Age Distribution */}
+      <div className="bg-white p-3 sm:p-4 md:p-6 rounded-lg shadow mb-4">
+        <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">
+          {statistics.eventStartDate
+            ? `Age Distribution at Event Start (${statistics.eventStartDate})`
+            : "Age Distribution"}
+        </h2>
+        {statistics.ageDistribution.length === 0 ? (
+          <div className="text-gray-500">No data</div>
+        ) : (
+          <ResponsiveContainer width="100%" height={isMobile ? 250 : 350}>
+            <BarChart
+              data={statistics.ageDistribution}
+              margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="age"
+                label={{ value: "Age", position: "insideBottom", offset: -2 }}
+                height={40}
+                tick={{ fontSize: isMobile ? 10 : 11 }}
+                ticks={ageXTicks}
+                interval={0}
+              />
+              <YAxis
+                tick={{ fontSize: 12 }}
+                domain={[0, ageYMax]}
+                ticks={ageYTicks}
+              />
+              <Tooltip
+                contentStyle={{
+                  fontSize: "14px",
+                  padding: "8px",
+                  borderRadius: "6px",
+                }}
+                labelFormatter={(age: any) => `Age ${age}`}
+                formatter={(value: any) => [value, "Members"]}
+              />
+              <Bar dataKey="count" fill="#8884d8" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-4">
         <div className="bg-white p-3 sm:p-4 rounded-lg shadow">
@@ -289,50 +364,7 @@ export default function StatisticsPage() {
         </div>
       </div>
 
-      {project?.burn_config && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-            <div className="text-sm sm:text-base text-gray-600 mb-2">
-              Total Membership Income
-            </div>
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold">
-              {formatMoney(
-                statistics.lowIncome *
-                  project.burn_config.membership_price_tier_1 +
-                  statistics.mediumIncome *
-                    project.burn_config.membership_price_tier_2 +
-                  statistics.highIncome *
-                    project.burn_config.membership_price_tier_3,
-                project.burn_config.membership_price_currency,
-              )}
-            </div>
-            <div className="text-xs sm:text-sm text-gray-500 mt-1">
-              Before Stripe fees
-            </div>
-          </div>
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-            <div className="text-sm sm:text-base text-gray-600 mb-2">
-              Total Alversjö Membership Income
-            </div>
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold">
-              {(() => {
-                const alversjoAddon =
-                  project.burn_config.membership_addons.find(
-                    (a) => a.id === "alversjo-membership",
-                  );
-                const alversjoPrice = alversjoAddon?.price ?? 0;
-                return formatMoney(
-                  statistics.alversjo * alversjoPrice,
-                  project.burn_config.membership_price_currency,
-                );
-              })()}
-            </div>
-            <div className="text-xs sm:text-sm text-gray-500 mt-1">
-              Before Stripe fees
-            </div>
-          </div>
-        </div>
-      )}
+      <FinancesSection />
     </>
   );
 }

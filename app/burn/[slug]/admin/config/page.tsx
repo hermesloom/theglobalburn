@@ -12,6 +12,7 @@ import {
   formatQuestionsAsMarkdown,
 } from "@/app/burn/[slug]/membership/components/helpers/useBurnerQuestionnairePrompt";
 import TestSendEmailButton from "./TestSendEmailButton";
+import StripeSyncButton from "./StripeSyncButton";
 
 function isJson(value: string) {
   try {
@@ -352,6 +353,7 @@ export default function ConfigPage() {
           Download Questions as Markdown
         </Button>
         <TestSendEmailButton />
+        <StripeSyncButton />
       </div>
     </>
   );
